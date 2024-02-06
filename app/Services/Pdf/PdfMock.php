@@ -47,7 +47,7 @@ class PdfMock
     {
         //need to resolve the pdf type here, ie product / purchase order
         $document_type = $this->request['entity_type'] == 'purchase_order' ? 'purchase_order' : 'product';
-
+             
         $pdf_service = new PdfService($this->mock->invitation, $document_type);
 
         $pdf_config = (new PdfConfiguration($pdf_service));
@@ -64,23 +64,16 @@ class PdfMock
         $pdf_config->setPdfVariables();
         $pdf_config->setCurrency(Currency::find($this->settings->currency_id));
         $pdf_config->setCountry(Country::find($this->settings->country_id ?: 840));
+        $pdf_config->design = Design::withTrashed()->find($this->decodePrimaryKey($pdf_config->entity_design_id));
         $pdf_config->currency_entity = $this->mock->client;
-
-        if(isset($this->request['design_id']) && $design  = Design::withTrashed()->find($this->request['design_id'])) {
-            $pdf_config->design = $design;
-            $pdf_config->entity_design_id = $design->hashed_id;
-        } else {
-            $pdf_config->design = Design::withTrashed()->find($this->decodePrimaryKey($pdf_config->entity_design_id));
-        }
-
+        
         $pdf_service->config = $pdf_config;
 
-        if(isset($this->request['design'])) {
+        if(isset($this->request['design']))
             $pdf_designer = (new PdfDesigner($pdf_service))->buildFromPartials($this->request['design']);
-        } else {
+        else
             $pdf_designer = (new PdfDesigner($pdf_service))->build();
-        }
-
+        
         $pdf_service->designer = $pdf_designer;
 
         $pdf_service->html_variables = $document_type == 'purchase_order' ? $this->getVendorStubVariables() : $this->getStubVariables();
@@ -96,13 +89,13 @@ class PdfMock
     public function build(): self
     {
         $this->mock = $this->initEntity();
-
+ 
         return $this;
     }
 
     public function initEntity(): mixed
     {
-        $settings = new \stdClass();
+        $settings = new \stdClass;
         $settings->entity = Client::class;
         $settings->currency_id = '1';
         $settings->industry_id = '';
@@ -144,20 +137,20 @@ class PdfMock
                 break;
         }
 
-
+    
         $entity->tax_map = $this->getTaxMap();
         $entity->total_tax_map = $this->getTotalTaxMap();
         $entity->invitation->company = $this->company;
 
         return $entity;
     }
-
+    
     /**
      * getMergedSettings
      *
      * @return object
      */
-    public function getMergedSettings(): object
+    public function getMergedSettings() :object
     {
         $settings = $this->company->settings;
 
@@ -168,11 +161,11 @@ class PdfMock
         };
 
         $settings = CompanySettings::setProperties($settings);
-
+        
         return $settings;
     }
 
-
+    
     /**
      * getTaxMap
      *
@@ -182,7 +175,7 @@ class PdfMock
     {
         return collect([['name' => 'GST', 'total' => 10]]);
     }
-
+    
     /**
      * getTotalTaxMap
      *
@@ -192,7 +185,7 @@ class PdfMock
     {
         return [['name' => 'GST', 'total' => 10]];
     }
-
+    
     /**
      * getStubVariables
      *
@@ -202,25 +195,24 @@ class PdfMock
     {
         return ['values' =>
          [
+    
     '$client.shipping_postal_code' => '46420',
     '$client.billing_postal_code' => '11243',
     '$company.city_state_postal' => 'Beveley Hills, CA, 90210',
     '$company.postal_city_state' => 'CA',
     '$company.postal_city' => '90210, CA',
     '$product.gross_line_total' => '100',
-    '$client.classification' => 'Individual',
-    '$company.classification' => 'Business',
     '$client.postal_city_state' => '11243 Aufderharchester, North Carolina',
     '$client.postal_city' => '11243 Aufderharchester, North Carolina',
     '$client.shipping_address1' => '453',
     '$client.shipping_address2' => '66327 Waters Trail',
     '$client.city_state_postal' => 'Aufderharchester, North Carolina 11243',
-    '$client.shipping_address' => '453<br/>66327 Waters Trail<br/>Aufderharchester, North Carolina 11243<br/>United States<br/>',
+    '$client.shipping_address' => '453<br/>66327 Waters Trail<br/>Aufderharchester, North Carolina 11243<br/>Afghanistan<br/>',
     '$client.billing_address2' => '63993 Aiyana View',
     '$client.billing_address1' => '8447',
     '$client.shipping_country' => 'USA',
-    '$invoiceninja.whitelabel' => config('ninja.app_logo'),
-    '$client.billing_address' => '8447<br/>63993 Aiyana View<br/>Aufderharchester, North Carolina 11243<br/>United States<br/>',
+    '$invoiceninja.whitelabel' => 'https://i.imgur.com/HDfTPYV.png',
+    '$client.billing_address' => '8447<br/>63993 Aiyana View<br/>Aufderharchester, North Carolina 11243<br/>Afghanistan<br/>',
     '$client.billing_country' => 'USA',
     '$task.gross_line_total' => '100',
     '$contact.portal_button' => '<a class="button" href="http://ninja.test:8000/client/key_login/zJJEjlUtXPiNnnnyO2tcYia64PSwauidy61eDnMU?client_hash=nzikYQITs1kyUK61GScTNW67JwhTRkOBVdvsHzIv">View client portal</a>',
@@ -280,8 +272,8 @@ class PdfMock
     '$product.quantity' => '',
     '$total_tax_labels' => '',
     '$total_tax_values' => '',
-    '$invoice.discount' => '$5.00',
-    '$invoice.subtotal' => '$100.00',
+    '$invoice.discount' => '$0.00',
+    '$invoice.subtotal' => '$0.00',
     '$company.address2' => $this->settings->address2,
     '$partial_due_date' => '&nbsp;',
     '$invoice.due_date' => '2023-10-24',
@@ -318,7 +310,7 @@ class PdfMock
     '$created_by_user' => 'Derrick Monahan DDS Erna Wunsch',
     '$client.currency' => 'USD',
     '$company.country' => 'United States',
-    '$company.address' => 'Christiansen Garden<br/>70218 Lori Station Suite 529<br/>New Loy, Delaware 29359<br/>United States<br/>Phone: 1-240-886-2233<br/>Email: immanuel53@example.net<br/>',
+    '$company.address' => 'United States<br/>',
     '$tech_hero_image' => 'http://ninja.test:8000/images/pdf-designs/tech-hero-image.jpg',
     '$task.tax_name1' => '',
     '$task.tax_name2' => '',
@@ -337,14 +329,14 @@ class PdfMock
     '$invoice.number' => '0029',
     '$quote.quote_no' => '0029',
     '$quote.datetime' => '25/Feb/2023 1:10 am',
-    '$client_address' => '8447<br/>63993 Aiyana View<br/>Aufderharchester, North Carolina 11243<br/>United States<br/>',
-    '$client.address' => '8447<br/>63993 Aiyana View<br/>Aufderharchester, North Carolina 11243<br/>United States<br/>',
+    '$client_address' => '8447<br/>63993 Aiyana View<br/>Aufderharchester, North Carolina 11243<br/>Afghanistan<br/>',
+    '$client.address' => '8447<br/>63993 Aiyana View<br/>Aufderharchester, North Carolina 11243<br/>Afghanistan<br/>',
     '$payment_button' => '<a class="button" href="http://ninja.test:8000/client/pay/UAUY8vIPuno72igmXbbpldwo5BDDKIqs">Pay Now</a>',
     '$payment_qrcode' => '<svg class=\'pqrcode\' viewBox=\'0 0 200 200\' width=\'200\' height=\'200\' x=\'0\' y=\'0\' xmlns=\'http://www.w3.org/2000/svg\'>
           <rect x=\'0\' y=\'0\' width=\'100%\'\' height=\'100%\' /><?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="200" height="200" viewBox="0 0 200 200"><rect x="0" y="0" width="200" height="200" fill="#fefefe"/><g transform="scale(4.878)"><g transform="translate(4,4)"><path fill-rule="evenodd" d="M9 0L9 1L8 1L8 2L9 2L9 3L8 3L8 4L10 4L10 7L11 7L11 4L12 4L12 5L13 5L13 4L12 4L12 2L14 2L14 7L15 7L15 6L16 6L16 8L15 8L15 10L14 10L14 11L16 11L16 12L14 12L14 13L15 13L15 14L14 14L14 15L15 15L15 14L17 14L17 15L16 15L16 16L14 16L14 17L15 17L15 18L14 18L14 19L13 19L13 18L11 18L11 15L8 15L8 12L9 12L9 13L10 13L10 14L11 14L11 13L12 13L12 14L13 14L13 13L12 13L12 11L13 11L13 10L11 10L11 11L10 11L10 9L11 9L11 8L6 8L6 9L5 9L5 8L0 8L0 10L1 10L1 12L2 12L2 11L3 11L3 10L4 10L4 11L5 11L5 12L3 12L3 13L7 13L7 14L6 14L6 15L5 15L5 14L1 14L1 15L0 15L0 19L1 19L1 20L0 20L0 25L1 25L1 20L2 20L2 19L3 19L3 20L4 20L4 21L5 21L5 20L6 20L6 21L8 21L8 23L7 23L7 22L5 22L5 24L4 24L4 25L8 25L8 27L10 27L10 28L11 28L11 29L9 29L9 28L8 28L8 33L9 33L9 30L11 30L11 29L12 29L12 32L13 32L13 33L14 33L14 32L15 32L15 33L17 33L17 32L19 32L19 31L18 31L18 30L16 30L16 28L17 28L17 29L18 29L18 28L19 28L19 27L18 27L18 26L17 26L17 27L16 27L16 26L15 26L15 25L16 25L16 24L18 24L18 25L19 25L19 23L18 23L18 22L19 22L19 20L17 20L17 19L20 19L20 25L21 25L21 26L22 26L22 28L21 28L21 27L20 27L20 33L21 33L21 30L24 30L24 32L25 32L25 33L27 33L27 32L29 32L29 33L32 33L32 32L33 32L33 31L31 31L31 32L29 32L29 30L32 30L32 29L33 29L33 27L32 27L32 26L31 26L31 25L32 25L32 24L31 24L31 25L30 25L30 23L29 23L29 21L30 21L30 22L31 22L31 21L32 21L32 22L33 22L33 21L32 21L32 20L33 20L33 18L32 18L32 20L31 20L31 21L30 21L30 19L29 19L29 18L28 18L28 17L25 17L25 16L28 16L28 15L30 15L30 14L31 14L31 17L30 17L30 18L31 18L31 17L32 17L32 16L33 16L33 15L32 15L32 14L31 14L31 13L32 13L32 12L33 12L33 11L32 11L32 10L31 10L31 9L32 9L32 8L31 8L31 9L30 9L30 8L29 8L29 10L28 10L28 11L30 11L30 14L29 14L29 12L27 12L27 11L26 11L26 10L25 10L25 9L26 9L26 8L25 8L25 9L23 9L23 8L24 8L24 7L25 7L25 5L23 5L23 3L24 3L24 4L25 4L25 3L24 3L24 2L25 2L25 0L24 0L24 1L23 1L23 0L21 0L21 1L20 1L20 4L21 4L21 5L22 5L22 7L23 7L23 8L22 8L22 9L18 9L18 8L19 8L19 6L20 6L20 8L21 8L21 6L20 6L20 5L19 5L19 6L18 6L18 5L17 5L17 2L18 2L18 1L19 1L19 0L18 0L18 1L17 1L17 0L16 0L16 1L17 1L17 2L16 2L16 3L15 3L15 2L14 2L14 1L15 1L15 0L14 0L14 1L11 1L11 2L10 2L10 0ZM21 1L21 2L22 2L22 3L23 3L23 2L22 2L22 1ZM10 3L10 4L11 4L11 3ZM15 4L15 5L16 5L16 4ZM8 5L8 7L9 7L9 5ZM12 6L12 9L14 9L14 8L13 8L13 6ZM17 6L17 7L18 7L18 6ZM23 6L23 7L24 7L24 6ZM16 8L16 9L17 9L17 10L16 10L16 11L17 11L17 10L18 10L18 11L20 11L20 10L18 10L18 9L17 9L17 8ZM27 8L27 9L28 9L28 8ZM1 9L1 10L2 10L2 9ZM4 9L4 10L5 10L5 11L6 11L6 12L7 12L7 11L9 11L9 10L8 10L8 9L6 9L6 10L5 10L5 9ZM22 9L22 10L21 10L21 11L22 11L22 10L23 10L23 11L24 11L24 12L23 12L23 13L22 13L22 14L21 14L21 12L18 12L18 13L17 13L17 12L16 12L16 13L17 13L17 14L21 14L21 15L20 15L20 16L19 16L19 15L17 15L17 16L16 16L16 18L21 18L21 19L22 19L22 18L21 18L21 17L22 17L22 16L23 16L23 19L25 19L25 18L24 18L24 16L23 16L23 13L24 13L24 14L25 14L25 12L26 12L26 15L27 15L27 14L28 14L28 13L27 13L27 12L26 12L26 11L24 11L24 10L23 10L23 9ZM6 10L6 11L7 11L7 10ZM30 10L30 11L31 11L31 10ZM10 12L10 13L11 13L11 12ZM1 15L1 17L2 17L2 18L1 18L1 19L2 19L2 18L3 18L3 19L4 19L4 20L5 20L5 19L6 19L6 20L8 20L8 21L10 21L10 23L8 23L8 24L10 24L10 27L11 27L11 26L14 26L14 25L15 25L15 24L16 24L16 23L17 23L17 22L18 22L18 21L17 21L17 20L16 20L16 19L14 19L14 21L13 21L13 19L12 19L12 21L10 21L10 20L11 20L11 18L10 18L10 17L8 17L8 15L6 15L6 16L7 16L7 17L5 17L5 16L4 16L4 15ZM12 15L12 17L13 17L13 15ZM3 16L3 18L4 18L4 19L5 19L5 17L4 17L4 16ZM17 16L17 17L18 17L18 16ZM20 16L20 17L21 17L21 16ZM6 18L6 19L7 19L7 18ZM8 18L8 20L9 20L9 19L10 19L10 18ZM26 18L26 19L27 19L27 20L26 20L26 21L25 21L25 22L24 22L24 20L22 20L22 22L21 22L21 23L22 23L22 25L23 25L23 28L22 28L22 29L24 29L24 30L25 30L25 32L27 32L27 31L28 31L28 30L27 30L27 31L26 31L26 29L24 29L24 24L23 24L23 23L27 23L27 24L29 24L29 23L27 23L27 20L29 20L29 19L27 19L27 18ZM15 20L15 21L14 21L14 23L12 23L12 25L13 25L13 24L14 24L14 23L16 23L16 22L15 22L15 21L16 21L16 20ZM2 21L2 22L3 22L3 23L4 23L4 22L3 22L3 21ZM12 21L12 22L13 22L13 21ZM22 22L22 23L23 23L23 22ZM6 23L6 24L7 24L7 23ZM10 23L10 24L11 24L11 23ZM2 24L2 25L3 25L3 24ZM25 25L25 28L28 28L28 25ZM26 26L26 27L27 27L27 26ZM29 26L29 27L30 27L30 28L29 28L29 29L32 29L32 27L31 27L31 26ZM12 27L12 28L13 28L13 30L14 30L14 29L15 29L15 28L16 28L16 27L15 27L15 28L14 28L14 27ZM17 27L17 28L18 28L18 27ZM15 30L15 31L16 31L16 30ZM10 31L10 32L11 32L11 31ZM13 31L13 32L14 32L14 31ZM22 32L22 33L23 33L23 32ZM0 0L0 7L7 7L7 0ZM1 1L1 6L6 6L6 1ZM2 2L2 5L5 5L5 2ZM26 0L26 7L33 7L33 0ZM27 1L27 6L32 6L32 1ZM28 2L28 5L31 5L31 2ZM0 26L0 33L7 33L7 26ZM1 27L1 32L6 32L6 27ZM2 28L2 31L5 31L5 28Z" fill="#000000"/></g></g></svg>
 </svg>',
-    '$client.country' => 'United States',
+    '$client.country' => 'Afghanistan',
     '$user.last_name' => 'Erna Wunsch',
     '$client.website' => 'http://www.parisian.org/',
     '$dir_text_align' => 'left',
@@ -352,9 +344,9 @@ class PdfMock
     '$task.discount' => '',
     '$contact.email' => 'bob@gmail.com',
     '$primary_color' => isset($this->settings->primary_color) ? $this->settings->primary_color : '#4e4e4e',
-    '$credit_amount' => '$40.00',
-    '$invoice.total' => '$330.00',
-    '$invoice.taxes' => '$10.00',
+    '$credit_amount' => '$0.00',
+    '$invoice.total' => '$0.00',
+    '$invoice.taxes' => '$0.00',
     '$quote.custom1' => 'custom value',
     '$quote.custom2' => 'custom value',
     '$quote.custom3' => 'custom value',
@@ -401,10 +393,10 @@ class PdfMock
     '$valid_until' => '',
     '$your_entity' => '',
     '$shipping' => ctrans('texts.shipping_address'),
-    '$balance_due' => '$1110.00',
-    '$outstanding' => '$440.00',
-    '$partial_due' => '$50.00',
-    '$quote.total' => '$10.00',
+    '$balance_due' => '$0.00',
+    '$outstanding' => '$0.00',
+    '$partial_due' => '$0.00',
+    '$quote.total' => '$0.00',
     '$payment_due' => '&nbsp;',
     '$credit.date' => '25/Feb/2023',
     '$invoiceDate' => '25/Feb/2023',
@@ -438,8 +430,6 @@ class PdfMock
     '$credit_no' => '0029',
     '$font_size' => $this->settings->font_size,
     '$view_link' => '<a class="button" href="http://ninja.test:8000/client/invoice/UAUY8vIPuno72igmXbbpldwo5BDDKIqs">View Invoice</a>',
-    '$reference' => '',
-    '$po_number' => 'PO12345',
     '$page_size' => $this->settings->page_size,
     '$country_2' => 'AF',
     '$firstName' => 'Benedict',
@@ -462,17 +452,16 @@ class PdfMock
     '$viewLink' => '<a class="button" href="http://ninja.test:8000/client/invoice/UAUY8vIPuno72igmXbbpldwo5BDDKIqs">View Invoice</a>',
     '$autoBill' => 'This invoice will automatically be billed to your credit card on file on the due date.',
     '$view_url' => 'http://ninja.test:8000/client/invoice/UAUY8vIPuno72igmXbbpldwo5BDDKIqs',
-    '$font_url' => isset($this->settings?->primary_font) ? \App\Utils\Helpers::resolveFont($this->settings->primary_font)['url'] : 'https://fonts.googleapis.com/css2?family=Roboto&display=swap',
+    '$font_url' => 'https://fonts.googleapis.com/css2?family=Roboto&display=swap',
     '$details' => '',
-    '$balance' => '$40.00',
-    '$partial' => '$30.00',
+    '$balance' => '$0.00',
+    '$partial' => '$0.00',
     '$client1' => 'custom value',
     '$client2' => 'custom value',
     '$client3' => 'custom value',
     '$client4' => 'custom value',
     '$dueDate' => '2022-01-01',
     '$invoice' => '0029',
-    '$invoices' => '0029',
     '$account' => '434343',
     '$country' => 'United States',
     '$contact' => 'Benedict Eichmann',
@@ -480,7 +469,7 @@ class PdfMock
     '$website' => 'http://www.parisian.org/',
     '$entity' => '',
     '$thanks' => 'Thanks!',
-    '$amount' => '$30.00',
+    '$amount' => '$0.00',
     '$method' => '&nbsp;',
     '$number' => '0029',
     '$footer' => 'Default invoice footer',
@@ -490,33 +479,21 @@ class PdfMock
     '_rate1' => '',
     '_rate2' => '',
     '_rate3' => '',
-    '$taxes' => '$40.00',
-    '$total' => '$10.00',
-    '$refund' => '',
-    '$refunded' => '',
+    '$taxes' => '$0.00',
+    '$total' => '$0.00',
     '$phone' => '&nbsp;',
     '$terms' => 'Default company invoice terms',
     '$from' => 'Bob Jones',
     '$item' => '',
     '$date' => '25/Feb/2023',
     '$tax' => '',
-    '$net' => 'Net',
     '$dir' => 'ltr',
     '$to' => 'Jimmy Giggles',
     '$show_paid_stamp' => $this->settings->show_paid_stamp ? 'flex' : 'none',
     '$status_logo' => '<div class="stamp is-paid"> ' . ctrans('texts.paid') .'</div>',
     '$show_shipping_address' => $this->settings->show_shipping_address ? 'flex' : 'none',
     '$show_shipping_address_block' => $this->settings->show_shipping_address ? 'block' : 'none',
-    '$show_shipping_address_visibility' => $this->settings->show_shipping_address ? '1' : '0',
-    '$start_date' => '31/01/2023',
-    '$end_date' => '31/12/2023',
-    '$history' => '',
-    '$amount_paid' => '',
-    '$receipt' => '',
-    '$ship_to' => '',
-    '$delivery_note' => '',
-    '$quantity' => '',
-    '$order_number' => '',
+    '$show_shipping_address_visibility' => $this->settings->show_shipping_address ? 'visible' : 'hidden',
   ],
   'labels' => $this->mockTranslatedLabels(),
 ];
@@ -532,8 +509,6 @@ class PdfMock
             '$client.billing_postal_code_label' => ctrans('texts.billing_postal_code'),
             '$company.postal_city_state_label' => ctrans('texts.postal_city_state'),
             '$company.city_state_postal_label' => ctrans('texts.city_state_postal'),
-            '$client.classification_label' => ctrans('texts.classification'),
-            '$company.classification_label' => ctrans('texts.classification'),
             '$product.gross_line_total_label' => ctrans('texts.gross_line_total'),
             '$client.shipping_address1_label' => ctrans('texts.shipping_address1'),
             '$client.postal_city_state_label' => ctrans('texts.postal_city_state'),
@@ -767,7 +742,6 @@ class PdfMock
             '$user_iban_label' => ctrans('texts.iban'),
             '$signature_label' => ctrans('texts.signature'),
             '$font_size_label' => ctrans('texts.font_size'),
-            '$reference_label' => ctrans('texts.reference'),
             '$po_number_label' => ctrans('texts.po_number'),
             '$page_size_label' => ctrans('texts.page_size'),
             '$user.name_label' => ctrans('texts.name'),
@@ -823,8 +797,6 @@ class PdfMock
             '$tax_rate1_label' => ctrans('texts.tax_rate1'),
             '$tax_rate2_label' => ctrans('texts.tax_rate2'),
             '$tax_rate3_label' => ctrans('texts.tax_rate3'),
-            '$refund_label' => ctrans('texts.refund'),
-            '$refunded_label' => ctrans('texts.refunded'),
             '$phone_label' => ctrans('texts.phone'),
             '$email_label' => ctrans('texts.email'),
             '$taxes_label' => ctrans('texts.taxes'),
@@ -833,43 +805,31 @@ class PdfMock
             '$item_label' => ctrans('texts.item'),
             '$date_label' => ctrans('texts.date'),
             '$tax_label' => ctrans('texts.tax'),
-            '$net_label' => ctrans('texts.net'),
             '$dir_label' => '',
             '$to_label' => ctrans('texts.to'),
-            '$start_date_label' => ctrans('texts.start_date'),
-            '$end_date_label' => ctrans('texts.end_date'),
-            '$invoice_label' => ctrans('texts.invoice'),
-            '$invoices_label' => ctrans('texts.invoices'),
-            '$history_label' => ctrans('texts.history'),
-            '$amount_paid_label' => ctrans('texts.amount_paid'),
-            '$receipt_label' => ctrans('texts.receipt'),
-            '$ship_to_label' => ctrans('texts.ship_to'),
-            '$delivery_note_label' => ctrans('texts.delivery_note'),
-            '$quantity_label' => ctrans('texts.quantity'),
-            '$order_number_label' => ctrans('texts.order_number'),
         ];
     }
 
     private function getVendorStubVariables()
     {
         return ['values' => [
-            '$vendor.billing_postal_code' => '06270-5526',
-            '$company.postal_city_state' => '29359 New Loy, Delaware',
-            '$company.city_state_postal' => 'New Loy, Delaware 29359',
-            '$product.gross_line_total' => '',
-            '$purchase_order.po_number' => 'PO12345',
-            '$vendor.postal_city_state' => '06270-5526 Jameyhaven, West Virginia',
-            '$vendor.city_state_postal' => 'Jameyhaven, West Virginia 06270-5526',
-            '$purchase_order.due_date' => '02-12-2021',
-            '$vendor.billing_address1' => '589',
+          '$vendor.billing_postal_code' => '06270-5526',
+          '$company.postal_city_state' => '29359 New Loy, Delaware',
+          '$company.city_state_postal' => 'New Loy, Delaware 29359',
+          '$product.gross_line_total' => '',
+          '$purchase_order.po_number' => 'PO12345',
+          '$vendor.postal_city_state' => '06270-5526 Jameyhaven, West Virginia',
+          '$vendor.city_state_postal' => 'Jameyhaven, West Virginia 06270-5526',
+          '$purchase_order.due_date' => '02-12-2021',
+          '$vendor.billing_address1' => '589',
           '$vendor.billing_address2' => '761 Odessa Centers Suite 673',
-          '$invoiceninja.whitelabel' => config('ninja.app_logo'),
+          '$invoiceninja.whitelabel' => 'https://i.imgur.com/HDfTPYV.png',
           '$purchase_order.custom1' => 'Custom 1',
           '$purchase_order.custom2' => 'Custom 2',
           '$purchase_order.custom3' => 'Custom 3',
           '$purchase_order.custom4' => 'Custom 4',
-          '$vendor.billing_address' => '589<br/>761 Odessa Centers Suite 673<br/>New Loy, Delaware 29359<br/>United States<br/>',
-          '$vendor.billing_country' => 'United States',
+          '$vendor.billing_address' => '589<br/>761 Odessa Centers Suite 673<br/>New Loy, Delaware 29359<br/>Afghanistan<br/>',
+          '$vendor.billing_country' => 'Afghanistan',
           '$purchase_order.number' => 'Live Preview #790',
           '$purchase_order.total' => '$10,256.40',
           '$vendor.billing_state' => 'West Virginia',
@@ -939,13 +899,13 @@ class PdfMock
           '$created_by_user' => 'Mr. Louvenia Armstrong Prof. Reyes Anderson',
           '$vendor.currency' => 'USD',
           '$company.country' => 'United States',
-          '$tech_hero_image' => config('ninja.app_url').'/images/pdf-designs/tech-hero-image.jpg',
+          '$tech_hero_image' => 'https://invoicing.co/images/pdf-designs/tech-hero-image.jpg',
           '$company.website' => 'http://www.dare.com/vero-consequatur-eveniet-dolorum-exercitationem-alias-repellat.html',
           '$gross_subtotal' => '$10,256.40',
           '$emailSignature' => '&nbsp;',
-          '$vendor_address' => '589<br/>761 Odessa Centers Suite 673<br/>New Loy, Delaware 29359<br/>United States<br/>',
-          '$vendor.address' => '589<br/>761 Odessa Centers Suite 673<br/>New Loy, Delaware 29359<br/>United States<br/>',
-          '$vendor.country' => 'United States',
+          '$vendor_address' => '589<br/>761 Odessa Centers Suite 673<br/>New Loy, Delaware 29359<br/>Afghanistan<br/>',
+          '$vendor.address' => '589<br/>761 Odessa Centers Suite 673<br/>New Loy, Delaware 29359<br/>Afghanistan<br/>',
+          '$vendor.country' => 'Afghanistan',
           '$vendor.custom3' => 'Ea quia tempore.',
           '$vendor.custom1' => 'Necessitatibus aut.',
           '$vendor.custom4' => 'Nobis aut harum.',
@@ -1044,7 +1004,6 @@ class PdfMock
           '$amount_raw' => '10256.40',
           '$vat_number' => 'At qui autem iusto et.',
           '$portal_url' => 'http://ninja.test:8000/vendor/',
-          '$reference' => '',
           '$po_number' => null,
           '$statement' => '',
           '$view_link' => '
@@ -1126,7 +1085,7 @@ class PdfMock
           '$custom3' => '&nbsp;',
           '$custom4' => '&nbsp;',
           '$dueDate' => '&nbsp;',
-          '$country' => 'United States',
+          '$country' => 'Afghanistan',
           '$vendor3' => 'Ea quia tempore.',
           '$contact' => 'Geo Maggio',
           '$account' => 'Mrs. Kristina Powlowski',
@@ -1148,8 +1107,6 @@ class PdfMock
           '$tax_rate1' => '',
           '$tax_rate2' => '',
           '$tax_rate3' => '',
-          '$refund' => 'Refund',
-          '$refunded' => 'Refunded',
           '$total' => '$10,256.40',
           '$taxes' => '$488.40',
           '$phone' => '&nbsp;',
@@ -1158,14 +1115,7 @@ class PdfMock
           '$date' => '14/Mar/2023',
           '$tax' => '',
           '$dir' => 'ltr',
-          '$net' => 'Net',
           '$to' => '',
-          '$amount_paid' => '',
-          '$receipt' => '',
-          '$ship_to' => '',
-          '$delivery_note_label' => '',
-          '$quantity_label' => '',
-          '$order_number_label' => '',
         ],
         'labels' => $this->vendorLabels(),
 ];
@@ -1319,7 +1269,6 @@ class PdfMock
           '$amount_raw_label' => ctrans('texts.amount'),
           '$vat_number_label' => ctrans('texts.vat_number'),
           '$portal_url_label' => ctrans('texts.link'),
-          '$reference_label' => ctrans('texts.reference'),
           '$po_number_label' => ctrans('texts.po_number'),
           '$statement_label' => ctrans('texts.statement'),
           '$view_link_label' => ctrans('texts.link'),
@@ -1377,8 +1326,6 @@ class PdfMock
           '$tax_rate1_label' => ctrans('texts.tax_rate1'),
           '$tax_rate2_label' => ctrans('texts.tax_rate2'),
           '$tax_rate3_label' => ctrans('texts.tax_rate3'),
-          '$refund_label' => ctrans('texts.refund'),
-          '$refunded_label' => ctrans('texts.refunded'),
           '$total_label' => ctrans('texts.total'),
           '$taxes_label' => ctrans('texts.taxes'),
           '$phone_label' => ctrans('texts.phone'),
@@ -1386,16 +1333,8 @@ class PdfMock
           '$item_label' => ctrans('texts.item'),
           '$date_label' => ctrans('texts.date'),
           '$tax_label' => ctrans('texts.tax'),
-          '$net_label' => ctrans('texts.net'),
           '$dir_label' => '',
           '$to_label' => ctrans('texts.to'),
-          '$amount_paid_label' => ctrans('texts.amount_paid'),
-          '$receipt_label' => ctrans('texts.receipt'),
-          '$ship_to_label' => ctrans('texts.ship_to'),
-          '$delivery_note_label' => ctrans('texts.delivery_note'),
-          '$quantity_label' => ctrans('texts.quantity'),
-          '$order_number_label' => ctrans('texts.order_number'),
-          '$shipping_label' => ctrans('texts.shipping_address'),
         ];
     }
 }
