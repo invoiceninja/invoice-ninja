@@ -2801,7 +2801,7 @@ Sobald Sie die Beträge erhalten haben, kommen Sie bitte wieder zurück zu diese
     'gateway_fee_description' => 'Gateway-Gebühren Zuschlag',
     'gateway_fee_discount_description' => 'Gateway-Gebühren Nachlass',
     'show_payments' => 'Zeige Zahlungen',
-    'show_aging' => 'Zeige Alterung',
+    'show_aging' => 'Zeige Zeiterfassungen',
     'reference' => 'Referenz',
     'amount_paid' => 'Bezahlter Betrag',
     'send_notifications_for' => 'Benachrichtigungen senden für',
