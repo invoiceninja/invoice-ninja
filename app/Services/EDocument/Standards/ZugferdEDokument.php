@@ -113,7 +113,7 @@ class ZugferdEDokument extends AbstractService
         if (empty($client->routing_id)) {
 
             $this->xdocument->setDocumentBuyerReference(ctrans("texts.xinvoice_no_buyers_reference"))
-                ->setDocumentSellerCommunication("EM", $client->present()->email());
+                ->setDocumentBuyerCommunication("EM", $client->present()->email());
         } else {
             $this->xdocument->setDocumentBuyerReference($client->routing_id)
                  ->setDocumentBuyerCommunication("0204", $client->routing_id);
