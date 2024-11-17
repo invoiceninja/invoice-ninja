@@ -33,6 +33,11 @@ class RecurringExpenseCloneTest extends TestCase
     {
         parent::setUp();
         $this->faker = \Faker\Factory::create();
+        
+        if (\App\Models\Country::count() == 0) {
+            \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+        }
+
     }
 
     public function testBadBase64String()

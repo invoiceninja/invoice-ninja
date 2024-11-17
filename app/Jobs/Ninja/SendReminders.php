@@ -218,7 +218,7 @@ class SendReminders implements ShouldQueue
             if ($this->checkSendSetting($invoice, $template) && $invoice->company->account->hasFeature(Account::FEATURE_EMAIL_TEMPLATES_REMINDERS)) {
                 nlog('firing email');
 
-                EmailEntity::dispatch($invitation, $invitation->company, $template)->delay(10);
+                EmailEntity::dispatch($invitation->withoutRelations(), $invitation->company->db, $template)->delay(10);
                 event(new InvoiceWasEmailed($invoice->invitations->first(), $invoice->company, Ninja::eventVars(), $template));
                 $invoice->sendEvent(Webhook::EVENT_REMIND_INVOICE, "client");
             }

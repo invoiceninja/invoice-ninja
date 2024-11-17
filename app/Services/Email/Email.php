@@ -622,7 +622,7 @@ class Email implements ShouldQueue
         $company = $this->company;
 
         $smtp_host = $company->smtp_host ?? '';
-        $smtp_port = $company->smtp_port;
+        $smtp_port = $company->smtp_port ?? 0;
         $smtp_username = $company->smtp_username ?? '';
         $smtp_password = $company->smtp_password ?? '';
         $smtp_encryption = $company->smtp_encryption ?? 'tls';
@@ -641,7 +641,7 @@ class Email implements ShouldQueue
             'mail.mailers.smtp' => [
                 'transport' => 'smtp',
                 'host' => $smtp_host,
-                'port' => $smtp_port,
+                'port' => (int)$smtp_port,
                 'username' => $smtp_username,
                 'password' => $smtp_password,
                 'encryption' => $smtp_encryption,

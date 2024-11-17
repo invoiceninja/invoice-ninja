@@ -187,6 +187,13 @@ function boot() {
 
     /** @handle */
     new AuthorizeAuthorizeCard(publicKey, loginId).handle();
+
+    /** @type {NodeListOf<HTMLInputElement>} */
+    const tokens = document.querySelectorAll('input.toggle-payment-with-token');
+
+    if (tokens.length > 0) {
+        tokens[0].click();
+    }
 }
 
 instant() ? boot() : wait('#authorize-net-credit-card-payment').then(() => boot());

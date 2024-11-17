@@ -95,16 +95,19 @@ return new class extends Migration
         Model::unguard();
 
         foreach ($regions as $region) {
-            Country::create($region);
+
+            if(!Country::find($region['id']))
+            {
+                Country::create($region);
+            }
         }
 
         Model::reguard();
 
-
-        Company::query()->cursor()->each(function ($company) {
-            $company->tax_data = new \App\DataMapper\Tax\TaxModel($company->tax_data);
-            $company->save();
-        });
+        // Company::query()->cursor()->each(function ($company) {
+        //     $company->tax_data = new \App\DataMapper\Tax\TaxModel($company->tax_data);
+        //     $company->save();
+        // });
 
     }
 

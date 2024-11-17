@@ -67,8 +67,6 @@ class ValidInvoicesRules implements Rule
             /////
             $inv = $inv_collection->firstWhere('id', $invoice['invoice_id']);
 
-            // $inv = Invoice::withTrashed()->whereId($invoice['invoice_id'])->first();
-
             if (! $inv) {
                 $this->error_msg = ctrans('texts.invoice_not_found');
 

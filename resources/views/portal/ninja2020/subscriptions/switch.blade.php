@@ -42,7 +42,7 @@
         </div>
 
         <!-- Payment box -->
-        @livewire('subscription-plan-switch', compact('recurring_invoice', 'subscription', 'target', 'contact', 'amount', 'company'))
+        @livewire('subscription-plan-switch', ['db' => $company->db, 'recurring_invoice_id' => $recurring_invoice->id, 'subscription_id' => $subscription->id, 'target_id' => $target->id, 'contact_id' => $contact->id,  'amount' => $amount] )
     </div>
 @endsection
 

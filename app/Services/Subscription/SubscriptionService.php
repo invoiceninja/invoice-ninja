@@ -61,6 +61,13 @@ class SubscriptionService
 
     public const WHITE_LABEL = 4316;
 
+    private array $peppol_keys = [
+        'peppol_500',
+        'peppol_1000',
+        'selfhost_peppol_500',
+        'selfhost_peppol_1000',
+    ];
+
     private float $credit_payments = 0;
 
     public function __construct(Subscription $subscription)
@@ -86,6 +93,9 @@ class SubscriptionService
             return $this->handleWhiteLabelPurchase($payment_hash);
         }
 
+        if (in_array($payment_hash->data->billing_context->context, $this->peppol_keys)) {
+            return $this->handlePeppolPurchase($payment_hash);
+        }
 
         // if we have a recurring product - then generate a recurring invoice
         if (strlen($this->subscription->recurring_product_ids ?? '') >= 1) {
@@ -168,6 +178,15 @@ class SubscriptionService
         return $response;
     }
 
+    private function handlePeppolPurchase(PaymentHash $payment_hash)
+    {
+
+        if (class_exists(\Modules\Admin\Jobs\Account\PeppolPurchase::class)) {
+            (new \Modules\Admin\Jobs\Account\PeppolPurchase($payment_hash))->run();
+        }
+
+    }
+
     private function handleWhiteLabelPurchase(PaymentHash $payment_hash): bool
     {
         //send license to the user.
@@ -189,7 +208,6 @@ class SubscriptionService
         //update the invoice and attach to the recurring invoice!!!!!
         $invoice->recurring_id = $recurring_invoice->id;
         $invoice->is_proforma = false;
-        // $invoice->service()->deletePdf();
         $invoice->save();
 
         $contact = $invoice->client->contacts()->whereNotNull('email')->first();
@@ -1176,9 +1194,9 @@ class SubscriptionService
         $keys = $this->transformKeys(explode(",", $this->subscription->product_ids));
 
         if (is_array($keys)) {
-            return Product::query()->whereIn('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->whereIn('id', $keys)->get();
         } else {
-            return Product::query()->where('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->where('id', $keys)->get();
         }
     }
 
@@ -1196,9 +1214,9 @@ class SubscriptionService
         $keys = $this->transformKeys(explode(",", $this->subscription->recurring_product_ids));
 
         if (is_array($keys)) {
-            return Product::query()->whereIn('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->whereIn('id', $keys)->get();
         } else {
-            return Product::query()->where('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->where('id', $keys)->get();
         }
     }
 
@@ -1217,9 +1235,9 @@ class SubscriptionService
         $keys = $this->transformKeys(explode(",", $this->subscription->optional_product_ids));
 
         if (is_array($keys)) {
-            return Product::query()->whereIn('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->whereIn('id', $keys)->get();
         } else {
-            return Product::query()->where('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->where('id', $keys)->get();
         }
     }
 
@@ -1237,9 +1255,9 @@ class SubscriptionService
         $keys = $this->transformKeys(explode(",", $this->subscription->optional_recurring_product_ids));
 
         if (is_array($keys)) {
-            return Product::query()->whereIn('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->whereIn('id', $keys)->get();
         } else {
-            return Product::query()->where('id', $keys)->get();
+            return Product::query()->where('company_id', $this->subscription->company_id)->where('id', $keys)->get();
         }
     }
 

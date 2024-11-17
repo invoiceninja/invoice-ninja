@@ -53,7 +53,7 @@ class CompanyFactory
         $company->smtp_host = '';
         $company->smtp_local_domain = '';
         $company->smtp_password = '';
-        $company->smtp_port = '';
+        $company->smtp_port = 0;
         $company->smtp_username = '';
         $company->smtp_verify_peer = true;
 

@@ -55,38 +55,19 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
         return $this->billingRequestFlows($data);
     }
 
-    /**
-     * Response
-     *     {
-     *   "billing_request_flows": {
-     *     "authorisation_url": "https://pay.gocardless.com/flow/static/billing_request?id=<br_id>",
-     *     "lock_customer_details": false,
-     *     "lock_bank_account": false,
-     *     "auto_fulfil": true,
-     *     "created_at": "2021-03-30T16:23:10.679Z",
-     *     "expires_at": "2021-04-06T16:23:10.679Z",
-     *     "redirect_uri": "https://my-company.com/completed",
-     *     "links": {
-     *       "billing_request": "BRQ123"
-     *     }
-     *   }
-     * }
-     *
-     *
-     */
     public function billingRequestFlows(array $data)
     {
         $session_token = \Illuminate\Support\Str::uuid()->toString();
         $exit_uri = route('client.payment_methods.index');
 
         $response = $this->go_cardless->gateway->billingRequests()->create([
-                        "params" => [
-                            "mandate_request" => [
-                            "currency" => auth()->guard('contact')->user()->client->currency()->code,
-                            "verify" => "when_available"
-                            ]
-                        ]
-                    ]);
+            "params" => [
+                "mandate_request" => [
+                "currency" => auth()->guard('contact')->user()->client->currency()->code,
+                "verify" => "when_available"
+                ]
+            ]
+        ]);
 
         try {
             $brf = $this->go_cardless->gateway->billingRequestFlows()->create([
@@ -96,7 +77,7 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
                             'session_token' => $session_token,
                             'billing_request' => $response->id,
                             'authorize_then_redirect' => true,
-                            'payment_hash' => $this->go_cardless->payment_hash->hash,
+                            'payment_hash' => $this->go_cardless->payment_hash->hash ?? '',
                         ]),
                     "exit_uri" => $exit_uri,
                     "links" => [
@@ -146,6 +127,7 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
      */
     public function authorizeResponse(Request $request)
     {
+    
         try {
 
             $billing_request = $this->go_cardless->gateway->billingRequests()->get($request->billing_request);
@@ -165,8 +147,6 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
             $payment_method = $this->go_cardless->storeGatewayToken($data, ['gateway_customer_reference' => $billing_request->resources->customer->id]);
 
             $mandate = $this->go_cardless->gateway->mandates()->get($billing_request->mandate_request->links->mandate);
-
-            nlog($mandate);
 
             if ($request->has('authorize_then_redirect') && $request->payment_hash !== null) {
                 $this->go_cardless->payment_hash = PaymentHash::where('hash', $request->payment_hash)->firstOrFail();
@@ -190,31 +170,6 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
             return $this->processUnsuccessfulAuthorization($exception);
         }
 
-        // try {
-        //     $redirect_flow = $this->go_cardless->gateway->redirectFlows()->complete(
-        //         $request->redirect_flow_id,
-        //         ['params' => [
-        //             'session_token' => $request->session_token,
-        //         ]],
-        //     );
-
-        //     $payment_meta = new \stdClass;
-        //     $payment_meta->brand = ctrans('texts.payment_type_direct_debit');
-        //     $payment_meta->type = GatewayType::DIRECT_DEBIT;
-        //     $payment_meta->state = 'authorized';
-
-        //     $data = [
-        //         'payment_meta' => $payment_meta,
-        //         'token' => $redirect_flow->links->mandate,
-        //         'payment_method_id' => $this->resolveScheme($redirect_flow->scheme),
-        //     ];
-
-        //     $payment_method = $this->go_cardless->storeGatewayToken($data, ['gateway_customer_reference' => $redirect_flow->links->customer]);
-
-        //     return redirect()->route('client.payment_methods.show', $payment_method->hashed_id);
-        // } catch (\Exception $exception) {
-        //     return $this->processUnsuccessfulAuthorization($exception);
-        // }
     }
 
     private function resolveScheme(string $scheme): int
@@ -237,6 +192,9 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
     public function paymentView(array $data)
     {
         $data = $this->paymentData($data);
+
+        if(isset($data['authorize_then_redirect']))
+            return $this->authorizeView($data);
 
         return render('gateways.gocardless.direct_debit.pay', $data);
     }
@@ -299,7 +257,7 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
             'gateway_type_id' => GatewayType::DIRECT_DEBIT,
         ];
 
-        $payment = $this->go_cardless->createPayment($data, Payment::STATUS_PENDING);
+        $_payment = $this->go_cardless->createPayment($data, Payment::STATUS_PENDING);
 
         SystemLogger::dispatch(
             ['response' => $payment, 'data' => $data],
@@ -310,7 +268,7 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
             $this->go_cardless->client->company,
         );
 
-        return redirect()->route('client.payments.show', ['payment' => $this->go_cardless->encodePrimaryKey($payment->id)]);
+        return redirect()->route('client.payments.show', ['payment' => $_payment->hashed_id]);
     }
 
     /**
@@ -351,7 +309,7 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
      * @inheritDoc
      */
     public function livewirePaymentView(array $data): string 
-    {
+    {        
         return 'gateways.gocardless.direct_debit.pay_livewire';
     }
     
@@ -366,8 +324,6 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
 
         if (count($data['tokens']) === 0) {
             $data['authorize_then_redirect'] = true;
-
-            $this->authorizeView($data);
         }
 
         return $data;

@@ -8,6 +8,7 @@
 
 <body>
     <ninja>
+        {% if payments is defined and payments is not empty %}
         {%set payment = payments|first %}
         {%set pivot = payment.paymentables|filter(pivot => pivot.refunded_raw > 0)|first %}
         <table align="center" bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" width="600"
@@ -522,6 +523,7 @@
                 </tr>
             </tbody>
         </table>
+        {% endif %}
     </ninja>
 </body>
 

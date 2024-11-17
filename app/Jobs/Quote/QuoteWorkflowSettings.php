@@ -56,7 +56,7 @@ class QuoteWorkflowSettings implements ShouldQueue
     {
         if ($this->client->getSetting('auto_email_quote')) {
             $this->quote->invitations->each(function ($invitation, $key) {
-                $this->quote->service()->sendEmail($invitation->contact);
+                $this->quote->service()->sendEmail($invitation->contact, 'quote');
             });
         }
     }

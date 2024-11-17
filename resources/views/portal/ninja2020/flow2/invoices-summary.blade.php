@@ -53,6 +53,19 @@
             </div>
             @endforeach
 
+            @if($gateway_fee)
+            <button class="mb-4 w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-gray-100">
+                <dl class="grid gap-3">
+
+                    <div class="flex items-center justify-between">
+                        <dt class="font-semibold text-muted-foreground">{{ ctrans('texts.gateway_fees') }}</dt>
+                        <dd>{{ $gateway_fee }}</dd>
+                    </div>
+                
+                </dl>
+            </button>
+            @endif
+
             <button class="mb-4 w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-gray-100">
                 <dl class="grid gap-3">
 

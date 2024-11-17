@@ -25,18 +25,20 @@ class SubscriptionsTable extends Component
 
     public $per_page = 10;
 
-    public $company;
+    public $company_id;
 
+    public $db;
+    
     public function mount()
     {
-        MultiDB::setDb($this->company->db);
+        MultiDB::setDb($this->db);
     }
 
     public function render()
     {
         $query = RecurringInvoice::query()
             ->where('client_id', auth()->guard('contact')->user()->client->id)
-            ->where('company_id', $this->company->id)
+            ->where('company_id', $this->company_id)
             ->whereNotNull('subscription_id')
             ->where('is_deleted', false)
             ->whereIn('status_id', [RecurringInvoice::STATUS_ACTIVE, RecurringInvoice::STATUS_PAUSED])

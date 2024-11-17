@@ -71,6 +71,12 @@ class PreviewController extends BaseController
             $entity_obj->footer = empty($entity_obj->footer) ? $settings->{$entity_prop."_footer"} : $entity_obj->footer;
             $entity_obj->terms = empty($entity_obj->terms) ? $settings->{$entity_prop."_terms"} : $entity_obj->terms;
             $entity_obj->public_notes = empty($entity_obj->public_notes) ? $request->getClient()->public_notes : $entity_obj->public_notes;
+            
+            $entity_obj->custom_surcharge_tax1 = $client->company->custom_surcharge_taxes1;
+            $entity_obj->custom_surcharge_tax2 = $client->company->custom_surcharge_taxes2;
+            $entity_obj->custom_surcharge_tax3 = $client->company->custom_surcharge_taxes3;
+            $entity_obj->custom_surcharge_tax4 = $client->company->custom_surcharge_taxes4;
+            
             $invitation->setRelation($request->entity, $entity_obj);
         }
 
@@ -149,7 +155,7 @@ class PreviewController extends BaseController
             ! empty(request()->input('entity_id'))) {
 
             if($request->input('entity') == 'purchase_order')
-                return $preview = app(\App\Http\Controllers\PreviewPurchaseOrderController::class)->show($request);
+                return app(\App\Http\Controllers\PreviewPurchaseOrderController::class)->show($request);
 
             $design_object = json_decode(json_encode(request()->input('design')));
 

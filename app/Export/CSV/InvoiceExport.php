@@ -83,6 +83,10 @@ class InvoiceExport extends BaseExport
             $this->queueDocuments($query);
         }
 
+        if($this->input['pdf_email_attachment'] ?? false) {
+            $this->queuePdfs($query);
+        }
+
         return $query;
 
     }

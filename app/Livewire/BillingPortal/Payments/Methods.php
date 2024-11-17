@@ -14,11 +14,14 @@ namespace App\Livewire\BillingPortal\Payments;
 
 use Livewire\Component;
 use App\Models\Subscription;
+use App\Utils\Traits\MakesHash;
 use Illuminate\Support\Facades\Cache;
 
 class Methods extends Component
-{//@todo this breaks down when the cart is in front of the login - we have no context on the user - nor their country/currency
-    public Subscription $subscription;
+{
+    use MakesHash;
+
+    public string $subscription_id;
 
     public array $context;
 
@@ -29,7 +32,9 @@ class Methods extends Component
         $total = collect($this->context['products'])->sum('total_raw');
 
         $methods = auth()->guard('contact')->user()->client->service()->getPaymentMethods($total); //@todo this breaks down when the cart is in front of the login - we have no context on the user - nor their country/currency()
+        
         $this->methods = $methods;
+
     }
 
     public function handleSelect(string $company_gateway_id, string $gateway_type_id)
@@ -37,11 +42,13 @@ class Methods extends Component
         /** @var \App\Models\ClientContact $contact */
         $contact = auth()->guard('contact')->user();
 
+        $sub = Subscription::find($this->decodePrimaryKey($this->subscription_id));
+
         $this->dispatch('purchase.context', property: 'client_id', value: $contact->client->hashed_id);
 
         $this->context['client_id'] = $contact->client->hashed_id;
 
-        $invoice = $this->subscription
+        $invoice = $sub
             ->calc()
             ->buildPurchaseInvoice($this->context)
             ->service()
@@ -51,7 +58,7 @@ class Methods extends Component
             ->save();
 
         Cache::put($this->context['hash'], [
-            'subscription_id' => $this->subscription->hashed_id,
+            'subscription_id' => $sub->hashed_id,
             'email' => $contact->email,
             'client_id' => $contact->client->hashed_id,
             'invoice_id' => $invoice->hashed_id,

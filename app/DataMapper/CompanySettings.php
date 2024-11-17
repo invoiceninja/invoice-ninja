@@ -516,7 +516,7 @@ class CompanySettings extends BaseSettings
     public $quote_late_fee_amount1 = 0;
     public $quote_late_fee_percent1 = 0;
 
-    public string $payment_flow = 'default'; //smooth
+    public string $payment_flow = 'smooth'; //smooth
 
     public string $email_subject_payment_failed = '';
     public string $email_template_payment_failed = '';
@@ -999,6 +999,7 @@ class CompanySettings extends BaseSettings
             'credit_details' => [
                 '$credit.number',
                 '$credit.po_number',
+                '$credit.valid_until',
                 '$credit.date',
                 '$credit.balance',
                 '$credit.total',
@@ -1071,6 +1072,12 @@ class CompanySettings extends BaseSettings
                 '$product.item',
                 '$product.description',
                 '$product.quantity',
+            ],
+            'statement_unapplied_columns' => [
+                '$payment.number',
+                '$payment.date',
+                '$payment.amount',
+                '$payment.payment_balance',
             ],
         ];
 

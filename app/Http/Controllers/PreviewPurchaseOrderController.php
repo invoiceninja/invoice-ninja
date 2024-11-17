@@ -11,34 +11,35 @@
 
 namespace App\Http\Controllers;
 
-use App\DataMapper\Analytics\LivePreview;
-use App\Factory\PurchaseOrderFactory;
-use App\Http\Requests\Preview\PreviewPurchaseOrderRequest;
-use App\Jobs\Util\PreviewPdf;
-use App\Libraries\MultiDB;
-use App\Models\Client;
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderInvitation;
-use App\Models\Vendor;
-use App\Models\VendorContact;
-use App\Repositories\PurchaseOrderRepository;
-use App\Services\Pdf\PdfService;
-use App\Services\PdfMaker\Design;
-use App\Services\PdfMaker\Design as PdfDesignModel;
-use App\Services\PdfMaker\Design as PdfMakerDesign;
-use App\Services\PdfMaker\PdfMaker;
-use App\Utils\HostedPDF\NinjaPdf;
 use App\Utils\Ninja;
-use App\Utils\PhantomJS\Phantom;
+use App\Models\Client;
+use App\Models\Vendor;
+use App\Libraries\MultiDB;
+use App\Jobs\Util\PreviewPdf;
+use App\Models\PurchaseOrder;
+use App\Models\VendorContact;
 use App\Utils\Traits\MakesHash;
-use App\Utils\Traits\MakesInvoiceHtml;
-use App\Utils\Traits\Pdf\PageNumbering;
 use App\Utils\VendorHtmlEngine;
-use Illuminate\Support\Facades\App;
+use App\Services\Pdf\PdfService;
+use App\Utils\PhantomJS\Phantom;
+use App\Services\PdfMaker\Design;
+use App\Utils\HostedPDF\NinjaPdf;
 use Illuminate\Support\Facades\DB;
+use App\Services\PdfMaker\PdfMaker;
+use Illuminate\Support\Facades\App;
+use App\Factory\PurchaseOrderFactory;
+use App\Utils\Traits\MakesInvoiceHtml;
+use Turbo124\Beacon\Facades\LightLogs;
+use App\Models\PurchaseOrderInvitation;
+use App\Utils\Traits\Pdf\PageNumbering;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Response;
-use Turbo124\Beacon\Facades\LightLogs;
+use App\DataMapper\Analytics\LivePreview;
+use App\Repositories\PurchaseOrderRepository;
+use App\Http\Requests\Preview\ShowPreviewRequest;
+use App\Services\PdfMaker\Design as PdfDesignModel;
+use App\Services\PdfMaker\Design as PdfMakerDesign;
+use App\Http\Requests\Preview\PreviewPurchaseOrderRequest;
 
 class PreviewPurchaseOrderController extends BaseController
 {
@@ -84,7 +85,7 @@ class PreviewPurchaseOrderController extends BaseController
      *       ),
      *     )
      */
-    public function show($request)
+    public function show(ShowPreviewRequest $request)
     {
         if (request()->has('entity') &&
             request()->has('entity_id') &&

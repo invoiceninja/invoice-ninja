@@ -25,14 +25,15 @@ class InvoiceSummary extends Component
 
     public $amount;
 
+    public $gateway_fee;
+
     public function mount()
     {
-        //@TODO for a single invoice - show all details, for multi-invoices, only show the summaries
-        // $this->invoices = $this->getContext()['invoices']; // $this->context['invitation']->invoice;
-        
+       
         $contact = $this->getContext()['contact'];
         $this->invoices = $this->getContext()['payable_invoices'];
         $this->amount = Number::formatMoney($this->getContext()['amount'], $contact->client);
+        $this->gateway_fee = isset($this->getContext()['gateway_fee']) ? Number::formatMoney($this->getContext()['gateway_fee'], $contact->client) : false;
 
     }
 
@@ -43,10 +44,19 @@ class InvoiceSummary extends Component
         $contact = $this->getContext()['contact'];
         $this->invoices = $this->getContext()['payable_invoices'];
         $this->amount = Number::formatMoney($this->getContext()['amount'], $contact->client);
+        $this->gateway_fee = isset($this->getContext()['gateway_fee']) ? Number::formatMoney($this->getContext()['gateway_fee'], $contact->client) : false;
 
-        // $this->invoices = $this->getContext()['invoices'];
     }
 
+    #[On('payment-view-rendered')] 
+    public function handlePaymentViewRendered()
+    {
+        
+        $contact = $this->getContext()['contact'];
+        $this->amount = Number::formatMoney($this->getContext()['amount'], $contact->client);
+        $this->gateway_fee = isset($this->getContext()['gateway_fee']) ? Number::formatMoney($this->getContext()['gateway_fee'], $contact->client) : false;
+
+    }
 
     public function downloadDocument($invoice_hashed_id)
     {

@@ -26,28 +26,34 @@
     @include('portal.ninja2020.gateways.includes.payment_details')
 
     @component('portal.ninja2020.components.general.card-element', ['title' => ctrans('texts.pay_with')])
-        @if(count($tokens) > 0)
-            @foreach($tokens as $token)
-                <label class="mr-4">
+        <ul class="list-none space-y-2">
+            @if(count($tokens) > 0)
+                @foreach($tokens as $token)
+                <li class="py-2 hover:bg-gray-100 rounded transition-colors duration-150">
+                    <label class="flex items-center cursor-pointer px-2">
+                        <input
+                            type="radio"
+                            data-token="{{ $token->hashed_id }}"
+                            name="payment-type"
+                            class="form-radio text-indigo-600 rounded-full cursor-pointer toggle-payment-with-token"/>
+                        <span class="ml-2 cursor-pointer">**** {{ $token->meta?->last4 }}</span>
+                    </label>
+                </li>
+                @endforeach
+            @endif
+
+            <li class="py-2 hover:bg-gray-100 rounded transition-colors duration-150">
+                <label class="flex items-center cursor-pointer px-2">
                     <input
                         type="radio"
-                        data-token="{{ $token->hashed_id }}"
+                        id="toggle-payment-with-credit-card"
+                        class="form-radio text-indigo-600 rounded-full cursor-pointer"
                         name="payment-type"
-                        class="form-radio cursor-pointer toggle-payment-with-token"/>
-                    <span class="ml-1 cursor-pointer">**** {{ $token->meta?->last4 }}</span>
+                        checked/>
+                    <span class="ml-2 cursor-pointer">{{ __('texts.new_card') }}</span>
                 </label>
-            @endforeach
-        @endisset
-
-        <label>
-            <input
-                type="radio"
-                id="toggle-payment-with-credit-card"
-                class="form-radio cursor-pointer"
-                name="payment-type"
-                checked/>
-            <span class="ml-1 cursor-pointer">{{ __('texts.new_card') }}</span>
-        </label>
+            </li>    
+        </ul>
     @endcomponent
 
     @include('portal.ninja2020.gateways.includes.save_card')
@@ -63,6 +69,6 @@
         <script src="https://js.authorize.net/v1/Accept.js" charset="utf-8"></script>
     @endif
 
-    <script src="{{ asset('vendor/simple-card@0.0.4/simple-card.js') }}"></script> 
+    <script src="{{ asset('vendor/simple-card@0.0.5/simple-card.js') }}"></script> 
     @vite('resources/js/clients/payments/authorize-credit-card-payment.js')
 @endassets

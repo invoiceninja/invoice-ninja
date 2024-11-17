@@ -73,7 +73,7 @@
     <script type="application/json" fncls="fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99">
     {
         "f":"{{ $guid }}",
-        "s":"{{ $identifier }}"        // unique ID for each web page
+        "s":"{{ $identifier }}"        
     }
     </script>
 </div>
@@ -169,32 +169,15 @@
 
             window.location.href = "/client/invoices/{{ $invoice_hash }}";
         },
-        // onError: function(error) {
-
-
-        // console.log("submit catch");
-        // const errorM = parseError(error);
-
-        // console.log(errorM);
-
-        // const msg = handle422Error(errorM);
-
-        //     document.getElementById('errors').textContent = `Sorry, your transaction could not be processed...\n\n${msg.description}`;
-        //     document.getElementById('errors').hidden = false;
-
-        // },
+        
         onClick: function (){
            
         }
     
     });
 
-  // Render each field after checking for eligibility
   if (cardField.isEligible()) {
       
-    //   const nameField = cardField.NameField();
-    //   nameField.render("#card-name-field-container");
-
       const numberField = cardField.NumberField({
         inputEvents: {
             onChange: (event)=> {

@@ -6,7 +6,7 @@
 
 @section('body')
 
-    @livewire('flow2.invoice-pay', ['invoices' => $invoices, 'invitation_id' => $invitation->id, 'db' => $db, 'variables' => $variables])
+    @livewire('flow2.invoice-pay', ['invoices' => $invoices->pluck('hashed_id')->toArray(), 'invitation_id' => $invitation->id, 'db' => $db, 'variables' => $variables])
 
 @endsection
 

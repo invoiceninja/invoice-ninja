@@ -133,7 +133,7 @@ class PaymentRepository extends BaseRepository
         }
 
         /*Ensure payment number generated*/
-        if (! $payment->number || strlen($payment->number) == 0) {
+        if (! $payment->number || strlen($payment->number ?? '') == 0) { //@phpstan-ignore-line
             $payment->service()->applyNumber();
         }
 

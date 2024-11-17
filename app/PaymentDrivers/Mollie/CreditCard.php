@@ -84,7 +84,7 @@ class CreditCard implements LivewireMethodInterface
 
                 if ($payment->status === 'paid') {
                     $this->mollie->logSuccessfulGatewayResponse(
-                        ['response' => $payment, 'data' => $this->mollie->payment_hash],
+                        ['response' => $payment, 'data' => $this->mollie->payment_hash->data],
                         SystemLog::TYPE_MOLLIE
                     );
 
@@ -149,7 +149,7 @@ class CreditCard implements LivewireMethodInterface
 
             if ($payment->status === 'paid') {
                 $this->mollie->logSuccessfulGatewayResponse(
-                    ['response' => $payment, 'data' => $this->mollie->payment_hash],
+                    ['response' => $payment, 'data' => $this->mollie->payment_hash->data],
                     SystemLog::TYPE_MOLLIE
                 );
 

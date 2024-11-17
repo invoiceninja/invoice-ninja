@@ -202,6 +202,11 @@ class ACH implements LivewireMethodInterface
     {
         $data = $this->paymentData($data);
 
+        if(!$data['authorized']){
+            $token = $data['tokens'][0];
+            return redirect()->route('client.payment_methods.show', $token->hashed_id);
+        }
+
         return render('gateways.stripe.ach.pay', $data);
     }
 
@@ -602,6 +607,7 @@ class ACH implements LivewireMethodInterface
         $data['payment_method_id'] = GatewayType::BANK_TRANSFER;
         $data['customer'] = $this->stripe->findOrCreateCustomer();
         $data['amount'] = $this->stripe->convertToStripeAmount($data['total']['amount_with_fee'], $this->stripe->client->currency()->precision, $this->stripe->client->currency());
+        $data['authorized'] = true;
 
         $description = $this->stripe->getDescription(false);
 
@@ -614,7 +620,8 @@ class ACH implements LivewireMethodInterface
             $meta = $token->meta;
 
             if(isset($meta->state) && $meta->state == 'unauthorized') {
-                return redirect()->route('client.payment_methods.show', $token->hashed_id);
+                $data['authorized'] = false;
+                // return redirect()->route('client.payment_methods.show', $token->hashed_id);
             }
         }
 

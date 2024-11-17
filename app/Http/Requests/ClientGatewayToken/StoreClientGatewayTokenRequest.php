@@ -31,12 +31,17 @@ class StoreClientGatewayTokenRequest extends Request
 
     public function rules()
     {
+        
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         //ensure client is present
         $rules = [
-            'client_id' => 'required|exists:clients,id,company_id,'.auth()->user()->company()->id,
-            'company_gateway_id' => 'required',
+            'client_id' => ['required', 'bail', \Illuminate\Validation\Rule::exists('clients', 'id')->where('company_id', $user->company()->id)->where('is_deleted', 0)],
+            'company_gateway_id' => ['required', 'bail', \Illuminate\Validation\Rule::exists('company_gateways', 'id')->where('company_id', $user->company()->id)->where('is_deleted', 0)],
             'gateway_type_id' => 'required|integer',
             'meta' => 'required',
+            'is_default' => 'sometimes|bail|boolean'
         ];
 
         return $this->globalRules($rules);

@@ -248,6 +248,13 @@ function boot() {
     );
 
     s.handle();
+
+    /** @type {NodeListOf<HTMLInputElement>} */
+    const tokens = document.querySelectorAll('input.toggle-payment-with-token');
+
+    if (tokens.length > 0) {
+        tokens[0].click();
+    }
 }
 
 instant() ? boot() : wait('#stripe-credit-card-payment').then(() => boot());

@@ -347,40 +347,39 @@ class BaseTransformer
      */
     public function getFloat($data, $field)
     {
+        
         if (array_key_exists($field, $data)) {
-            return $this->parseStringToFloat($data, $field);
-            // return Number::parseFloat($data[$field]);
+
+            if($this->company->use_comma_as_decimal_place)
+                return $this->parseCommaFloat($data, $field);
+
+            return Number::parseFloat($data[$field]);
         }
 
         return 0;
 
     }
 
-    private function parseStringToFloat($data, $field): float
+    private function parseCommaFloat($data, $field): float
     {
 
+        $amount = $data[$field] ?? '';
 
-            $currency = $this->company->currency();
-            $amount = $data[$field] ?? '';
+        // Remove any non-numeric characters except for the decimal and thousand separators
+        $amount = preg_replace('/[^\d' . preg_quote(",") . preg_quote(".") . '-]/', '', $amount);
 
-            // Remove any non-numeric characters except for the decimal and thousand separators
-            $amount = preg_replace('/[^\d' . preg_quote($currency->decimal_separator) . preg_quote($currency->thousand_separator) . '-]/', '', $amount);
+        // Handle negative numbers
+        $isNegative = strpos($amount, '-') !== false;
+        $amount = str_replace('-', '', $amount);
 
-            // Handle negative numbers
-            $isNegative = strpos($amount, '-') !== false;
-            $amount = str_replace('-', '', $amount);
+        // Remove thousand separators
+        $amount = str_replace(".", "", $amount);
 
-            // Remove thousand separators
-            $amount = str_replace($currency->thousand_separator, '', $amount);
-
-            // Replace decimal separator with a period if it's not already
-            if ($currency->decimal_separator !== '.') {
-                $amount = str_replace($currency->decimal_separator, '.', $amount);
-            }
-
-            // Convert to float and apply negative sign if necessary
-            $result = (float) $amount;
-            return $isNegative ? -$result : $result;
+        $amount = str_replace(",", '.', $amount);
+        
+        // Convert to float and apply negative sign if necessary
+        $result = (float) $amount;
+        return $isNegative ? -$result : $result;
 
 
     }

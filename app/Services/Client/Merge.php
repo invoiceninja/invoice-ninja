@@ -71,6 +71,9 @@ class Merge extends AbstractService
 
         $this->mergable_client->forceDelete();
 
+        $this->client->credit_balance = $this->client->service()->getCreditBalance();
+        $this->client->saveQuietly();
+
         return $this->client;
     }
 

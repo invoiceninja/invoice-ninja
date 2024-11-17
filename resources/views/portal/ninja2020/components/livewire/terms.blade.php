@@ -3,11 +3,11 @@
         <h2 class="text-xl text-center py-0 px-4">{{ ctrans('texts.terms') }}</h2>
         <div class="mt-0 h-64 overflow-y-auto">
             <div class="py-0">
-                <p class="text-sm leading-6 font-medium text-gray-500">{{ ctrans('texts.invoice') }} {{ $invoice->number }}:</p>
-                @if($variables && $invoice->terms)
-                    <h5 data-ref="entity-terms">{!! $invoice->parseHtmlVariables('terms', $variables) !!}</h5>
-                @elseif($invoice->terms)
-                    <h5 data-ref="entity-terms" class="text-sm leading-5 text-gray-900">{!! $invoice->terms !!}</h5>
+                <p class="text-sm leading-6 font-medium text-gray-500">{{ ctrans('texts.invoice') }} {{ $this->invoice->number }}:</p>
+                @if($variables && $this->invoice->terms)
+                    <h5 data-ref="entity-terms">{!! $this->invoice->parseHtmlVariables('terms', $variables) !!}</h5>
+                @elseif($this->invoice->terms)
+                    <h5 data-ref="entity-terms" class="text-sm leading-5 text-gray-900">{!! $this->invoice->terms !!}</h5>
                 @else
                     <i class="text-sm leading-5 text-gray-500">{{ ctrans('texts.not_specified') }}</i>
                 @endif

@@ -229,7 +229,6 @@ class UpdatePaymentMethods
 
     private function buildPaymentMethodMeta(PaymentMethod $method, $type_id)
     {
-        nlog($method->type);
         
         switch ($type_id) {
             case GatewayType::CREDIT_CARD:

@@ -54,7 +54,6 @@ class MarkInvoiceDeleted extends AbstractService
 
     private function adjustLedger()
     {
-        // $this->invoice->ledger()->updatePaymentBalance($this->adjustment_amount * -1, 'Invoice Deleted - reducing ledger balance'); //reduces the payment balance by payment totals
         $this->invoice->ledger()->updatePaymentBalance($this->balance_adjustment * -1, 'Invoice Deleted - reducing ledger balance'); //reduces the payment balance by payment totals
 
         return $this;
@@ -62,12 +61,12 @@ class MarkInvoiceDeleted extends AbstractService
 
     private function adjustPaidToDateAndBalance()
     {
-        // 06-09-2022
+        
         $this->invoice
              ->client
              ->service()
              ->updateBalanceAndPaidToDate($this->balance_adjustment * -1, $this->adjustment_amount * -1)
-             ->save(); //reduces the paid to date by the payment totals
+             ->save(); 
 
         return $this;
     }

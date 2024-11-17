@@ -11,16 +11,20 @@
 
 namespace App\Events\Payment;
 
+use App\Models\BaseModel;
 use App\Models\Company;
 use App\Models\Payment;
+use App\Utils\Traits\Invoice\Broadcasting\DefaultResourceBroadcast;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\SerializesModels;
 
 /**
  * Class PaymentWasUpdated.
  */
-class PaymentWasUpdated
+class PaymentWasUpdated implements ShouldBroadcast
 {
-    use SerializesModels;
+    use SerializesModels, InteractsWithSockets, DefaultResourceBroadcast;
 
     /**
      * @var Payment
@@ -43,5 +47,12 @@ class PaymentWasUpdated
         $this->payment = $payment;
         $this->company = $company;
         $this->event_vars = $event_vars;
+
+        $this->dontBroadcastToCurrentUser();
+    }
+
+    public function broadcastModel(): BaseModel
+    {
+        return $this->payment;
     }
 }

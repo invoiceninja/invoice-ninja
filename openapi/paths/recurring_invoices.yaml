@@ -376,7 +376,7 @@
                     type: string
               example:
                 action: start
-                ids: "['D2J234DFA','D2J234DFA','D2J234DFA']"
+                ids: ['D2J234DFA','D2J234DFA','D2J234DFA']
       responses:
         200:
           description: "The RecurringInvoice response"

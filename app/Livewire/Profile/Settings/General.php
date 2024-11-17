@@ -12,13 +12,12 @@
 
 namespace App\Livewire\Profile\Settings;
 
-use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Hash;
 
 class General extends Component
 {
-    public $profile;
-
     public $first_name;
 
     public $last_name;
@@ -40,12 +39,18 @@ class General extends Component
         'phone' => ['sometimes'],
     ];
 
+    #[Computed]
+    public function profile()
+    {
+        return auth()->guard('contact')->user();
+    }
+
     public function mount()
     {
-        $profile = auth()->guard('contact')->user();
+        $profile = $this->profile();
 
         $this->fill([
-            'profile' => $profile,
+            // 'profile' => $profile,
             'first_name' => $profile->first_name,
             'last_name' => $profile->last_name,
             'email' => $profile->email,
@@ -61,7 +66,10 @@ class General extends Component
 
     public function submit()
     {
-        if ($this->profile->email != $this->email) {
+        
+        $profile = $this->profile();
+
+        if ($profile->email != $this->email) {
             $this->rules['email'][] = 'unique:client_contacts,email';
         }
 
@@ -72,10 +80,10 @@ class General extends Component
         $data = $this->validate($this->rules);
 
         if (! empty($this->password)) {
-            $this->profile->password = Hash::make($this->password);
+            $profile->password = Hash::make($this->password);
         }
 
-        $this->profile
+        $profile
             ->fill($data)
             ->save();
 

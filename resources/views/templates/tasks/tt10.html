@@ -43,7 +43,7 @@
 
 <body>
     <ninja>
-        {% if tasks %}
+        {% if tasks is defined and tasks is not empty %}
         <table>
             <thead>
                 <tr>

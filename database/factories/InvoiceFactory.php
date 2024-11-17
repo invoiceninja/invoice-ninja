@@ -27,7 +27,7 @@ class InvoiceFactory extends Factory
         return [
             'status_id' => Invoice::STATUS_SENT,
             'number' => $this->faker->ean13(),
-            'discount' => $this->faker->numberBetween(1, 10),
+            'discount' => rand(1,10),
             'is_amount_discount' => (bool) random_int(0, 1),
             'tax_name1' => 'GST',
             'tax_rate1' => 10,

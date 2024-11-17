@@ -138,6 +138,8 @@ class Csv extends BaseImport implements ImportInterface
 
         $this->transformer = new ClientTransformer($this->company);
 
+        $data = $this->groupClients($data, 'client.name');
+
         $client_count = $this->ingest($data, $entity_type);
 
         $this->entity_count['clients'] = $client_count;

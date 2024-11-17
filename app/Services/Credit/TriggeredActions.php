@@ -43,7 +43,7 @@ class TriggeredActions extends AbstractService
         }
 
         if ($this->request->has('mark_sent') && $this->request->input('mark_sent') == 'true') {
-            $this->credit = $this->credit->service()->markSent()->save();
+            $this->credit = $this->credit->service()->markSent(true)->save();
         }
 
         if ($this->request->has('save_default_footer') && $this->request->input('save_default_footer') == 'true') {
@@ -74,7 +74,7 @@ class TriggeredActions extends AbstractService
         $reminder_template = $this->credit->calculateTemplate('credit');
 
         $this->credit->invitations->load('contact.client.country', 'credit.client.country', 'credit.company')->each(function ($invitation) use ($reminder_template) {
-            EmailEntity::dispatch($invitation, $this->credit->company, $reminder_template);
+            EmailEntity::dispatch($invitation->withoutRelations(), $this->credit->company->db, $reminder_template);
         });
 
         if ($this->credit->invitations->count() > 0) {

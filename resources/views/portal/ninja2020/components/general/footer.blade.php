@@ -34,13 +34,13 @@
 
     @if(strlen($client->getSetting('client_portal_privacy_policy')) > 1)
         @component('portal.ninja2020.components.general.pop-up', ['title' => __('texts.privacy_policy') ,'show_property' => 'privacy'])
-            {!! $client->getSetting('client_portal_privacy_policy') !!}
+            {{ $client->getSetting('client_portal_privacy_policy') }}
         @endcomponent
     @endif
 
     @if(strlen($client->getSetting('client_portal_terms')) > 1)
         @component('portal.ninja2020.components.general.pop-up', ['title' => __('texts.terms') ,'show_property' => 'tos'])
-            {!! $client->getSetting('client_portal_terms') !!}
+            {{ $client->getSetting('client_portal_terms') }}
         @endcomponent
     @endif
 

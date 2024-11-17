@@ -12,15 +12,25 @@
 
 namespace App\Livewire\BillingPortal\Cart;
 
+use Livewire\Component;
 use App\Libraries\MultiDB;
 use App\Models\Subscription;
-use Livewire\Component;
+use App\Utils\Traits\MakesHash;
+use Livewire\Attributes\Computed;
 
 class Cart extends Component
 {
-    public Subscription $subscription;
+    use MakesHash;
 
     public array $context;
+
+    public string $subscription_id;
+
+    #[Computed()]
+    public function subscription()
+    {
+        return Subscription::find($this->decodePrimaryKey($this->subscription_id))->withoutRelations()->makeHidden(['webhook_configuration','steps']);
+    }
 
     public function handleSubmit()
     {

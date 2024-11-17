@@ -35,7 +35,7 @@ class PurchaseOrderInventory
                 $p->vendor_id = $this->purchase_order->vendor_id;
                 $p->product_key = $item->product_key;
                 $p->notes = $item->notes ?? '';
-                $p->price = $item->cost ?? 0;
+                $p->cost = $item->cost ?? 0;
                 $p->quantity = $item->quantity ?? 0;
                 $p->custom_value1 = $item->custom_value1 ?? '';
                 $p->custom_value2 = $item->custom_value2 ?? '';

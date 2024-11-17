@@ -108,9 +108,11 @@
             <h4 class="italic" style="margin-bottom:0.5rem;">$to_label</h3>
                 <p style="margin-bottom:0.5rem;">$client.name</p>
                 <ninja>
-                    {% set payment = payments|first %}
-                    {% if payment.client.vat_number %}
-                    <p>$vat_number_label: $vat_number</p>
+                    {% if payments is defined and payments is not empty %}
+                        {% set payment = payments|first %}
+                        {% if payment.client.vat_number %}
+                        <p>$vat_number_label: $vat_number</p>
+                        {% endif %}
                     {% endif %}
                 </ninja>
         </div>
@@ -129,23 +131,23 @@
         </div>
 
         <ninja>
-            {% if payments|e %}
-            {% for payment in payments %}
-            <div class="four-col-grid bottom-border" style="padding:2px;">
-                <div>
-                    <p class="primary-color-highlight">#{{ payment.number }}</p>
+            {% if payments is defined and payments is not empty %}
+                {% for payment in payments %}
+                <div class="four-col-grid bottom-border" style="padding:2px;">
+                    <div>
+                        <p class="primary-color-highlight">#{{ payment.number }}</p>
+                    </div>
+                    <div>
+                        <p>{{ payment.date }}</p>
+                    </div>
+                    <div>
+                        <p>{{ payment.method }}</p>
+                    </div>
+                    <div>
+                        <p>{{ payment.amount }}</p>
+                    </div>
                 </div>
-                <div>
-                    <p>{{ payment.date }}</p>
-                </div>
-                <div>
-                    <p>{{ payment.method }}</p>
-                </div>
-                <div>
-                    <p>{{ payment.amount }}</p>
-                </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
             {% endif %}
         </ninja>
 

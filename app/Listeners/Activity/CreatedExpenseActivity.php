@@ -48,6 +48,7 @@ class CreatedExpenseActivity implements ShouldQueue
         $fields->expense_id = $event->expense->id;
         $fields->user_id = $user_id;
         $fields->company_id = $event->expense->company_id;
+        $fields->account_id = $event->expense->company->account_id;
         $fields->activity_type_id = Activity::CREATE_EXPENSE;
         $fields->recurring_expense_id = $event->expense->recurring_expense_id ?? null;
 

@@ -25,13 +25,20 @@ class SubdomainController extends BaseController
      */
     public function index()
     {
+
+        $user = auth()->user();
+        $company = $user->company();
+
+        if($company->subdomain == trim(request()->input('subdomain'))){
+            return response()->json(['message' => 'Current subdomain name.'], 200);
+        }
+
         if (!MultiDB::checkDomainAvailable(request()->input('subdomain'))) {
             return response()->json(['message' => ctrans('texts.subdomain_is_not_available')], 401);
         }
 
-
         if (!preg_match('/^[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?$/', request()->input('subdomain'))) {
-            return response()->json(['message' => ctrans('texts.subdomain_is_not_available')], 401);
+            return response()->json(['message' => "Invalid subdomain format."], 401);
         }
 
 

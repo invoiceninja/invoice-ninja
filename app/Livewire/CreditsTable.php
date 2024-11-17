@@ -26,8 +26,6 @@ class CreditsTable extends Component
 
     public int $per_page = 10;
 
-    public Company $company;
-
     public string $db;
 
     public int $company_id;
@@ -36,13 +34,13 @@ class CreditsTable extends Component
     {
         MultiDB::setDb($this->db);
 
-        $this->company = Company::find($this->company_id);
     }
 
     public function render()
     {
+        
         $query = Credit::query()
-            ->where('company_id', $this->company->id)
+            ->where('company_id', auth()->guard('contact')->user()->company_id)
             ->where('client_id', auth()->guard('contact')->user()->client_id)
             ->where('status_id', '<>', Credit::STATUS_DRAFT)
             ->where('is_deleted', 0)

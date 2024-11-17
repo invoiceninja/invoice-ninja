@@ -77,6 +77,7 @@ class Product extends BaseModel
     public const PRODUCT_TYPE_OVERRIDE_TAX = 7;
     public const PRODUCT_TYPE_ZERO_RATED = 8;
     public const PRODUCT_TYPE_REVERSE_TAX = 9;
+    public const PRODUCT_INTRA_COMMUNITY = 10;
 
     protected $fillable = [
         'custom_value1',
@@ -216,7 +217,7 @@ class Product extends BaseModel
         return $converter->convert($this->notes ?? '');
     }
 
-    public static function markdownHelp(string $notes = '')
+    public static function markdownHelp(?string $notes = '')
     {
 
         $converter = new CommonMarkConverter([
@@ -226,7 +227,7 @@ class Product extends BaseModel
             ],
         ]);
 
-        return $converter->convert($notes);
+        return $converter->convert($notes ?? '');
 
     }
 

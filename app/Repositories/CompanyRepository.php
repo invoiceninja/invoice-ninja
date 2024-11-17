@@ -11,6 +11,7 @@
 
 namespace App\Repositories;
 
+use App\DataMapper\Tax\TaxModel;
 use App\Utils\Ninja;
 use App\Models\Company;
 use App\Repositories\BaseRepository;

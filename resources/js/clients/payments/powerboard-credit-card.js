@@ -158,10 +158,11 @@ function pay() {
         })
     );
 
-    const first = document.querySelector('input[name="payment-type"]');
+    /** @type {NodeListOf<HTMLInputElement>} */
+    const tokens = document.querySelectorAll('input.toggle-payment-with-token');
 
-    if (first) {
-        first.click();
+    if (tokens.length > 0) {
+        tokens[0].click();
     }
 
     if (focusCreditCard) {

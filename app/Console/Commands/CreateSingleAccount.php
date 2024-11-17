@@ -385,8 +385,11 @@ class CreateSingleAccount extends Command
 
         });
 
-
         $this->countryClients($company, $user);
+
+        $cc = ClientContact::where('company_id', $company->id)->latest()->first();
+        $cc->email = 'user@example.com';
+        $cc->save();
 
         $this->info("finished");
 
@@ -472,13 +475,13 @@ class CreateSingleAccount extends Command
                 'company_id' => $company->id,
             ]);
 
-        ClientContact::factory()->create([
-                    'user_id' => $user->id,
-                    'client_id' => $client->id,
-                    'company_id' => $company->id,
-                    'is_primary' => 1,
-                    'email' => 'user@example.com',
-                ]);
+        // ClientContact::factory()->create([
+        //             'user_id' => $user->id,
+        //             'client_id' => $client->id,
+        //             'company_id' => $company->id,
+        //             'is_primary' => 1,
+        //             'email' => 'user@example.com',
+        //         ]);
 
         ClientContact::factory()->count(rand(1, 2))->create([
                     'user_id' => $user->id,
@@ -490,7 +493,6 @@ class CreateSingleAccount extends Command
 
         $settings = $client->settings;
         $settings->currency_id = "1";
-        //        $settings->use_credits_payment = "always";
 
         $client->settings = $settings;
 

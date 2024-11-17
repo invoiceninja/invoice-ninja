@@ -336,6 +336,7 @@ class MolliePaymentDriver extends BaseDriver
                         'amount' => $amount = array_sum(array_column($payment_hash->invoices(), 'amount')) + $payment_hash->fee_total,
                         'payment_type' => $payment->metadata->payment_type_id,
                         'transaction_reference' => $payment->id,
+                        'idempotency_key' => substr("{$payment->id}{$payment_hash->hash}",0,64)
                     ];
 
                     $this->confirmGatewayFee($data);

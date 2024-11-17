@@ -6,7 +6,7 @@
     <meta name="credit-card-invalid" content="{{ ctrans('texts.credit_card_invalid') }}">
 
     <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script src="{{ asset('vendor/simple-card@0.0.4/simple-card.js') }}"></script> 
+    <script src="{{ asset('vendor/simple-card@0.0.5/simple-card.js') }}"></script> 
 
     @if($gateway->company_gateway->getConfigField('testMode'))
         <script type="text/javascript" src="https://sandbox.forte.net/api/js/v1"></script>

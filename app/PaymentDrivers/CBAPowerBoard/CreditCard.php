@@ -120,7 +120,7 @@ class CreditCard implements LivewireMethodInterface
 
             if ($charge->status == 'complete') {
 
-                $this->powerboard->logSuccessfulGatewayResponse(['response' => $charge, 'data' => $this->powerboard->payment_hash], SystemLog::TYPE_POWERBOARD);
+                $this->powerboard->logSuccessfulGatewayResponse(['response' => $charge, 'data' => $this->powerboard->payment_hash->data], SystemLog::TYPE_POWERBOARD);
                 
                 $vt = $charge->customer->payment_source->vault_token;
 
@@ -264,7 +264,7 @@ class CreditCard implements LivewireMethodInterface
         return 'gateways.powerboard.credit_card.pay_livewire';
     }
 
-    public function tokenBilling($request, $cgt, $client_present = false)
+    public function tokenBilling($cgt, $client_present = false)
     {
 
         $payload = [
@@ -291,7 +291,7 @@ class CreditCard implements LivewireMethodInterface
 
         nlog($charge);
 
-        $this->powerboard->logSuccessfulGatewayResponse(['response' => $charge, 'data' => $this->powerboard->payment_hash], SystemLog::TYPE_POWERBOARD);
+        $this->powerboard->logSuccessfulGatewayResponse(['response' => $charge, 'data' => $this->powerboard->payment_hash->data], SystemLog::TYPE_POWERBOARD);
 
         return $this->processSuccessfulPayment($charge);
     }
@@ -352,7 +352,7 @@ class CreditCard implements LivewireMethodInterface
                         ->where('token', $request->token)
                         ->first();
 
-            return $this->tokenBilling($request, $cgt, true);
+            return $this->tokenBilling($cgt, true);
             
         }
         elseif($request->browser_details)
@@ -389,7 +389,7 @@ class CreditCard implements LivewireMethodInterface
             nlog($charge);
 
             if ($charge->status == 'complete') {
-                $this->powerboard->logSuccessfulGatewayResponse(['response' => $charge, 'data' => $this->powerboard->payment_hash], SystemLog::TYPE_POWERBOARD);
+                $this->powerboard->logSuccessfulGatewayResponse(['response' => $charge, 'data' => $this->powerboard->payment_hash->data], SystemLog::TYPE_POWERBOARD);
                 
                 $vt = $charge->customer->payment_source->vault_token;
 

@@ -6,8 +6,6 @@ use Livewire\Component;
 
 class NameWebsiteLogo extends Component
 {
-    public $profile;
-
     public $name;
 
     public $vat_number;
@@ -28,7 +26,7 @@ class NameWebsiteLogo extends Component
     public function mount()
     {
         $this->fill([
-            'profile' => auth()->guard('contact')->user()->client,
+            // 'profile' => auth()->guard('contact')->user()->client,
             'name' => auth()->guard('contact')->user()->client->present()->name(),
             'vat_number' => auth()->guard('contact')->user()->client->vat_number ?: '',
             'website' => auth()->guard('contact')->user()->client->website,
@@ -46,12 +44,14 @@ class NameWebsiteLogo extends Component
     {
         $data = $this->validate($this->rules);
 
-        $this->profile->name = $data['name'];
-        $this->profile->vat_number = $data['vat_number'];
-        $this->profile->website = $data['website'];
-        $this->profile->phone = $data['phone'];
+        $profile = auth()->guard('contact')->user()->client;
 
-        $this->profile->save();
+        $profile->name = $data['name'];
+        $profile->vat_number = $data['vat_number'];
+        $profile->website = $data['website'];
+        $profile->phone = $data['phone'];
+
+        $profile->save();
 
         $this->saved = ctrans('texts.saved_at', ['time' => now()->toTimeString()]);
     }

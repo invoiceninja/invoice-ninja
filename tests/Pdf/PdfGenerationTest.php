@@ -26,7 +26,7 @@ class PdfGenerationTest extends TestCase
         parent::setUp();
 
         if (config('ninja.testvars.travis') !== false) {
-            $this->markTestSkipped('Skip test for Travis');
+            $this->markTestSkipped('Skip test for GH Actions');
         }
 
     }

@@ -49,7 +49,7 @@
         <script src="https://js.authorize.net/v1/Accept.js" charset="utf-8"></script>
     @endif
 
-    <script src="{{ asset('vendor/simple-card@0.0.4/simple-card.js') }}"></script> 
+    <script src="{{ asset('vendor/simple-card@0.0.5/simple-card.js') }}"></script> 
 
     @vite('resources/js/clients/payment_methods/authorize-authorize-card.js')
 @endsection

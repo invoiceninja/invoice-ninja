@@ -22,7 +22,7 @@ class SendEmailRequest extends Request
 {
     use MakesHash;
 
-    private string $entity_plural = '';
+    private string $entity_plural = 'invoices';
     private string $error_message = '';
 
     public array $templates = [
@@ -40,6 +40,7 @@ class SendEmailRequest extends Request
         'email_template_custom2',
         'email_template_custom3',
         'email_template_purchase_order',
+        'email_quote_template_reminder1',
     ];
 
     /**
@@ -92,9 +93,8 @@ class SendEmailRequest extends Request
             $input['entity_id'] = $this->decodePrimaryKey($input['entity_id']);
         }
 
-        $this->entity_plural = Str::plural($input['entity']) ?? '';
-
-        if (isset($input['entity']) && in_array($input['entity'], ['invoice','quote','credit','recurring_invoice','purchase_order','payment'])) {
+        if (isset($input['entity']) && in_array($input['entity'], ['invoice','quote','credit','recurring_invoice','purchase_order','payment','purchaseOrder'])) {
+            $this->entity_plural = Str::plural($input['entity']) ?? '';
             $input['entity'] = "App\Models\\".ucfirst(Str::camel($input['entity']));
         }
 
@@ -106,13 +106,15 @@ class SendEmailRequest extends Request
             })->slice(0, 4)->toArray();
         }
 
+
         $this->replace($input);
     }
 
-    public function message()
+    public function messages()
     {
         return [
-            'template' => 'Invalid template.',
+            'template.in' => 'Template :input is not a valid template.',
+            'entity.in' => 'Entity :input is not a valid entity.'
         ];
     }
 
@@ -134,8 +136,7 @@ class SendEmailRequest extends Request
         }
 
         /*Make sure we have all the require ingredients to send a template*/
-        if (isset($input['entity']) && array_key_exists('entity_id', $input) && is_string($input['entity']) && $input['entity_id']) {
-
+        if (isset($input['entity']) && array_key_exists('entity_id', $input) && in_array($input['entity'], ['App\Models\Invoice','App\Models\Quote','App\Models\Credit','App\Models\RecurringInvoice','App\Models\PurchaseOrder','App\Models\Payment'])) {
 
             $company = $user->company();
 
@@ -148,11 +149,12 @@ class SendEmailRequest extends Request
             if ($entity_obj && ($company->id == $entity_obj->company_id) && $user->can('edit', $entity_obj)) {
                 return true;
             }
-        } else {
-            $this->error_message = "Invalid entity or entity_id";
-        }
+            else {
+                $this->error_message = "Invalid entity or entity_id";
+            }
+        } 
 
-        return false;
+        return true;
     }
 
     protected function failedAuthorization()

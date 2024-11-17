@@ -15,8 +15,10 @@ use App\Utils\Ninja;
 use App\Models\Quote;
 use App\Models\Webhook;
 use Illuminate\Http\Request;
+use App\Services\Email\Email;
 use App\Jobs\Entity\EmailEntity;
 use App\Services\AbstractService;
+use App\Services\Email\EmailObject;
 use App\Events\Quote\QuoteWasEmailed;
 use App\Utils\Traits\GeneratesCounter;
 
@@ -80,9 +82,24 @@ class TriggeredActions extends AbstractService
     {
         $reminder_template = $this->quote->calculateTemplate('quote');
         // $reminder_template = 'email_template_quote';
-
+        // $quote_template = 'email_template_reminder1
+        $reminder_template = "email_template_{$reminder_template}";
+        
         $this->quote->invitations->load('contact.client.country', 'quote.client.country', 'quote.company')->each(function ($invitation) use ($reminder_template) {
-            EmailEntity::dispatch($invitation, $this->quote->company, $reminder_template);
+            
+            $mo = new EmailObject();
+            $mo->entity_id = $invitation->quote_id;
+            $mo->template = $reminder_template; //full template name in use
+            $mo->email_template_body = $reminder_template;
+            $mo->email_template_subject = str_replace("template", "subject", $reminder_template);
+
+            $mo->entity_class = get_class($invitation->quote);
+            $mo->invitation_id = $invitation->id;
+            $mo->client_id = $invitation->contact->client_id ?? null;
+            $mo->vendor_id = $invitation->contact->vendor_id ?? null;
+
+            Email::dispatch($mo, $invitation->company);
+
         });
 
         if ($this->quote->invitations->count() > 0) {

@@ -25,17 +25,19 @@ class TasksTable extends Component
 
     public $per_page = 10;
 
-    public $company;
+    public $company_id;
+
+    public $db;
 
     public function mount()
     {
-        MultiDB::setDb($this->company->db);
+        MultiDB::setDb($this->db);
     }
 
     public function render()
     {
         $query = Task::query()
-            ->where('company_id', $this->company->id)
+            ->where('company_id', $this->company_id)
             ->where('is_deleted', false)
             ->where('client_id', auth()->guard('contact')->user()->client_id);
 
@@ -54,7 +56,7 @@ class TasksTable extends Component
 
         return render('components.livewire.tasks-table', [
             'tasks' => $query,
-            'show_item_description' => auth()->guard('contact')->user()->company->invoice_task_item_description ?? false,
+            'show_item_description' => auth()->guard('contact')->user()->client->getSetting("show_task_item_description"),
         ]);
     }
 }

@@ -392,6 +392,23 @@ class MultiDB
         return null;
     }
 
+    public static function findAndSetDbByLegalEntityId($legal_entity_id): ?Company
+    {
+        $current_db = config('database.default');
+
+        foreach (self::$dbs as $db) {
+            if ($c = Company::on($db)->where('legal_entity_id', $legal_entity_id)->first()) {
+                self::setDb($db);
+
+                return $c;
+            }
+        }
+
+        self::setDB($current_db);
+
+        return null;
+    }
+
     public static function findAndSetDbByAccountKey($account_key): bool
     {
         $current_db = config('database.default');

@@ -352,18 +352,18 @@ class FortePaymentDriver extends BaseDriver
     {
         $response = $this->getLocation();
 
-        if($response) {
+        if($response && $response['services']) {
             $body = $response['services'];
 
             $fees_and_limits = $this->company_gateway->fees_and_limits;
 
-            if($body['card']['service_fee_percentage'] > 0 || $body['card']['service_fee_additional_amount'] > 0) {
+            if((isset($body['card']['service_fee_percentage']) && $body['card']['service_fee_percentage'] > 0) || (isset($body['card']['service_fee_additional_amount']) && $body['card']['service_fee_additional_amount'] > 0)) {
 
                 $fees_and_limits->{1}->fee_amount = $body['card']['service_fee_additional_amount'];
                 $fees_and_limits->{1}->fee_percent = $body['card']['service_fee_percentage'];
             }
 
-            if($body['debit']['service_fee_percentage'] > 0 || $body['debit']['service_fee_additional_amount'] > 0) {
+            if((isset($body['debit']['service_fee_percentage']) && $body['debit']['service_fee_percentage'] > 0) || (isset($body['card']['service_fee_additional_amount']) && $body['card']['service_fee_additional_amount'] > 0)) {
 
                 $fees_and_limits->{2}->fee_amount = $body['debit']['service_fee_additional_amount'];
                 $fees_and_limits->{2}->fee_percent = $body['debit']['service_fee_percentage'];

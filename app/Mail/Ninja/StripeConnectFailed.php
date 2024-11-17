@@ -52,41 +52,15 @@ class StripeConnectFailed extends Mailable
     {
 
         return new Content(
-            view: 'email.admin.stripe_connect_failed',
-            text: 'email.admin.stripe_connect_failed_text',
+            view: 'email.einvoice.peppol_purchase_allocation_failed',
+            text: 'email.einvoice.peppol_purchase_allocation_failed_text',
             with: [
-                'text_body' => $this->textBody(), //@todo this is a bit hacky here.
-                'body' => $this->htmlBody(),
-                'title' => 'Connect your Stripe account',
-                'settings' => $this->company->settings,
-                'logo' => $this->company->present()->logo(),
-                'signature' => '',
-                'company' => $this->company,
-                'greeting' => '',
-                'links' => [],
-                'url' => 'https://www.loom.com/share/a3dc3131cc924e14a34634d5d48065c8?sid=b1971aa2-9deb-4339-8ebd-53f9947ef633',
-                'button' => "texts.view"
+                
             ]
         );
     }
 
-    private function textBody()
-    {
-        return "
-        We note you are yet to connect your Stripe account to Invoice Ninja. Please log in to Invoice Ninja and connect your Stripe account.\n\n
-        Once logged in you can use the following resource to connect your Stripe account: \n\n
-        ";
-    }
-
-    private function htmlBody()
-    {
-        return "
-        We note you are yet to connect your Stripe account to Invoice Ninja. Please log in to Invoice Ninja and connect your Stripe account.<br><br>
-
-        Once logged in you can use the following resource to connect your Stripe account: <br><br>
-
-        ";
-    }
+    
     /**
      * Get the attachments for the message.
      *

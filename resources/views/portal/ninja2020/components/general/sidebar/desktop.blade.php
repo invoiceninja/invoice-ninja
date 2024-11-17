@@ -10,7 +10,8 @@
             <nav class="flex-1 pb-4 pt-0 bg-white">
                 @foreach($sidebar as $row)
                     <a class="group flex items-center p-4 text-sm leading-5 font-medium hover:font-semibold focus:outline-none focus:bg-primary-darken transition ease-in-out duration-150 {{ isActive($row['url'], true) ? 'bg-primary text-white' : 'text-gray-900' }}"
-                       href="{{ route($row['url']) }}">
+                       href="{{ route($row['url']) }}"
+                       id="{{ $row['id'] }}">
                         @if(isActive($row['url'], true))
                             <img src="{{ asset('images/svg/' . $row['icon'] . '.svg') }}"
                                  class="w-5 h-5 fill-current text-white mr-3" alt=""/>

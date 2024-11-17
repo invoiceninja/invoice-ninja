@@ -66,6 +66,10 @@ class StaticController extends BaseController
 
         }
 
+        if (\App\Utils\Ninja::isSelfHost()) {
+            $response_data['license_key'] = config('ninja.license_key');
+        }
+
         return response()->json($response_data, 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
     }
 }

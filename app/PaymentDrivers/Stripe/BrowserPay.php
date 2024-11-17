@@ -136,7 +136,7 @@ class BrowserPay implements MethodInterface, LivewireMethodInterface
         $gateway_response = $this->stripe->payment_hash->data->gateway_response;
         $payment_intent = $this->stripe->payment_hash->data->payment_intent;
 
-        $this->stripe->logSuccessfulGatewayResponse(['response' => $gateway_response, 'data' => $this->stripe->payment_hash], SystemLog::TYPE_STRIPE);
+        $this->stripe->logSuccessfulGatewayResponse(['response' => $gateway_response, 'data' => $this->stripe->payment_hash->data], SystemLog::TYPE_STRIPE);
 
         $payment_method = $this->stripe->getStripePaymentMethod($gateway_response->payment_method);
 

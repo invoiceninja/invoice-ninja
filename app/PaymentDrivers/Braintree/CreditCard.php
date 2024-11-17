@@ -145,7 +145,7 @@ class CreditCard implements LivewireMethodInterface
         }
 
         if ($result->success) {
-            $this->braintree->logSuccessfulGatewayResponse(['response' => $request->server_response, 'data' => $this->braintree->payment_hash], SystemLog::TYPE_BRAINTREE);
+            $this->braintree->logSuccessfulGatewayResponse(['response' => $request->server_response, 'data' => $this->braintree->payment_hash->data], SystemLog::TYPE_BRAINTREE);
 
             if ($request->store_card && is_null($request->token)) {
                 $payment_method = $this->braintree->gateway->paymentMethod()->find($token);

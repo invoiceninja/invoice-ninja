@@ -12,39 +12,43 @@
 
 namespace App\Livewire\PaymentMethods;
 
-use App\Libraries\MultiDB;
 use Livewire\Component;
+use App\Libraries\MultiDB;
+use Livewire\Attributes\Computed;
+use App\Models\ClientGatewayToken;
 
 class UpdateDefaultMethod extends Component
 {
-    /** @var \App\Models\Company */
-    public $company;
+    public $db;
 
-    /** @var \App\Models\ClientGatewayToken */
-    public $token;
-
-    /** @var \App\Models\Client */
-    public $client;
+    public $token_id;
 
     public function mount()
     {
-        $this->company = $this->client->company;
+        MultiDB::setDb($this->db);
+    }
 
-        MultiDB::setDb($this->company->db);
-
-        // $this->is_disabled = $this->token->is_default;
+    #[Computed]
+    public function token()
+    {
+        return ClientGatewayToken::withTrashed()->find($this->token_id);
     }
 
     public function makeDefault(): void
     {
-        if ($this->token->is_default) {
+        
+        MultiDB::setDb($this->db);
+        
+
+        if ($this->token()->is_default) {
             return;
         }
 
-        $this->client->gateway_tokens()->update(['is_default' => 0]);
+        $this->token()->client->gateway_tokens()->update(['is_default' => 0]);
 
-        $this->token->is_default = 1;
-        $this->token->save();
+        $token = $this->token();
+        $token->is_default = 1;
+        $token->save();
 
         $this->dispatch('UpdateDefaultMethod::method-updated');
     }

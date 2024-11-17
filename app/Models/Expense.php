@@ -146,12 +146,9 @@ class Expense extends BaseModel
     ];
 
     public static array $bulk_update_columns = [
-        'tax_rate1',
-        'tax_name1',
-        'tax_rate2',
-        'tax_name2',
-        'tax_rate3',
-        'tax_name3',
+        'tax1',
+        'tax2',
+        'tax3',
         'custom_value1',
         'custom_value2',
         'custom_value3',
@@ -169,9 +166,6 @@ class Expense extends BaseModel
         return self::class;
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Document>
-     */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
@@ -262,5 +256,20 @@ class Expense extends BaseModel
         }
 
         return ctrans('texts.logged');
+    }
+
+    public function calculatedTaxRate($tax_amount, $tax_rate): float
+    {
+
+        if ($this->calculate_tax_by_amount) {
+            if ($this->uses_inclusive_taxes) {
+                return round((($tax_amount / $this->amount) * 100 * 1000) / 10) / 100;
+            }
+
+            return round((($tax_amount / $this->amount) * 1000) / 10) / 1;
+        }
+
+        return $tax_rate;
+
     }
 }

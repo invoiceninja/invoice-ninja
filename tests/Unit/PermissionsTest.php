@@ -40,6 +40,10 @@ class PermissionsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        
+        if (\App\Models\Country::count() == 0) {
+            \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+        }
 
         $this->faker = \Faker\Factory::create();
 

@@ -47,7 +47,7 @@ class SendEmail
 
         $this->credit->invitations->each(function ($invitation) {
             if (! $invitation->contact->trashed() && $invitation->contact->email) {
-                EmailEntity::dispatch($invitation, $invitation->company, $this->reminder_template)->delay(2);
+                EmailEntity::dispatch($invitation->withoutRelations(), $invitation->company->db, $this->reminder_template)->delay(2);
             }
         });
 

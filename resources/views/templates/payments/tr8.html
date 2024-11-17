@@ -96,8 +96,9 @@
     <div class="two-col-grid" style="">
         <div class="pull-left">
             <ninja>
-                <h1 class="primary-color-highlight" style="margin-top:0; margin-bottom:0rem;">$refund_label {% if
-                    payments|length == 1%}#$number {% endif %}</h2>
+                {% if payments is defined and payments is not empty %}
+                <h1 class="primary-color-highlight" style="margin-top:0; margin-bottom:0rem;">$refund_label {% if payments|length == 1%}#$number {% endif %}</h2>
+                {% endif %}
             </ninja>
         </div>
         <div class="pull-right"><img src="$company.logo" class="company-logo"></div>
@@ -108,9 +109,11 @@
             <h4 class="italic" style="margin-bottom:0.5rem;">$to_label</h3>
                 <p style="margin-bottom:0.5rem;">$client.name</p>
                 <ninja>
-                    {% set payment = payments|first %}
-                    {% if payment.client.vat_number %}
-                    <p>$vat_number_label: $vat_number</p>
+                    {% if payments is defined and payments is not empty %}
+                        {% set payment = payments|first %}
+                        {% if payment.client.vat_number %}
+                        <p>$vat_number_label: $vat_number</p>
+                        {% endif %}
                     {% endif %}
                 </ninja>
         </div>
@@ -123,7 +126,7 @@
     <div class="" style="margin-top:20px;">
 
         <ninja>
-            {% if payments|e %}
+            {% if payments is defined and payments is not empty %}
             {% set totalInvoices = 0 %}
             {% set totalRefunds = 0 %}
             {% for payment in payments %}

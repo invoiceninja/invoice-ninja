@@ -63,6 +63,11 @@ class InvoiceItemSum
         'SE', // Sweden
         'SI', // Slovenia
         'SK', // Slovakia
+
+        'NO', //NORWAY - EEA
+        'IS', //ICELAND - EEA
+        'LI', //Liechtenstein - EEA
+        
     ];
 
     private array $tax_jurisdictions = [
@@ -97,9 +102,15 @@ class InvoiceItemSum
         'SI', // Slovenia
         'SK', // Slovakia
 
+        'NO', //NORWAY - EEA
+        'IS', //ICELAND - EEA
+        'LI', //Liechtenstein - EEA
+
         'US', // USA
 
         'AU', // Australia
+
+        'GB', // GB
     ];
 
     protected RecurringInvoice | Invoice | Quote | Credit | PurchaseOrder | RecurringQuote $invoice;
@@ -141,8 +152,8 @@ class InvoiceItemSum
         $this->invoice = $invoice;
         $this->client = $invoice->client ?? $invoice->vendor;
 
-        if ($this->invoice->client) {
-            $this->currency = $this->invoice->client->currency();
+        if ($this->client) {
+            $this->currency = $this->client->currency();
             $this->shouldCalculateTax();
         } else {
             $this->currency = $this->invoice->vendor->currency();
@@ -158,7 +169,7 @@ class InvoiceItemSum
             return $this;
         }
 
-        $this->calcLineItems();
+        $this->calcLineItems()->getPeppolSurchargeTaxes();
 
         return $this;
     }
@@ -179,13 +190,12 @@ class InvoiceItemSum
     private function shouldCalculateTax(): self
     {
 
-        if (!$this->invoice->company?->calculate_taxes || $this->invoice->company->account->isFreeHostedClient()) { //@phpstan-ignore-line
+        if (!$this->invoice->client || !$this->invoice->company?->calculate_taxes || $this->invoice->company->account->isFreeHostedClient()) { //@phpstan-ignore-line
             $this->calc_tax = false;
             return $this;
         }
 
         if (in_array($this->client->company->country()->iso_3166_2, $this->tax_jurisdictions)) { //only calculate for supported tax jurisdictions
-
 
             /** @var \App\DataMapper\Tax\BaseRule $class */
             $class = "App\DataMapper\Tax\\".str_replace("-","_",$this->client->company->country()->iso_3166_2)."\\Rule";
@@ -213,6 +223,9 @@ class InvoiceItemSum
         $this->sub_total += round($this->getLineTotal(), $this->currency->precision);
 
         $this->gross_sub_total += $this->getGrossLineTotal();
+
+        // $this->item->line_total = round($this->item->line_total, $this->currency->precision);
+        // $this->item->gross_line_total = round($this->item->gross_line_total, $this->currency->precision);
 
         $this->line_items[] = $this->item;
 
@@ -296,7 +309,7 @@ class InvoiceItemSum
         $item_tax += $item_tax_rate1_total;
 
         if (strlen($this->item->tax_name1) > 1) {
-            $this->groupTax($this->item->tax_name1, $this->item->tax_rate1, $item_tax_rate1_total);
+            $this->groupTax($this->item->tax_name1, $this->item->tax_rate1, $item_tax_rate1_total, $amount, $this->item->tax_id ?? '1');
         }
 
         $item_tax_rate2_total = $this->calcAmountLineTax($this->item->tax_rate2, $amount);
@@ -304,7 +317,7 @@ class InvoiceItemSum
         $item_tax += $item_tax_rate2_total;
 
         if (strlen($this->item->tax_name2) > 1) {
-            $this->groupTax($this->item->tax_name2, $this->item->tax_rate2, $item_tax_rate2_total);
+            $this->groupTax($this->item->tax_name2, $this->item->tax_rate2, $item_tax_rate2_total, $amount, $this->item->tax_id ?? '1');
         }
 
         $item_tax_rate3_total = $this->calcAmountLineTax($this->item->tax_rate3, $amount);
@@ -312,7 +325,7 @@ class InvoiceItemSum
         $item_tax += $item_tax_rate3_total;
 
         if (strlen($this->item->tax_name3) > 1) {
-            $this->groupTax($this->item->tax_name3, $this->item->tax_rate3, $item_tax_rate3_total);
+            $this->groupTax($this->item->tax_name3, $this->item->tax_rate3, $item_tax_rate3_total, $amount, $this->item->tax_id ?? '1');
         }
 
         $this->setTotalTaxes($this->formatValue($item_tax, $this->currency->precision));
@@ -324,13 +337,61 @@ class InvoiceItemSum
         return $this;
     }
 
-    private function groupTax($tax_name, $tax_rate, $tax_total)
+
+    private function getPeppolSurchargeTaxes(): self
+    {
+        if(!$this->client->getSetting('e_invoice_type') == 'PEPPOL')
+            return $this;
+
+        collect($this->invoice->line_items)
+            ->flatMap(function ($item) {
+                return collect([1, 2, 3])
+                    ->map(fn ($i) => [
+                        'name' => $item->{"tax_name{$i}"} ?? '',
+                        'percentage' => $item->{"tax_rate{$i}"} ?? 0,
+                        'tax_id' => $item->tax_id ?? '1',
+                    ])
+                    ->filter(fn ($tax) => strlen($tax['name']) > 1);
+            })
+            ->unique(fn ($tax) => $tax['percentage'] . '_' . $tax['name'])
+            ->values()
+            ->each(function ($tax){
+                    
+            $tax_component = 0;
+
+            if ($this->invoice->custom_surcharge1) {
+                $tax_component += round($this->invoice->custom_surcharge1 * ($tax['percentage'] / 100), 2);
+            }
+
+            if ($this->invoice->custom_surcharge2) {
+                $tax_component += round($this->invoice->custom_surcharge2 * ($tax['percentage'] / 100), 2);
+            }
+
+            if ($this->invoice->custom_surcharge3) {
+                $tax_component += round($this->invoice->custom_surcharge3 * ($tax['percentage'] / 100), 2);
+            }
+
+            if ($this->invoice->custom_surcharge4) {
+                $tax_component += round($this->invoice->custom_surcharge4 * ($tax['percentage'] / 100), 2);
+            }
+
+            $amount = $this->invoice->custom_surcharge4 + $this->invoice->custom_surcharge3 + $this->invoice->custom_surcharge2 + $this->invoice->custom_surcharge1;
+
+            if($tax_component > 0)
+                $this->groupTax($tax['name'], $tax['percentage'], $tax_component, $amount, $tax['tax_id']);
+
+        });
+
+        return $this;
+    }
+
+    private function groupTax($tax_name, $tax_rate, $tax_total, $amount, $tax_id = '')
     {
         $group_tax = [];
 
         $key = str_replace(' ', '', $tax_name.$tax_rate);
 
-        $group_tax = ['key' => $key, 'total' => $tax_total, 'tax_name' => $tax_name.' '.Number::formatValueNoTrailingZeroes(floatval($tax_rate), $this->client).'%'];
+        $group_tax = ['key' => $key, 'total' => $tax_total, 'tax_name' => $tax_name.' '.Number::formatValueNoTrailingZeroes(floatval($tax_rate), $this->client).'%', 'tax_id' => $tax_id, 'tax_rate' => $tax_rate, 'base_amount' => $amount];
 
         $this->tax_collection->push(collect($group_tax));
     }
@@ -425,14 +486,12 @@ class InvoiceItemSum
                 $amount = $this->item->line_total;
             }
 
-            //$amount = ($this->sub_total > 0) ? $this->item->line_total - ($this->invoice->discount * ($this->item->line_total / $this->sub_total)) : 0;
-
             $item_tax_rate1_total = $this->calcAmountLineTax($this->item->tax_rate1, $amount);
 
             $item_tax += $item_tax_rate1_total;
 
             if ($item_tax_rate1_total != 0) {
-                $this->groupTax($this->item->tax_name1, $this->item->tax_rate1, $item_tax_rate1_total);
+                $this->groupTax($this->item->tax_name1, $this->item->tax_rate1, $item_tax_rate1_total, $amount, $this->item->tax_id ?? '1');
             }
 
             $item_tax_rate2_total = $this->calcAmountLineTax($this->item->tax_rate2, $amount);
@@ -440,7 +499,7 @@ class InvoiceItemSum
             $item_tax += $item_tax_rate2_total;
 
             if ($item_tax_rate2_total != 0) {
-                $this->groupTax($this->item->tax_name2, $this->item->tax_rate2, $item_tax_rate2_total);
+                $this->groupTax($this->item->tax_name2, $this->item->tax_rate2, $item_tax_rate2_total, $amount, $this->item->tax_id ?? '1');
             }
 
             $item_tax_rate3_total = $this->calcAmountLineTax($this->item->tax_rate3, $amount);
@@ -448,7 +507,7 @@ class InvoiceItemSum
             $item_tax += $item_tax_rate3_total;
 
             if ($item_tax_rate3_total != 0) {
-                $this->groupTax($this->item->tax_name3, $this->item->tax_rate3, $item_tax_rate3_total);
+                $this->groupTax($this->item->tax_name3, $this->item->tax_rate3, $item_tax_rate3_total, $amount, $this->item->tax_id ?? '1');
             }
 
             $this->item->gross_line_total = $this->getLineTotal() + $item_tax;

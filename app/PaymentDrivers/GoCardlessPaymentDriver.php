@@ -49,7 +49,7 @@ class GoCardlessPaymentDriver extends BaseDriver
     public static $methods = [
         GatewayType::BANK_TRANSFER => \App\PaymentDrivers\GoCardless\DirectDebit::class,
         GatewayType::DIRECT_DEBIT => \App\PaymentDrivers\GoCardless\DirectDebit::class,
-        GatewayType::SEPA => \App\PaymentDrivers\GoCardless\SEPA::class,
+        GatewayType::SEPA => \App\PaymentDrivers\GoCardless\DirectDebit::class,
         GatewayType::INSTANT_BANK_PAY => \App\PaymentDrivers\GoCardless\InstantBankPay::class,
     ];
 
@@ -176,7 +176,7 @@ class GoCardlessPaymentDriver extends BaseDriver
 
                 $this->confirmGatewayFee($data);
 
-                $payment = $this->createPayment($data, Payment::STATUS_PENDING);
+                $_payment = $this->createPayment($data, Payment::STATUS_PENDING);
 
                 SystemLogger::dispatch(
                     ['response' => $payment, 'data' => $data],
@@ -187,7 +187,7 @@ class GoCardlessPaymentDriver extends BaseDriver
                     $this->client->company
                 );
 
-                return $payment;
+                return $_payment;
             }
 
             $this->sendFailureMail($payment->status);

@@ -1222,4 +1222,21 @@ class BaseController extends Controller
     {
         return response()->json(['message' => 'Upgrade to a paid plan for this feature.'], 403);
     }
+
+        
+    /**
+     * GetEncodedFilename
+     *
+     * @param  string $filename
+     * @return string
+     */
+    public function getEncodedFilename(string $filename): string
+    {
+        $ascii_filename = str_replace(['%', '/', '\\'], '', $filename);
+        $ascii_filename = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $ascii_filename);
+
+        $encoded_filename = rawurlencode($filename);
+
+        return "filename=\"$ascii_filename\"; filename*=UTF-8''$encoded_filename";
+    }
 }

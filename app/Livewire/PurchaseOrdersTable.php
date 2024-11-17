@@ -28,11 +28,11 @@ class PurchaseOrdersTable extends Component
 
     public $status = [];
 
-    public $company;
-
+    public $db;
+    
     public function mount()
     {
-        MultiDB::setDb($this->company->db);
+        MultiDB::setDb($this->db);
 
         $this->sort_asc = false;
 
@@ -45,7 +45,7 @@ class PurchaseOrdersTable extends Component
 
         $query = PurchaseOrder::query()
             ->with('vendor.contacts')
-            ->where('company_id', $this->company->id)
+            ->where('company_id', auth()->guard('vendor')->user()->company_id)
             ->whereIn('status_id', [PurchaseOrder::STATUS_SENT, PurchaseOrder::STATUS_ACCEPTED])
             ->where('is_deleted', false)
             ->orderBy($this->sort_field, $this->sort_asc ? 'asc' : 'desc');

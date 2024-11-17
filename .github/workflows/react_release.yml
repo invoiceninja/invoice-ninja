@@ -47,6 +47,7 @@ jobs:
           git clone https://${{secrets.commit_secret}}@github.com/invoiceninja/ui.git
           cd ui
           git checkout develop
+          sed -i 's/VITE_IS_TEST=true/VITE_IS_TEST=false/' .env.example
           cp .env.example .env
           cp ../vite.config.ts.react ./vite.config.js
           sed -i '/"version"/c\  "version": " Latest Build - ${{ env.current_date }}",' package.json

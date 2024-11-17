@@ -497,8 +497,9 @@ class EwayRapid {
                     document
                         .getElementById('eway-secure-panel')
                         .classList.remove('hidden');
-                    document.getElementById('save-card--container').style.display =
-                        'grid';
+                    document.getElementById(
+                        'save-card--container'
+                    ).style.display = 'grid';
                     document.querySelector('input[name=token]').value = '';
                     document.getElementById('pay-now').disabled = true;
                 });
@@ -523,6 +524,13 @@ class EwayRapid {
 
 function boot() {
     new EwayRapid().handle();
+
+    /** @type {NodeListOf<HTMLInputElement>} */
+    const tokens = document.querySelectorAll('input.toggle-payment-with-token');
+
+    if (tokens.length > 0) {
+        tokens[0].click();
+    }
 }
 
 instant() ? boot() : wait('#eway-credit-card-payment').then(() => boot());

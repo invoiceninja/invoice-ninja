@@ -9,13 +9,13 @@
                     <span class="text-primary mr-1 hidden" data-ref="success-label">{{ ctrans('texts.success') }}!</span>
 
                     <p>
-                        {{ $token->is_default ? ctrans('texts.already_default_payment_method') : ctrans('texts.default_payment_method') }}
+                        {{ $this->token->is_default ? ctrans('texts.already_default_payment_method') : ctrans('texts.default_payment_method') }}
                     </p>
                 </div>
             </div>
             <div class="mt-5 sm:mt-0 sm:ml-6 sm:flex-shrink-0 sm:flex sm:items-center">
                 <form wire:submit="makeDefault">
-                    <button class="button button-primary bg-primary" {{ $token->is_default ? 'disabled' : '' }}>
+                    <button class="button button-primary bg-primary" {{ $this->token->is_default ? 'disabled' : '' }}>
                         {{ ctrans('texts.save_as_default') }}
                     </button>
                 </form>

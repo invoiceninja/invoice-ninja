@@ -219,7 +219,7 @@ class Payment extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany<Paymentable>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany
      */
     public function invoices(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
@@ -227,7 +227,7 @@ class Payment extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany<Paymentable>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany
      */
     public function credits(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
@@ -235,7 +235,7 @@ class Payment extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<CompanyLedger>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function company_ledger(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {

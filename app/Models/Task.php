@@ -305,6 +305,11 @@ class Task extends BaseModel
 
     }
 
+    public function getQuantity(): float
+    {
+        return round(($this->calcDuration() / 3600) , 2);
+    }
+
     public function taskValue(): float
     {
         return round(($this->calcDuration() / 3600) * $this->getRate(), 2);
@@ -332,6 +337,69 @@ class Task extends BaseModel
         })->toArray();
     }
 
+    public function description(): string
+    {
+        $parent_entity = $this->client ?? $this->company;
+        $time_format = $parent_entity->getSetting('military_time') ? "H:i:s" : "h:i:s A";
+        
+        $task_description =  collect(json_decode($this->time_log, true))
+            ->filter(function ($log) {
+                $billable = $log[3] ?? false;
+                return $billable || $this->company->settings->allow_billable_task_items;
+            })
+            ->map(function ($log) use($parent_entity, $time_format){
+                $interval_description = $log[2] ?? '';
+                $hours = ctrans('texts.hours');
+
+                $parts = [];
+                
+                $parts[] = '<div class="task-time-details">';
+
+                $date_time = [];
+                
+                if ($this->company->invoice_task_datelog) {
+                    $date_time[] = Carbon::createFromTimestamp((int)$log[0])
+                        ->setTimeZone($this->company->timezone()->name)
+                        ->format($parent_entity->date_format());
+                }
+
+                if ($this->company->invoice_task_timelog) {
+                    $date_time[] = Carbon::createFromTimestamp((int)$log[0])
+                        ->setTimeZone($this->company->timezone()->name)
+                        ->format($time_format) . " - " . 
+                        Carbon::createFromTimestamp((int)$log[1])
+                        ->setTimeZone($this->company->timezone()->name)
+                        ->format($time_format);
+                }
+
+                if ($this->company->invoice_task_hours) {
+                    $date_time[] = "{$this->getQuantity()} {$hours}";
+                }
+
+                $parts[] = implode(" • ", $date_time);
+
+                if ($this->company->invoice_task_item_description && $this->company->settings->show_task_item_description && strlen($interval_description) > 1) {
+                    $parts[] = $interval_description;
+                }
+
+                $parts[] = '</div>';
+
+                return implode(PHP_EOL, $parts);
+            })
+            ->implode(PHP_EOL);
+
+            $body = '';
+
+            if($this->company->invoice_task_project && $this->project)
+                $body = "## {$this->project->name}  \n";
+            
+            if(strlen($this->description) > 1)
+                $body .= $this->description. " ";
+            
+            $body .= $task_description;
+
+            return $body;
+    }
 
     public function processLogsExpandedNotation()
     {

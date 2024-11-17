@@ -1,4 +1,4 @@
-<div x-data="{ fields: @entangle('fields'), contact: @entangle('contact') }"
+<div x-data="{ fields: @entangle('fields') }"
     class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden px-4 py-5 bg-white sm:gap-4 sm:px-6">
 
     <p class="font-semibold tracking-tight group flex items-center gap-2 text-lg mb-3">

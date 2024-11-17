@@ -93,7 +93,7 @@ class BaseRepository
      */
     public function delete($entity)
     {
-        if ($entity->is_deleted) {
+        if (!$entity || $entity->is_deleted) {
             return;
         }
 
@@ -324,7 +324,7 @@ class BaseRepository
             }
 
             /** If Peppol is enabled - we will save the e_invoice document here at this point, document will not update after being sent */
-            if(strlen($model->backup ?? '') == 0 && $client->getSetting('e_invoice_type') == 'PEPPOL' && $model->company->legal_entity_id)
+            if((!isset($model->backup) || !property_exists($model->backup, 'guid')) && $client->getSetting('e_invoice_type') == 'PEPPOL' && $model->company->legal_entity_id)
             {
                 try{
                     $model->service()->getEInvoice();
@@ -396,25 +396,35 @@ class BaseRepository
     public function bulkUpdate(\Illuminate\Database\Eloquent\Builder $model, string $column, mixed $new_value): void
     {
         /** Handle taxes being updated */
-        if(in_array($column, ['tax_name1','tax_name2','tax_name3'])) {
+        if(in_array($column, ['tax1','tax2','tax3'])) {
 
             $parts = explode("||", $new_value);
+            $tax_name_column = str_replace("tax", "tax_name", $column);
+            $tax_rate_column = str_replace("tax", "tax_rate", $column);
 
-            if (count($parts) !== 2)
-                return;
+            /** Harvest the tax name and rate */
+            if (count($parts) == 2)   
+            {
+                
+                $rate = filter_var($parts[1], FILTER_VALIDATE_FLOAT);
+                $tax_name = $parts[0];
+                
+                if ($rate === false)
+                    return;
+                
+            }
+            else { //else we need to clear the value
 
-            $tax_name = trim($parts[0]);
-            $rate = filter_var($parts[1], FILTER_VALIDATE_FLOAT);
+                $rate = 0;
+                $tax_name = "";
 
-            if ($rate === false)
-                return;
-            
-            $taxrate_column = str_replace("name", "rate", $column);
+            }
 
             $model->update([
-                $column => $tax_name,
-                $taxrate_column => $rate,
+                $tax_name_column => $tax_name,
+                $tax_rate_column => $rate,
             ]);
+
             return;
         }
 

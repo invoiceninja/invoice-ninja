@@ -104,6 +104,96 @@ class TaskApiTest extends TestCase
         }
     }
 
+    public function testTaskLogGenerationforInvoices()
+    {
+        $this->company->invoice_task_datelog = true;
+        $this->company->invoice_task_timelog = true;
+        $this->company->invoice_task_hours = true;
+        $this->company->invoice_task_item_description = true;
+        $this->company->invoice_task_project = true;
+
+        $settings = $this->company->settings;
+        $settings->default_task_rate = 100;
+        $settings->allow_billable_task_items = true;
+        $settings->show_task_item_description = true;
+        $this->company->settings = $settings;
+        $this->company->save();
+
+        $p = Project::factory()->create([
+            'client_id' => $this->client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'name' => 'Fancy Project Inc',
+        ]);
+
+        $data = [
+            'project_id' => $p->hashed_id,
+            'client_id' =>$this->client->hashed_id,
+            'time_log' => '[[1731391977,1731399177,"item description",true],[1731399178,1731499177,"item description 2", true]]',
+            'description' => 'Top level Task Description',
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/tasks', $data);
+
+        $response->assertStatus(200);
+
+        $arr = $response->json();
+        $id = $arr['data']['id'];
+
+        $task = Task::find($this->decodePrimaryKey($id));
+
+        $this->assertNotNull($task);
+        // nlog($task->time_log);
+        // nlog($task->description());
+    }
+
+    public function testCaseOne()
+    {
+        $time_log = '[[1729552249,1729553149],[1729553415,1729554315],[1729555129,1729556929],[1729557879,1729565079],[1729565184,1729568784]]';
+
+            $c = Client::factory()->create([
+                'user_id' => $this->user->id,
+                'company_id' => $this->company->id,
+            ]);
+
+            $data = [
+                'client_id' => $c->hashed_id,
+                'description' => 'Test Task',
+                'time_log' => $time_log,
+            ];
+
+            $response = $this->withHeaders([
+                'X-API-SECRET' => config('ninja.api_secret'),
+                'X-API-TOKEN' => $this->token,
+            ])->postJson("/api/v1/tasks", $data);
+
+
+            $response->assertStatus(200);
+
+            
+            $response = $this->withHeaders([
+               'X-API-SECRET' => config('ninja.api_secret'),
+               'X-API-TOKEN' => $this->token,
+           ])->postJson("/api/v1/tasks?start=true", $data);
+
+
+            $response->assertStatus(200);
+
+
+            $response = $this->withHeaders([
+               'X-API-SECRET' => config('ninja.api_secret'),
+               'X-API-TOKEN' => $this->token,
+           ])->postJson("/api/v1/tasks?stop=true", $data);
+
+
+            $response->assertStatus(200);
+
+
+    }
+
     public function testTimeLogWithSameStartAndStopTimes()
     {
         $settings = ClientSettings::defaults();

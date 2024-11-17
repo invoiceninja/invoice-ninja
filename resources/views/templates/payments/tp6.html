@@ -208,9 +208,9 @@
                                                                         style="border:0;border-collapse:collapse;margin:0;padding:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;vertical-align:middle;color:#525f7f;font-size:15px;line-height:24px;white-space:nowrap">
                                                                         <span>
                                                                             <ninja>
-                                                                                {% set payment = payments|first %}
-                                                                                {% if payment %}
-                                                                                {{ payment.method }}
+                                                                                {% if payments is defined and payments is not empty %}
+                                                                                    {% set payment = payments|first %}
+                                                                                        {{ payment.method }}
                                                                                 {% endif %}
                                                                             </ninja>
                                                                         </span>
@@ -303,9 +303,9 @@
                                                                 </tr>
                                                                 <ninja>
                                                                     {% set totalPrice = 0 %}
-                                                                    {% for payment in payments %}
-                                                                    {% for pivot in payment.paymentables|filter(pivot =>
-                                                                    pivot.is_credit == '0') %}
+                                                                    {% if payments is defined and payments is not empty %}
+                                                                        {% for payment in payments %}
+                                                                            {% for pivot in payment.paymentables|filter(pivot => pivot.is_credit == '0') %}
                                                                     <tr>
                                                                         <td
                                                                             style="border:0;border-collapse:collapse;margin:0;padding:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;vertical-align:middle;color:#8898aa;font-size:12px;line-height:16px;font-weight:bold;text-transform:uppercase">
@@ -375,7 +375,7 @@
 
                                                                     {% set totalPrice = totalPrice + pivot.amount_raw %}
 
-                                                                    {% endfor %}
+                                                                        {% endfor %}
                                                                     {% endfor %}
 
                                                                     <tr>
@@ -396,6 +396,8 @@
                                                                             style="border:0;border-collapse:collapse;margin:0;padding:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;vertical-align:middle;color:#525f7f;font-size:15px;line-height:24px;font-weight:bold">
                                                                             ${{ totalPrice|format_currency(currency_code) }}
                                                                         <td>
+                                                                    
+                                                                    {% endif %}
                                                                 </ninja>
                                                 </tr>
                                                 <tr>

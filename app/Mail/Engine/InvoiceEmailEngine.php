@@ -218,7 +218,7 @@ class InvoiceEmailEngine extends BaseEmailEngine
                                            $task->documents()->where('is_public', true)->cursor()->each(function ($document) {
                                                if ($document->size > $this->max_attachment_size) {
 
-                                                   $hash = Str::random(64);
+                                                   $hash = Str::random(64); //allows document has to persist
                                                    Cache::put($hash, ['db' => $this->invoice->company->db, 'doc_hash' => $document->hash], now()->addDays(7));
 
                                                    $this->setAttachmentLinks(["<a class='doc_links' href='" . URL::signedRoute('documents.hashed_download', ['hash' => $hash]) ."'>". $document->name ."</a>"]);

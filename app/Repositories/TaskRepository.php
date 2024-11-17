@@ -212,11 +212,10 @@ class TaskRepository extends BaseRepository
     /**
      * Sorts the task status order IF the old status has changed between requests
      *
-     * @param  \stdCLass $old_task The old task object
      * @param  Task     $new_task The new Task model
      * @return void
      */
-    public function sortStatuses($old_task, $new_task)
+    public function sortStatuses($new_task)
     {
         if (! $new_task->project()->exists()) {
             return;
@@ -371,7 +370,7 @@ class TaskRepository extends BaseRepository
 
             $duration = 0;
 
-            $task->project->tasks->each(function ($task) use (&$duration) {
+            $task->project->tasks()->withTrashed()->where('is_deleted',0)->each(function ($task) use (&$duration) {
 
                 if(is_iterable(json_decode($task->time_log))) {
 

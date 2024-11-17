@@ -101,6 +101,7 @@ class Statement
                     'payments' => $this->getPayments()->cursor(),
                     'credits' => $this->getCredits()->cursor(),
                     'aging' => $this->getAging(),
+                    'unapplied' => $this->getUnapplied()->cursor(),
                 ], \App\Services\PdfMaker\Design::STATEMENT),
                 'variables' => $variables,
                 'options' => [
@@ -117,6 +118,8 @@ class Statement
             $pdf = null;
             $html = $maker->getCompiledHTML(true);
 
+            nlog($html);
+            
             if ($this->rollback) {
                 \DB::connection(config('database.default'))->rollBack();
                 $this->rollback = false;
@@ -182,6 +185,7 @@ class Statement
             'payments' => $this->options['show_payments_table'] ? $this->getPayments()->get() : collect([]),
             'credits' => $this->options['show_credits_table'] ? $this->getCredits()->get() : collect([]),
             'aging' => $this->options['show_aging_table'] ? $this->getAging() : collect([]),
+            'unapplied' => $this->options['show_payments_table'] ? $this->getPayments()->get() : collect([]),
         ]);
 
         $html = $ts->getHtml();
@@ -362,12 +366,23 @@ class Statement
     {
         return Payment::withTrashed()
             ->with('client.country', 'invoices')
-            ->where('is_deleted', false)
             ->where('company_id', $this->client->company_id)
             ->where('client_id', $this->client->id)
             ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED, Payment::STATUS_REFUNDED])
             ->whereBetween('date', [Carbon::parse($this->options['start_date']), Carbon::parse($this->options['end_date'])])
+            ->where('is_deleted', false)
             ->orderBy('date', 'ASC');
+    }
+
+    protected function getUnapplied(): Builder
+    {
+        return Payment::query()
+                        ->withTrashed()
+                        ->where('company_id', $this->client->company_id)
+                        ->where('client_id', $this->client->id)
+                        ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PENDING, Payment::STATUS_PARTIALLY_REFUNDED, Payment::STATUS_REFUNDED])
+                        ->where('is_deleted', 0)
+                        ->whereRaw('payments.amount > payments.applied');
     }
 
     /**
@@ -385,7 +400,6 @@ class Statement
             ->whereIn('status_id', [Credit::STATUS_SENT, Credit::STATUS_PARTIAL, Credit::STATUS_APPLIED])
             ->whereBetween('date', [Carbon::parse($this->options['start_date']), Carbon::parse($this->options['end_date'])])
             ->where(function ($query) {
-                // $query->whereDate('due_date', '>=', $this->options['end_date'])
                 $query->whereDate('due_date', '>=', now())
                       ->orWhereNull('due_date');
             })

@@ -83,7 +83,7 @@ class PayPal implements LivewireMethodInterface
 
         if ($result->success) {
             $this->braintree->logSuccessfulGatewayResponse(
-                ['response' => $request->server_response, 'data' => $this->braintree->payment_hash],
+                ['response' => $request->server_response, 'data' => $this->braintree->payment_hash->data],
                 SystemLog::TYPE_BRAINTREE
             );
 

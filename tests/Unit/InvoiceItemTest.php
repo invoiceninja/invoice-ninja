@@ -524,6 +524,8 @@ class InvoiceItemTest extends TestCase
         $item_calc = new InvoiceItemSum($this->invoice, $settings);
         $item_calc->process();
 
+        nlog($item_calc->getGroupedTaxes());
+        
         $this->assertEquals($item_calc->getTotalTaxes(), 2.06);
         $this->assertEquals($item_calc->getGroupedTaxes()->count(), 2);
     }

@@ -34,7 +34,7 @@
         </div>
         <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <div class="flex w-full rounded-md shadow-sm sm:ml-3 sm:w-auto">
-                @livewire('recurring-invoice-cancellation', ['invoice' => $invoice, 'company' => $company])
+                @livewire('recurring-invoice-cancellation', ['invoice_id' => $invoice->id, 'db' => $company->db])
             </div>
             <div class="mt-3 flex w-full rounded-md shadow-sm sm:mt-0 sm:w-auto">
                 <button @click="open = false" type="button" class="button button-secondary button-block">

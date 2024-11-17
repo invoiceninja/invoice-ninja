@@ -41,10 +41,10 @@ use Laracasts\Presenter\PresentableTrait;
  * @property bool $update_products
  * @property bool $show_product_details
  * @property bool $client_can_register
- * @property int $custom_surcharge_taxes1
- * @property int $custom_surcharge_taxes2
- * @property int $custom_surcharge_taxes3
- * @property int $custom_surcharge_taxes4
+ * @property bool $custom_surcharge_taxes1
+ * @property bool $custom_surcharge_taxes2
+ * @property bool $custom_surcharge_taxes3
+ * @property bool $custom_surcharge_taxes4
  * @property int $show_product_cost
  * @property int $enabled_tax_rates
  * @property int $enabled_modules
@@ -126,7 +126,7 @@ use Laracasts\Presenter\PresentableTrait;
  * @property string|null $smtp_username
  * @property string|null $smtp_password
  * @property string|null $smtp_host
- * @property string|null $smtp_port
+ * @property int|null $smtp_port
  * @property string|null $smtp_encryption
  * @property string|null $smtp_local_domain
  * @property \App\DataMapper\QuickbooksSettings|null $quickbooks
@@ -239,30 +239,6 @@ class Company extends BaseModel
     use CompanySettingsSaver;
     use AppSetup;
     use \Awobaz\Compoships\Compoships;
-
-    // const ENTITY_RECURRING_INVOICE = 'recurring_invoice';
-
-    // const ENTITY_CREDIT = 'credit';
-
-    // const ENTITY_QUOTE = 'quote';
-
-    // const ENTITY_TASK = 'task';
-
-    // const ENTITY_EXPENSE = 'expense';
-
-    // const ENTITY_PROJECT = 'project';
-
-    // const ENTITY_VENDOR = 'vendor';
-
-    // const ENTITY_TICKET = 'ticket';
-
-    // const ENTITY_PROPOSAL = 'proposal';
-
-    // const ENTITY_RECURRING_EXPENSE = 'recurring_expense';
-
-    // const ENTITY_RECURRING_TASK = 'task';
-
-    // const ENTITY_RECURRING_QUOTE = 'recurring_quote';
 
     /** @var CompanyPresenter */
     protected $presenter = CompanyPresenter::class;
@@ -386,6 +362,7 @@ class Company extends BaseModel
         'smtp_local_domain',
         'smtp_verify_peer',
         // 'e_invoice',
+        // 'e_invoicing_token',
     ];
 
     protected $hidden = [
@@ -439,7 +416,7 @@ class Company extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Document>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function documents()
     {
@@ -577,8 +554,8 @@ class Company extends BaseModel
     }
 
     public function activities(): HasMany
-    {
-        return $this->hasMany(Activity::class)->where('account_id', $this->account_id)->orderBy('id', 'DESC')->take(50);
+    {   
+        return $this->hasMany(Activity::class)->orderBy('id', 'DESC')->take(50);     
     }
 
     /**
@@ -1001,6 +978,11 @@ class Company extends BaseModel
     public function service(): CompanyService
     {
         return new CompanyService($this);
+    }
+
+    public function isPeppolSender()
+    {
+        return Ninja::isHosted() && $this->account->isPaid() && $this->account->isEnterpriseClient() && $this->account->e_invoice_quota > 0 && $this->settings->e_invoice_type == 'PEPPOL' && $this->tax_data->acts_as_sender;
     }
 
 }

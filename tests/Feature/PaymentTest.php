@@ -62,6 +62,64 @@ class PaymentTest extends TestCase
         );
     }
 
+    public function testNegativePaymentPaidToDate()
+    {
+        
+        $c = Client::factory()->create([
+           'user_id' => $this->user->id,
+           'company_id' => $this->company->id,
+       ]);
+
+       $this->assertEquals(0, $c->balance);
+       $this->assertEquals(0, $c->paid_to_date);
+       $this->assertEquals(0, $c->credit_balance);
+       $this->assertEquals(0, $c->payment_balance);
+
+        $data = [
+            'amount' => -500,
+            'client_id' => $c->hashed_id,
+            'invoices' => [
+            ],
+            'credits' => [
+            ],
+            'date' => '2020/12/11',
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/payments/', $data);
+
+        $response->assertStatus(200);
+        
+        $p = $response->json()['data'];
+
+        $payment = Payment::find($this->decodePrimaryKey($p['id']));
+
+        $this->assertEquals(-500, $payment->amount);
+        $this->assertEquals(0, $payment->refunded);
+        $this->assertEquals(0, $payment->applied);
+
+        $c = $c->fresh();
+
+        $this->assertEquals(0, $c->balance);
+        $this->assertEquals(-500, $c->paid_to_date);
+        $this->assertEquals(0, $c->credit_balance);
+        $this->assertEquals(0, $c->payment_balance);
+
+        $p = $payment->service()->deletePayment()->save();
+
+        $c = $c->fresh();
+
+        $this->assertEquals(0, $c->balance);
+        $this->assertEquals(0, $c->paid_to_date);
+        $this->assertEquals(0, $c->credit_balance);
+        $this->assertEquals(0, $c->payment_balance);
+
+
+
+    }
+
     public function testNullPaymentAmounts()    
     {
 

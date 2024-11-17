@@ -78,7 +78,7 @@ class ClientRepository extends BaseRepository
 
         $client->save();
 
-        if (! isset($client->number) || empty($client->number) || strlen($client->number) == 0) {
+        if (! isset($client->number) || empty($client->number) || strlen($client->number ?? '') == 0) {//@phpstan-ignore-line
             $x = 1;
 
             do {

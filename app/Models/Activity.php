@@ -269,7 +269,13 @@ class Activity extends StaticModel
 
     public const AUTOBILL_FAILURE = 144; 
 
-    public const EMAIL_EINVOICE_SUCCESS = 145;
+    public const EINVOICE_SENT = 145;
+
+    public const EINVOICE_DELIVERY_SUCCESS = 146;
+
+    public const EINVOICE_DELIVERY_FAILURE = 147;
+
+    public const E_EXPENSE_CREATED = 148;
 
     protected $casts = [
         'is_system' => 'boolean',

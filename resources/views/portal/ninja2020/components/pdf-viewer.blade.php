@@ -46,11 +46,10 @@
     </section>
 </div>
 
-@livewire('pdf-slot', ['entity' => $entity, 'invitation' => $invitation, 'db' => $entity->company->db])
+@livewire('pdf-slot', ['class' => get_class($entity), 'entity' => $entity, 'invitation' => $invitation, 'db' => $entity->company->db])
 
 @if($mobile)
     @push('footer')
-        <!-- <script src="{{ asset('js/clients/shared/pdf.js') }}" defer></script> -->
         {{-- @vite('resources/js/clients/shared/pdf.js') --}}
     @endpush
 @endif

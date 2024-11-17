@@ -36,7 +36,7 @@ class SendEmail extends AbstractService
 
         $this->invoice->invitations->each(function ($invitation) {
             if (! $invitation->contact->trashed() && $invitation->contact->email) {
-                EmailEntity::dispatch($invitation, $invitation->company, $this->reminder_template)->delay(10);
+                EmailEntity::dispatch($invitation->withoutRelations(), $invitation->company->db, $this->reminder_template)->delay(10);
             }
         });
 

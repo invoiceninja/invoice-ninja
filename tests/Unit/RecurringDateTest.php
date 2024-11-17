@@ -50,10 +50,6 @@ class RecurringDateTest extends TestCase
 
         $this->assertEquals('2022-02-28', $next_month->format('Y-m-d'));
 
-        // $next_month = $today->addMonthNoOverflow();
-
-        // $this->assertEquals('2022-03-31', $next_month->format('Y-m-d'));
-
     }
 
 }

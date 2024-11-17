@@ -151,6 +151,7 @@ class UpdateReminder extends AbstractService
 
         if ($this->invoice->last_sent_date &&
             $this->settings->enable_reminder_endless &&
+            (int) $this->settings->endless_reminder_frequency_id > 0 &&
             ($this->invoice->reminder1_sent || $this->settings->schedule_reminder1 == "" || !$this->settings->enable_reminder1) &&
             ($this->invoice->reminder2_sent || $this->settings->schedule_reminder2 == "" || !$this->settings->enable_reminder2) &&
             ($this->invoice->reminder3_sent || $this->settings->schedule_reminder3 == "" || !$this->settings->enable_reminder3)) {

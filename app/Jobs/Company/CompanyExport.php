@@ -307,7 +307,7 @@ class CompanyExport implements ShouldQueue
             $invoice = $this->transformArrayOfKeys($invoice, ['recurring_id','client_id', 'vendor_id', 'project_id', 'design_id', 'subscription_id']);
             $invoice->tax_data = '';
 
-            return $invoice->makeVisible(['id',
+            return $invoice->makeHidden(['gateway_fee'])->makeVisible(['id',
                                         'private_notes',
                                         'user_id',
                                         'client_id',

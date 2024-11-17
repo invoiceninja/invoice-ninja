@@ -544,6 +544,9 @@ class DesignController extends BaseController
     {
         $design_id = $request->input('design_id');
         $entity = $request->input('entity');
+        $settings_level = $request->input('settings_level', 'company');
+        $group_settings_id = $request->input('group_settings_id', false);
+        $client_id = $request->input('client_id', false);
 
         /** @var \App\Models\User $user */
         $user = auth()->user();
@@ -561,19 +564,100 @@ class DesignController extends BaseController
 
         switch ($entity) {
             case 'invoice':
-                $company->invoices()->update(['design_id' => $design_id]);
+
+                $company->invoices()
+                        ->when($settings_level == 'company', function ($query){
+
+                            $query->whereDoesntHave('client.group_settings')
+                                ->orWhereHas('client.group_settings', function ($q){
+                                
+                                    $q->whereRaw("JSON_EXTRACT(settings, '$.invoice_design_id') IS NULL")
+                                    ->orWhereRaw("JSON_EXTRACT(settings, '$.invoice_design_id') = ''");
+
+                                });
+                        })
+                        ->when($settings_level == 'group_settings' && $group_settings_id, function ($query) use($group_settings_id){
+                           
+                                $query->whereHas('client', function ($q) use ($group_settings_id) {
+                                    $q->where('group_settings_id', $group_settings_id);
+                                });
+
+                        })
+                        ->when($settings_level == 'client' && $client_id, function ($query) use($client_id){
+            
+                            $query->where('client_id', $client_id);
+            
+                        })
+                        ->update(['design_id' => $design_id]);
+
+
+                if($settings_level == 'company')    
+                    $company->recurring_invoices()->update(['design_id' => $design_id]);
+
                 break;
             case 'quote':
-                $company->quotes()->update(['design_id' => $design_id]);
+                
+                $company->quotes()
+                        ->when($settings_level == 'company', function ($query){
+
+                            $query->whereDoesntHave('client.group_settings')
+                                ->orWhereHas('client.group_settings', function ($q){
+                                
+                                    $q->whereRaw("JSON_EXTRACT(settings, '$.invoice_design_id') IS NULL")
+                                    ->orWhereRaw("JSON_EXTRACT(settings, '$.invoice_design_id') = ''");
+
+                                });
+                        })
+                        ->when($settings_level == 'group_settings' && $group_settings_id, function ($query) use($group_settings_id){
+                           
+                                $query->whereHas('client', function ($q) use ($group_settings_id) {
+                                    $q->where('group_settings_id', $group_settings_id);
+                                });
+
+                        })
+                        ->when($settings_level == 'client' && $client_id, function ($query) use($client_id){
+            
+                            $query->where('client_id', $client_id);
+            
+                        })
+                        ->update(['design_id' => $design_id]);
+
                 break;
             case 'credit':
-                $company->credits()->update(['design_id' => $design_id]);
+
+                $company->credits()
+                        ->when($settings_level == 'company', function ($query){
+
+                            $query->whereDoesntHave('client.group_settings')
+                                ->orWhereHas('client.group_settings', function ($q){
+                                
+                                    $q->whereRaw("JSON_EXTRACT(settings, '$.invoice_design_id') IS NULL")
+                                    ->orWhereRaw("JSON_EXTRACT(settings, '$.invoice_design_id') = ''");
+
+                                });
+                        })
+                        ->when($settings_level == 'group_settings' && $group_settings_id, function ($query) use($group_settings_id){
+                           
+                                $query->whereHas('client', function ($q) use ($group_settings_id) {
+                                    $q->where('group_settings_id', $group_settings_id);
+                                });
+
+                        })
+                        ->when($settings_level == 'client' && $client_id, function ($query) use($client_id){
+            
+                            $query->where('client_id', $client_id);
+            
+                        })
+                        ->update(['design_id' => $design_id]);
+                        
                 break;
+
             case 'purchase_order':
                 $company->purchase_orders()->update(['design_id' => $design_id]);
                 break;
             case 'recurring_invoice':
                 $company->recurring_invoices()->update(['design_id' => $design_id]);
+
                 break;
             default:
                 // code...

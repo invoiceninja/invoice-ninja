@@ -165,9 +165,17 @@ class InvoiceController extends BaseController
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
+
+        /** @var \App\Models\Company $company */
+        $company = auth()->user()->company();
+
         $invoice = InvoiceFactory::create($user->company()->id, $user->id);
         $invoice->date = now()->addSeconds($user->company()->utc_offset())->format('Y-m-d');
-
+        $invoice->custom_surcharge_tax1 = $company->custom_surcharge_taxes1;
+        $invoice->custom_surcharge_tax2 = $company->custom_surcharge_taxes2;
+        $invoice->custom_surcharge_tax3 = $company->custom_surcharge_taxes3;
+        $invoice->custom_surcharge_tax4 = $company->custom_surcharge_taxes4;
+        
         return $this->itemResponse($invoice);
     }
 
@@ -521,7 +529,7 @@ class InvoiceController extends BaseController
                 }
             });
 
-            ZipInvoices::dispatch($invoices, $invoices->first()->company, auth()->user());
+            ZipInvoices::dispatch($invoices->pluck('id'), $invoices->first()->company, auth()->user());
 
             return response()->json(['message' => ctrans('texts.sent_message')], 200);
         }
@@ -574,6 +582,21 @@ class InvoiceController extends BaseController
             return $this->listResponse(Invoice::withTrashed()->whereIn('id', $this->transformKeys($ids))->company());
         }
 
+        if(in_array($action, ['email','send_email'])) {
+            
+            $invoice = $invoices->first();
+
+            if($user->can('edit', $invoice)){
+
+                $template = $request->input('email_type', $invoice->calculateTemplate('invoice'));
+
+                BulkInvoiceJob::dispatch($invoices->pluck('id')->toArray(), $user->company()->db, $template);
+
+            }
+
+            return $this->listResponse(Invoice::withTrashed()->whereIn('id', $this->transformKeys($ids))->company());
+
+        }
         /*
          * Send the other actions to the switch
          */
@@ -744,19 +767,6 @@ class InvoiceController extends BaseController
                 }
                 break;
 
-            case 'email':
-            case 'send_email':
-                //check query parameter for email_type and set the template else use calculateTemplate
-
-                $template = request()->has('email_type') ? request()->input('email_type') : $invoice->calculateTemplate('invoice');
-
-                BulkInvoiceJob::dispatch($invoice, $template);
-
-                if (! $bulk) {
-                    return response()->json(['message' => 'email sent'], 200);
-                }
-                break;
-
             default:
                 return response()->json(['message' => ctrans('texts.action_unavailable', ['action' => $action])], 400);
         }
@@ -807,6 +817,7 @@ class InvoiceController extends BaseController
      */
     public function downloadPdf($invitation_key)
     {
+
         $invitation = $this->invoice_repo->getInvitationByKey($invitation_key);
 
         if (! $invitation) {
@@ -826,10 +837,11 @@ class InvoiceController extends BaseController
         if (request()->input('inline') == 'true') {
             $headers = array_merge($headers, ['Content-Disposition' => 'inline']);
         }
-
+       
         return response()->streamDownload(function () use ($file) {
             echo $file;
         }, $file_name, $headers);
+
     }
 
     /**

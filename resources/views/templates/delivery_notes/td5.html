@@ -206,30 +206,35 @@
                         </tr>
                     </table>
 
+                    <!-- If you are using this template for other entities such as quotes, you'll want to ensure that you change the variable from invoices => quotes here -->
                     <ninja>
-                        {% set invoice = invoices|first %}
-                        <table width="100%" cellspacing="0" cellpadding="0" class="">
-                            <thead class="table-header">
-                                <tr class="table-header primary-color-highlight">
-                                    <th class="">$item_label #</th>
-                                    <th class="" width="50%">$description_label</th>
-                                    <th class="centered">$quantity_label</th>
-                                    <!-- <th class="totals-row-label centered">Delivered</th>
-                <th class="totals-row-label centered">Backorder</th> -->
-                                </tr>
-                            </thead>
-                            <tbody class="table-body">
-                                {% for item in invoice.line_items|filter(item => item.type_id == 1) %}
-                                <tr class="item-row">
-                                    <td class="">{{ item.product_key }}</td>
-                                    <td class="">{{ item.notes }}</td>
-                                    <td class="centered">{{ item.quantity }}</td>
-                                    <!-- <td class="totals-row-label centered">{{ item.quantity }}</td>
-                <td class="totals-row-label centered">{{ item.quantity - item.quantity }}</td> -->
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        {% if invoices is defined and invoices is not empty %}
+
+                            {% set invoice = invoices|first %}
+                            <table width="100%" cellspacing="0" cellpadding="0" class="">
+                                <thead class="table-header">
+                                    <tr class="table-header primary-color-highlight">
+                                        <th class="">$item_label #</th>
+                                        <th class="" width="50%">$description_label</th>
+                                        <th class="centered">$quantity_label</th>
+                                        <!-- <th class="totals-row-label centered">Delivered</th>
+                    <th class="totals-row-label centered">Backorder</th> -->
+                                    </tr>
+                                </thead>
+                                <tbody class="table-body">
+                                    {% for item in invoice.line_items|filter(item => item.type_id == 1) %}
+                                    <tr class="item-row">
+                                        <td class="">{{ item.product_key }}</td>
+                                        <td class="">{{ item.notes }}</td>
+                                        <td class="centered">{{ item.quantity }}</td>
+                                        <!-- <td class="totals-row-label centered">{{ item.quantity }}</td>
+                    <td class="totals-row-label centered">{{ item.quantity - item.quantity }}</td> -->
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                        {% endif %}
                     </ninja>
 
                     <table width="100%" cellspacing="0" cellpadding="0" class="">

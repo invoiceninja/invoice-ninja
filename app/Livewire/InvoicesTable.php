@@ -29,8 +29,6 @@ class InvoicesTable extends Component
 
     public array $status = [];
 
-    public Company $company;
-
     public int $company_id;
 
     public string $db;
@@ -38,8 +36,6 @@ class InvoicesTable extends Component
     public function mount()
     {
         MultiDB::setDb($this->db);
-
-        $this->company = Company::find($this->company_id);
 
         $this->sort_asc = false;
 
@@ -51,7 +47,7 @@ class InvoicesTable extends Component
         $local_status = [];
 
         $query = Invoice::query()
-            ->where('company_id', $this->company->id)
+            ->where('company_id', auth()->guard('contact')->user()->company_id)
             ->where('is_deleted', false)
             ->where('is_proforma', false)
             ->with('client.gateway_tokens', 'client.contacts')

@@ -1,0 +1,917 @@
+/* Grundformatierung ********************************************/
+
+*,
+*:after,
+*:before
+{
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.clear:after
+{
+  content: ".";
+  clear: both;
+  display: block;
+  visibility: hidden;
+  height: 0;
+}
+
+html,
+body
+{
+  height: 100%;
+  min-width: 320px;
+  margin: 0;
+  padding: 0;
+  color: #000;
+  font-size: 14px;
+}
+
+body
+{
+  overflow-y: scroll;
+  background-color: rgba(4, 101, 161, 0.08);
+}
+
+h4
+{
+  color: inherit;
+  font-size: inherit;
+  margin-bottom: 0.5rem;
+}
+
+
+/* Grundaufbau *************************************************/
+
+.menue
+{
+  position: relative;
+  z-index: 2000;
+  background-color: #000;
+  margin-bottom: 30px;
+}
+
+.innen
+{
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 2%;
+}
+
+
+
+/* Formatierungen *************************************************/
+
+.color2
+{
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.schwarz
+{
+  color: #555 !important;
+}
+
+.normal
+{
+  font-weight: normal;
+}
+
+.bold
+{
+  font-weight: bold;
+}
+
+.abstandUnten
+{
+  margin-bottom: 5px;
+}
+
+.abstandUntenKlein
+{
+  margin-bottom: 10px;
+}
+
+.noPaddingTop
+{
+  padding-top: 0 !important;
+}
+
+.ausrichtungRechts
+{
+  text-align: right;
+}
+
+
+
+
+/* Menü ********************************************************/
+
+button
+{
+  position: relative;
+  font-family: serif;
+  padding-top: 15px;
+  padding-left: 0;
+  padding-right: 0;
+  margin-right: 2%;
+}
+
+.btnAktiv
+{
+  font-size: 22px;
+  color: #ffb619;
+  height: 50px;
+  outline: none;
+  border: none;
+  background: none;
+}
+
+.btnAktiv:after
+{
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  z-index: 10;
+  font-size: 0;
+  line-height: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  transform: translateX(-50%);
+  border: 15px solid #000;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+
+.btnInaktiv,
+.tab
+{
+  font-size: 22px;
+  color: #fff;
+  height: 50px;
+  z-index: 0;
+  outline: none;
+  border: none;
+  background: none;
+  transition: color 0.3s ease;
+}
+
+.btnInaktiv:hover,
+.tab:hover
+{
+  color: #ffb619;
+  cursor: pointer;
+}
+
+.divHide
+{
+  display: none;
+}
+
+/* Content *********************************************************************/
+
+.inhalt
+{
+  font-family: sans-serif;
+  margin-bottom: 30px;
+}
+
+.haftungausschluss
+{
+  color: #000;
+  text-align: center;
+  padding: 7px;
+  margin-bottom: 30px;
+  width: 100%;
+  border: 1px solid #ffb619;
+  background-color: #fff;
+}
+
+.box
+{
+  position: relative;
+  display: table-cell;
+  padding: 0;
+  border: 1px solid rgba(4, 101, 161, 0.2);
+  background-color: #fff;
+}
+
+.subBox
+{
+  border-top: none;
+  width: 50%;
+}
+
+.subBox:last-child
+{
+  border-left: none;
+}
+
+.first > .boxzeile > .subBox
+{
+  border-top: 1px solid rgba(4, 101, 161, 0.2) !important;
+}
+
+.boxtitel
+{
+  display: inline-block;
+  background-color: #0465A1;
+  padding: 7px 10px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.boxBorderTop
+{
+  border-top: none;
+}
+
+.boxBorderLeft
+{
+  border-left: none;
+}
+
+.boxtitelSub
+{
+  color: #000;
+  background-color: rgba(4, 101, 161, 0.1);
+  border-right: 1px solid rgba(4, 101, 161, 0.2);
+  border-bottom: 1px solid rgba(4, 101, 161, 0.2);
+}
+
+.boxinhalt
+{
+  padding: 15px 20px;
+}
+
+.boxtabelle
+{
+  display: table;
+  width: 100%;
+}
+
+.borderSpacing
+{
+  border-spacing: 0 5px;
+}
+
+.boxabstandtop
+{
+  margin-top: 30px;
+}
+
+.boxzeile
+{
+  display: table-row;
+}
+
+.boxzeile .box:last-child
+{
+  margin-bottom: 0;
+}
+
+.boxdaten
+{
+  display: table-cell;
+  padding: 5px 0;
+  vertical-align: middle;
+  height: 38px;
+  /*
+      -ms-word-break: break-all;
+      word-break: break-all;
+      word-break: break-word;
+      -webkit-hyphens: auto;
+      -moz-hyphens: auto;
+      hyphens: auto;
+*/
+}
+
+.boxdaten.wert
+{
+  padding: 5px 10px;
+}
+
+.boxcell
+{
+  display: table-cell;
+}
+
+.boxdatenBlock
+{
+  display: block;
+  padding: 3px 0;
+  /*
+      -ms-word-break: break-all;
+      word-break: break-all;
+      word-break: break-word;
+      -webkit-hyphens: auto;
+      -moz-hyphens: auto;
+      hyphens: auto;
+*/
+}
+
+.noBreak
+{
+  -ms-word-break: keep-all;
+  word-break: keep-all;
+  word-break: keep-all;
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  hyphens: none;
+}
+
+.boxabstand
+{
+  display: table-cell;
+  width: 30px;
+}
+
+.legende
+{
+  color: rgba(0, 0, 0, 0.6);
+  width: 170px;
+  font-size: 13px;
+  line-height: 16px;
+  padding-right: 5px;
+}
+
+.wert
+{
+  background-color: rgba(4, 101, 161, 0.03);
+}
+
+.boxtabelleEinspaltig
+{
+  width: 49%;
+}
+
+.boxtabelleZweispaltig,
+.boxtabelleDreispaltig
+{
+  width: 100%;
+}
+
+.box5050
+{
+  width: 50%;
+}
+
+.boxEinspaltig
+{
+  width: 100%;
+}
+
+.boxZweispaltig
+{
+  width: 48.5%;
+}
+
+.boxSpalte1 {
+  width: 50%;
+}
+
+.boxSpalte2 {
+  width: 50%;
+  padding-left: 20px;
+}
+
+.paddingLeft {
+  padding-left: 0.1em;
+}
+
+.noPadding {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.rechnungsZeile
+{
+  display: table-row;
+}
+
+.rechnungsZeile .boxdaten
+{
+  height: auto;
+}
+
+.rechnungSp1
+{
+  width: 65%;
+  font-size: 16px;
+}
+
+.rechnungSp2
+{
+  width: 10%;
+}
+
+.rechnungSp3
+{
+  width: 25%;
+  font-size: 16px;
+  text-align: right;
+}
+
+.detailSp1,
+.detailSp2
+{
+  width: 50%;
+}
+
+.detailSp2
+{
+  text-align: right;
+}
+
+.line1Bottom
+{
+  border-bottom: 1px solid #000;
+}
+
+.line1BottomLight
+{
+  padding-bottom: 5px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 5px;
+}
+
+.line2Bottom
+{
+  border-bottom: 2px solid #000;
+}
+
+.paddingTop
+{
+  padding-top: 10px;
+}
+
+.paddingBottom
+{
+  padding-bottom: 10px;
+}
+
+.grund
+{
+  font-size: 16px;
+  display: block;
+  width: 100%;
+  padding: 0 20px 15px 20px;
+}
+
+.grundDetail
+{
+  display: block;
+  width: 100%;
+  padding: 0 20px 15px 20px;
+}
+
+/* Übersichtformatierungen */
+#uebersichtLastschrift.box,
+#uebersichtUeberweisung.box
+{
+  border-top: none;
+}
+
+#uebersichtUeberweisung.box
+{
+  border-left: none;
+}
+
+
+/* Formatierungen Detailseite */
+
+.detailsSpalte1,
+.detailsSpalte2
+{
+  width: 30%;
+  float: left;
+  font-size: 90%;
+  line-height: 115%;
+  margin-right: 5%;
+}
+
+.detailsSpalte3
+{
+  width: 30%;
+  float: left;
+  font-size: 90%;
+  line-height: 115%;
+}
+
+.detailsSpalte1 .legende,
+.detailsSpalte2 .legende,
+.detailsSpalte3 .legende
+{
+  width: 145px;
+}
+
+.titelPosition
+{
+  font-size: 17px;
+  font-weight: bold;
+}
+
+
+/* Laufzettelformatierungen */
+#laufzettelHistorie .boxtabelle:not(:nth-child(2))
+{
+  border-top: 1px solid rgba(4, 101, 161, 0.2);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+
+
+
+
+/* 1023px und kleiner ************************************************/
+
+@media screen and (max-width : 1023px) {
+
+  .box
+  {
+    display: block;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .boxabstandtop
+  {
+    margin-top: 15px;
+  }
+
+  .subBox:first-child
+  {
+    margin-bottom: 0 !important;
+  }
+
+  .subBox:last-child
+  {
+    border-left: 1px solid rgba(4, 101, 161, 0.2);
+  }
+
+  .first > .boxzeile > .subBox
+  {
+    border-top: none !important;
+  }
+
+  .first > .boxzeile > .subBox:first-child
+  {
+    border-top: 1px solid rgba(4, 101, 161, 0.2) !important;
+  }
+
+  .first > .boxzeile
+  {
+    margin-bottom: 0;
+  }
+
+  #uebersichtUeberweisung.box
+  {
+    border-left: 1px solid rgba(4, 101, 161, 0.2);
+  }
+
+  #uebersichtLastschrift.box
+  {
+    margin-bottom: 0;
+  }
+
+  .boxzeile
+  {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .boxzeile:after
+  {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+
+  #details > .boxtabelle > .boxzeile
+  {
+    margin-bottom: 0px;
+  }
+
+  .boxcell
+  {
+    display: block;
+  }
+
+  .boxcell:last-child
+  {
+    margin-top: 20px;
+  }
+
+  .boxZweispaltig
+  {
+    width: 100%;
+  }
+
+  .legende
+  {
+    display: block;
+    float: left;
+    width: 170px;
+    padding: 5px 0;
+    height: auto;
+  }
+
+  .wert
+  {
+    display: block;
+    float: left;
+    width: calc(100% - 170px);
+    padding: 11px 10px !important;
+    line-height: 1.3;
+    min-height: 38px;
+    height: auto;
+  }
+
+  .boxdaten .legende
+  {
+    height: auto;
+  }
+
+  .rechnungsZeile .boxdaten
+  {
+    padding: 5px 0;
+  }
+
+  .boxabstand
+  {
+    display: none;
+  }
+
+  .boxtabelleEinspaltig {
+    width: 100%;
+  }
+
+  .boxSpalte1 {
+    display: block;
+    width: auto;
+  }
+
+  .boxSpalte2 {
+    display: block;
+    width: auto;
+    padding-left: 0px;
+    margin-top: 1.2rem;
+  }
+
+  .detailsSpalte1,
+  .detailsSpalte2,
+  .detailsSpalte3
+  {
+    width: 100%;
+    float: none;
+    padding-right: 0px;
+  }
+
+  .detailsSpalte2,
+  .detailsSpalte3
+  {
+    margin-top: 15px;
+  }
+
+  .detailsSpalte2,
+  .detailsSpalte3
+  {
+    margin-top: 10px;
+  }
+
+  .tableNumberAlignRight
+  {
+    display: block;
+    width: 130px;
+    text-align: right;
+  }
+}
+
+
+
+/* 800px und kleiner ************************************************/
+
+@media screen and (max-width : 800px) {
+
+  button
+  {
+    padding-top: 10px;
+  }
+
+  .btnAktiv,
+  .btnInaktiv,
+  .tab
+  {
+    font-size: 20px;
+    height: 40px;
+  }
+
+  .btnAktiv:after
+  {
+    top: 40px;
+  }
+
+  .rechnungSp1
+  {
+    width: 55%;
+    font-size: 15px;
+  }
+
+  .rechnungSp2
+  {
+    width: 10%;
+  }
+
+  .rechnungSp3
+  {
+    width: 35%;
+    text-align: right;
+    font-size: 15px;
+  }
+
+  .grund
+  {
+    font-size: 15px;
+  }
+}
+
+/* 450px und kleiner ************************************************/
+
+@media screen and (max-width : 450px)
+{
+
+  html,
+  body
+  {
+    font-size: 12px;
+  }
+
+  .menue
+  {
+    margin-bottom: 20px;
+  }
+
+  button
+  {
+    padding-top: 5px;
+  }
+
+  .btnAktiv,
+  .btnInaktiv,
+  .tab
+  {
+    font-size: 17px;
+    height: 35px;
+  }
+
+  .btnAktiv:after
+  {
+    top: 35px;
+  }
+
+  .legende
+  {
+    font-size: 12px;
+    width: 100%;
+  }
+
+  .wert
+  {
+    font-size: 12px;
+    line-height: 1.3;
+    width: 100%;
+    margin-bottom: 10px
+  }
+
+  .boxzeile
+  {
+    margin-bottom: 0px
+  }
+
+  .boxdaten
+  {
+    height: auto;
+  }
+
+  .haftungausschluss
+  {
+    margin-bottom: 20px;
+  }
+
+  .boxinhalt
+  {
+    margin-top: 0px;
+  }
+
+  .boxabstandtop
+  {
+    margin-top: 20px;
+  }
+
+  .boxtitel
+  {
+    padding: 7px 8px;
+  }
+
+  .box
+  {
+    margin-bottom: 10px;
+    padding: 0;
+  }
+
+  .boxabstandtop
+  {
+    margin-top: 10px;
+  }
+
+  .boxdaten,
+  .boxdatenBlock
+  {
+    padding: 2px 0;
+  }
+
+  .rechnungSp1
+  {
+    width: 50%;
+    font-size: inherit;
+  }
+
+  .rechnungSp2
+  {
+    width: 15%;
+  }
+
+  .rechnungSp3
+  {
+    width: 35%;
+    font-size: inherit;
+    text-align: right;
+  }
+
+  .grund
+  {
+    font-size: inherit;
+  }
+
+  .titelPosition
+  {
+    font-size: 15px;
+  }
+
+  .abstandUnten
+  {
+    margin-bottom: 5px;
+  }
+
+  .detailsSpalte1,
+  .detailsSpalte2,
+  .detailsSpalte3
+  {
+    font-size: inherit;
+    line-height: inherit;
+  }
+}
+
+/* 380px und kleiner ************************************************/
+
+@media screen and (max-width : 380px) {
+
+  html,
+  body
+  {
+    font-size: 11px;
+    line-height: 100%;
+  }
+
+  .btnAktiv,
+  .btnInaktiv,
+  .tab
+  {
+    font-size: 15px;
+  }
+
+  .boxdaten
+.boxdatenBlock
+  {
+    padding: 2px 0;
+  }
+
+  .boxinhalt
+  {
+    margin-top: 0px;
+  }
+
+  .boxtitel
+  {
+    padding: 5px 7px;
+  }
+}

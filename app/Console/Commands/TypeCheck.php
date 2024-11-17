@@ -11,15 +11,18 @@
 
 namespace App\Console\Commands;
 
-use App\Libraries\MultiDB;
 use App\Models\Client;
 use App\Models\Company;
-use App\Utils\Traits\ClientGroupSettingsSaver;
+use App\Models\Invoice;
+use App\Libraries\MultiDB;
 use Illuminate\Console\Command;
+use App\Utils\Traits\CleanLineItems;
+use App\Utils\Traits\ClientGroupSettingsSaver;
 
 class TypeCheck extends Command
 {
     use ClientGroupSettingsSaver;
+    use CleanLineItems;
 
     /**
      * The name and signature of the console command.
@@ -126,6 +129,13 @@ class TypeCheck extends Command
             $this->logMessage("Checking company {$company->id}");
             $company->saveSettings($company->settings, $company);
         });
+
+        Invoice::query()->cursor()->each(function ($invoice){
+            $this->logMessage("Checking invoice {$invoice->id}");
+            $invoice->line_items = $this->cleanItems($invoice->line_items);
+            $invoice->saveQuietly();
+        });
+
     }
 
     private function logMessage($str)

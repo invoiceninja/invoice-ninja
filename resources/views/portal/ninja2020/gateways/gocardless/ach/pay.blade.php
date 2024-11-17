@@ -51,7 +51,18 @@
             }));
 
         document.getElementById('pay-now').addEventListener('click', function() {
-            document.getElementById('server-response').submit();
+            const payNowButton = document.getElementById('pay-now');
+            if (payNowButton) {
+                payNowButton.addEventListener('click', function() {
+                    // Disable button and update UI
+                    this.disabled = true;
+                    this.querySelector('svg').classList.remove('hidden');
+                    this.querySelector('span').classList.add('hidden');
+
+                    // Submit form
+                    document.getElementById('server-response').submit();
+                });
+            }
         });
 
 

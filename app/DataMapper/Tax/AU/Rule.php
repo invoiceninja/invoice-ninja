@@ -229,26 +229,6 @@ class Rule extends BaseRule implements RuleInterface
 
             return $this;
         }
-        // } elseif($this->client_subregion != $this->client->company->tax_data->seller_subregion && in_array($this->client_subregion, $this->eu_country_codes) && $this->client->has_valid_vat_number && $this->eu_business_tax_exempt) {
-        //     nlog("euro zone and tax exempt");
-        //     $this->tax_rate = 0;
-        //     $this->reduced_tax_rate = 0;
-        // } elseif(!in_array($this->client_subregion, $this->eu_country_codes) && ($this->foreign_consumer_tax_exempt || $this->foreign_business_tax_exempt)) { //foreign + tax exempt
-        //     nlog("foreign and tax exempt");
-        //     $this->tax_rate = 0;
-        //     $this->reduced_tax_rate = 0;
-        // } elseif(!in_array($this->client_subregion, $this->eu_country_codes)) {
-        //     $this->defaultForeign();
-        // } elseif(in_array($this->client_subregion, $this->eu_country_codes) && !$this->client->has_valid_vat_number) { //eu country / no valid vat
-        //     if(($this->client->company->tax_data->seller_subregion != $this->client_subregion) && $this->client->company->tax_data->regions->EU->has_sales_above_threshold) {
-        //         nlog("eu zone with sales above threshold");
-        //         $this->tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->country->iso_3166_2}->tax_rate;
-        //         $this->reduced_tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->country->iso_3166_2}->reduced_tax_rate;
-        //     } else {
-        //         nlog("EU with intra-community supply ie DE to DE");
-        //         $this->tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->tax_rate;
-        //         $this->reduced_tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->reduced_tax_rate;
-        //     }
 
         $this->tax_rate = $this->client->company->tax_data->regions->AU->subregions->{$this->client->company->country()->iso_3166_2}->tax_rate ?? 0;
         $this->reduced_tax_rate = $this->client->company->tax_data->regions->AU->subregions->{$this->client->company->country()->iso_3166_2}->tax_rate ?? 0;

@@ -122,9 +122,8 @@ class _Mollie {
                     tokenBillingCheckbox.value;
             }
 
-            document.querySelector(
-                'input[name=gateway_response]'
-            ).value = token;
+            document.querySelector('input[name=gateway_response]').value =
+                token;
             document.querySelector('input[name=token]').value = '';
 
             document.getElementById('server-response').submit();
@@ -168,9 +167,15 @@ class _Mollie {
     }
 }
 
-
 function boot() {
     new _Mollie().handle();
+
+    /** @type {NodeListOf<HTMLInputElement>} */
+    const tokens = document.querySelectorAll('input.toggle-payment-with-token');
+
+    if (tokens.length > 0) {
+        tokens[0].click();
+    }
 }
 
-instant() ? boot(): wait('#mollie-credit-card-payment').then(() => boot());
+instant() ? boot() : wait('#mollie-credit-card-payment').then(() => boot());

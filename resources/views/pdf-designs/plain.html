@@ -360,6 +360,8 @@
                     <div id="statement-invoice-table-totals" data-ref="statement-totals"></div>
                     <table id="statement-payment-table" cellspacing="0" data-ref="table"></table>
                     <div id="statement-payment-table-totals" data-ref="statement-totals"></div>
+                    <table id="statement-unapplied-payment-table" cellspacing="0" data-ref="table"></table>
+                    <div id="statement-unapplied-payment-table-totals" data-ref="statement-totals"></div>
                     <table id="statement-credit-table" cellspacing="0" data-ref="table"></table>
                     <div id="statement-credit-table-totals" data-ref="statement-totals"></div>
                     <table id="statement-aging-table" cellspacing="0" data-ref="table"></table>
@@ -390,8 +392,8 @@ $entity_images
         document.addEventListener('DOMContentLoaded', () => {
             let tables = [
                 'product-table', 'task-table', 'delivery-note-table',
-                'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-                'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
+                'statement-invoice-table', 'statement-payment-table', 'statement-unapplied-payment-table','statement-aging-table-totals',
+                'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-unapplied-payment-table-totals', 'statement-aging-table',
                 'client-details', 'vendor-details', 'swiss-qr', 'shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
             ];
 

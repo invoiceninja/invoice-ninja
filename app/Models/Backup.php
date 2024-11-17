@@ -56,7 +56,7 @@ class Backup extends BaseModel
 
     public function storeRemotely(?string $html, Client | Vendor $client_or_vendor)
     {
-        if (! $html || strlen($html) == 0) {
+        if (empty($html)) {
             return;
         }
 

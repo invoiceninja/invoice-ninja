@@ -148,7 +148,7 @@
     </div>
 
     <ninja>
-        {% if invoices|e %}
+        {% if invoices is defined and invoices is not empty %}
         <div id="entity-container">
             <h2>{{ t('invoices') }}<h2>
                     <table width="100%" cellspacing="0" cellpadding="0" class="">
@@ -189,7 +189,7 @@
     </ninja>
 
     <ninja>
-        {% if invoices|e and show_payments %}
+        {% if invoices is defined and invoices is not empty and show_payments %}
         <div id="entity-container">
             <h2>{{ t('payments') }}<h2>
                     <table width="100%" cellspacing="0" cellpadding="0" class="">
@@ -270,7 +270,7 @@
     </ninja>
 
     <ninja>
-        {% if credits|e and show_credits %}
+        {% if credits is defined and credits is not empty and show_credits %}
         <div id="entity-container">
             <h2>{{ t('credits') }}<h2>
                     <table width="100%" cellspacing="0" cellpadding="0" class="">

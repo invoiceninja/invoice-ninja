@@ -118,7 +118,7 @@ class CreditCard implements LivewireMethodInterface
         $server_response = $this->stripe->payment_hash->data->server_response;
 
         if ($server_response->status == 'succeeded') {
-            $this->stripe->logSuccessfulGatewayResponse(['response' => json_decode($request->gateway_response), 'data' => $this->stripe->payment_hash], SystemLog::TYPE_STRIPE);
+            $this->stripe->logSuccessfulGatewayResponse(['response' => json_decode($request->gateway_response), 'data' => $this->stripe->payment_hash->data], SystemLog::TYPE_STRIPE);
 
             return $this->processSuccessfulPayment();
         }

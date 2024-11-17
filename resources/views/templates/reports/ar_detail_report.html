@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Accounts Receivable Details Report</title>
+    <style> 
+		@page {
+            size: landscape;
+            margin: 10mm 10mm;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0px;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+		.report-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			border-bottom: 1px solid #2c3e50;
+			padding-bottom: 10mm;
+			margin-bottom: 5mm;
+		}
+
+		.header-left {
+			flex: 1;
+		}
+
+		.company-logo {
+			max-height: 50px;
+			width: auto;
+			object-fit: contain;
+		}
+
+		.report-title {
+			color: #2c3e50;
+			font-size: 14pt;
+			font-weight: 600;
+			margin: 0;
+		}
+
+		.report-meta {
+            color: #666;
+            margin-top: 2mm;
+            font-size: 8pt;
+            display: flex;
+            flex-direction: column;  /* Stack items vertically */
+            gap: 1mm;               /* Space between items */
+        }
+
+		@media print {
+			.company-logo {
+				print-color-adjust: exact;
+				-webkit-print-color-adjust: exact;
+			}
+		}
+
+        .report-title {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #34495e;
+            color: white;
+            padding: 6px;
+            text-align: center;
+        }
+
+        td {
+            padding: 6px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* Optional: Keep header with first few rows */
+        thead {
+            display: table-header-group;
+        }
+
+        /* Optional: Keep footer at bottom */
+        tfoot {
+            display: table-footer-group;
+        }
+
+        /* Ensure tbody can break between rows */
+        tbody {
+            page-break-inside: auto;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .amount, .balance {
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-sent {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+	<ninja>
+	<div class="report-header">
+		<div class="header-left">
+			<h1 class="report-title">{{ t('aged_receivable_detailed_report') }}</h1>
+			<div class="report-meta">
+				<div>Created On: {{ created_on }}</div>
+                <div>Created By: {{ created_by }}</div>
+			</div>
+		</div>
+		<div class="header-right">
+            {% if company_logo is not empty %}
+                {{ img(company_logo) }}
+            {% endif %}
+        </div>
+	</div>
+    <div class="table-container">
+		<table>
+            <thead>
+                <tr>
+                    <th>{{ t('date') }}</th>
+                    <th>{{ t('due_date') }}</th>
+                    <th>{{ t('invoice_number') }}</th>
+                    <th>{{ t('status') }}</th>
+                    <th>{{ t('client_name') }}</th>
+                    <th>{{ t('client_number') }}</th>
+                    <th>{{ t('id_number') }}</th>
+                    <th>{{ t('age') }}</th>
+                    <th>{{ t('amount') }}</th>
+                    <th>{{ t('balance') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+				{% if invoices is defined and invoices is not empty %}
+
+                {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ invoice[0] }}</td>
+                        <td>{{ invoice[1] }}</td>
+                        <td>{{ invoice[2] }}</td>
+                        <td>{{ invoice[3] }}</td>
+                        <td>{{ invoice[4] }}</td>
+                        <td>{{ invoice[5] }}</td>
+                        <td>{{ invoice[6] }}</td>
+                        <td>{{ invoice[7] }}</td>
+                        <td class="amount">{{ invoice[8] }}</td>
+                        <td class="balance">{{ invoice[9] }}</td>
+                    </tr>
+                {% endfor %}
+				{% endif %}
+            </tbody>
+        </table>
+    </div>
+	</ninja>
+</body>
+</html>

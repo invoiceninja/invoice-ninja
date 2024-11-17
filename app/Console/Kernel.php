@@ -102,7 +102,7 @@ class Kernel extends ConsoleKernel
         $schedule->job(new InvoiceCheckLateWebhook())->dailyAt('07:00')->withoutOverlapping()->name('invoice-overdue-job')->onOneServer();
 
         /* Pulls in bank transactions from third party services */
-        $schedule->job(new BankTransactionSync())->everyFourHours()->withoutOverlapping()->name('bank-trans-sync-job')->onOneServer();
+        $schedule->job(new BankTransactionSync())->twiceDaily(1, 13)->withoutOverlapping()->name('bank-trans-sync-job')->onOneServer();
 
         if (Ninja::isSelfHost()) {
             $schedule->call(function () {

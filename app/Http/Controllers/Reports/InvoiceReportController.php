@@ -65,7 +65,7 @@ class InvoiceReportController extends BaseController
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
-
+nlog($request->all());
         if ($request->has('send_email') && $request->get('send_email') && $request->missing('output')) {
             SendToAdmin::dispatch($user->company(), $request->all(), InvoiceExport::class, $this->filename);
 

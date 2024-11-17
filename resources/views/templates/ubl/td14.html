@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<!-- UBL to PDF Design - TemplateID #TD14 -->
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body {
+            font-family: Roboto, Helvetica, sans-serif;
+            font-size: 16px !important;
+        }
+
+        table {
+            margin-top: 1rem;
+            min-width: 100%;
+            table-layout: fixed;
+            overflow-wrap: break-word;
+        }
+
+        .table-header>tr>th {
+            border-bottom: solid 1px #efefef;
+        }
+
+        .table-body>tr>td {
+            border-bottom: solid 1px #efefef;
+        }
+
+        th {
+            text-align: left;
+            padding-left: 6px;
+            padding-right: 6px;
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
+
+        td {
+            padding-left: 6px;
+            padding-right: 6px;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .item-row {
+            border-bottom: 1px #000 dotted;
+        }
+
+        .totals-row-label {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .totals-row-value {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .table-totals {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+        }
+
+        .centered {
+            text-align: center;
+        }
+
+        .doc-title {
+            font-size: 32px;
+        }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        span {
+            padding-right: 5px;
+            width: 100%;
+        }
+
+        div .label {
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        div .value {
+            text-align: left;
+            padding-left: 5px;
+        }
+
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+        }
+
+        .three-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            column-gap: 0.4rem;
+        }
+
+        .client-detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .client-details {
+            display:flex;
+        }
+
+        .supplier-details {}
+
+        .container {
+            padding-top: 2rem;
+        }
+
+        .bottom-margin {
+            padding-bottom: 2rem;
+        }
+
+        .section-title {
+            font-style: italic;
+            color: #454545;
+            margin-bottom: 0.3rem;
+        }
+
+        .primary-color-highlight {
+            color: #4DA8DA;
+        }
+
+        .secondary-color-highlight {
+            color: 3e3e3e;
+        }
+
+        .order-details {
+            display:flex;
+            white-space: nowrap;
+            line-height: 1.4;
+            font-weight: bold;
+        }
+
+        .align-left {
+            display:flex;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        dt {
+            margin-right: 7px;
+        }
+
+        dd {
+            margin-left: 3px;
+        }
+    </style>
+
+    <ninja>
+        <style>
+            {{ css }}
+        </style>
+    </ninja>
+</head>
+
+    <ninja>
+<body>
+
+    <table width="100%" cellspacing="0" cellpadding="0" class="" border="0">
+        <tr>
+            <td align="left" class="doc-title">{{ translations.invoice }}</td>
+        </tr>
+    </table>
+
+    <table width="100%" height="100%" cellspacing="0" cellpadding="0" class="" border="0">
+        <tr>
+            <td style="">
+                <div class="three-col-grid">
+
+                    <div class="" style="margin-left:0; margin-right:auto;">
+                        <div class="client-details">
+                            <p class="section-title">{{ translations.to }}:</p>
+                        </div>
+                        <div id="client-details">
+                            {% for key,value in client %}
+                            <div class="two-col-grid">
+                                <dt class="order-details">{{ key }}</dt>
+                                <dd class="align-left">{{ value }}</dd>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="" style="margin-left:auto; margin-right:auto;">
+                        <div class="supplier-details">
+                            <p class="section-title">{{ translations.from }}:</p>
+                        </div>
+                        <div id="supplier-details">
+                             {% for key,value in supplier %}
+                            <div class="two-col-grid">
+                                <dt class="order-details">{{ key }}</dt>
+                                <dd class="align-left">{{ value }}</dd>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <div style="margin-right:0; margin-left: auto;">
+                        <div class="client-details">
+                            <p class="section-title" style="padding-right:10px;">{{ translations.details }}:</p>
+                        </div>
+                        <div class="two-col-grid">
+                            
+                            {% for key,value in invoiceDetails %}
+                                {% if key != 'line_items' %}
+                                <dt class="order-details">{{ key }}</dt>
+                                <dd class="align-left">{{ value }}</dd>
+                                {% endif %}
+                            {% endfor %}
+                            
+                        </div>
+                    </div>
+
+            </td>
+        </tr>
+    </table>
+    
+    <!-- If you are using this template for other entities such as quotes, you'll want to ensure that you change the variable from invoices => quotes here -->
+    
+        {% if invoiceDetails.line_items is defined and invoiceDetails.line_items is not empty %}
+
+           
+            <table width="100%" cellspacing="0" cellpadding="0" class="">
+                <thead class="table-header">
+                    <tr class="table-header primary-color-highlight">
+            
+                        {% for key,value in invoiceDetails.line_items|first %}
+
+                            {% if key not in ['tax_rate1', 'tax_rate2', 'tax_rate3'] %}
+
+                                {% if key in ['tax_name1', 'tax_name2', 'tax_name3'] %}
+
+                                    {% if value|length > 1 %}
+                                    <th class="{{ translations.tax|replace({'/\\s+/': ''}) }}">{{ translations.tax }}</th>
+                                    {% endif %}
+
+                                {% else %}
+                                    <th class="{{ key|replace({'/\\s+/': ''}) }}">{{ key }}</th>
+                                {% endif %}
+                    
+                            {% endif %}
+
+                        {% endfor %}
+                    
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                     {% for item in invoiceDetails.line_items %}
+                        <tr class="item-row">
+                   
+                        {% for key,value in item %}
+                            {% if key not in ['tax_name1', 'tax_name2', 'tax_name3'] %}
+                                
+                                {% if key in ['tax_rate1', 'tax_rate2', 'tax_rate3'] %}
+                                    {% if value > 0 %}
+                                    <td class="{{ key|replace({'/\\s+/': ''}) }}">{{ value }}%</td>
+                                    {% endif %}
+                                {% else %}
+                                    <td class="{{ key|replace({'/\\s+/': ''}) }}">{{ value }}</td>
+                                {% endif %}
+
+                            {% endif %}
+                            
+                        {% endfor %}    
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        {% endif %}
+    
+    <table width="100%" cellspacing="0" cellpadding="0" class="" border="0"></table>
+        <tr>
+            <td align="left" class="doc-title" width="50%"></td>
+            <td align="right" width="50%">
+
+                <div class="two-col-grid" style="float:right;">
+                {% for key,value in totals.subtotal %}
+                <dt class="order-details">{{ key }}</dt>
+                <dd class="align-left">{{ value|format_currency(metadata.currency) }}</dd>
+                {% endfor %}
+
+                {% for key,value in totals.taxes %}
+                    <dt class="order-details">{{ value.tax_name }} {{ value.tax_rate }}%</dt>
+                    <dd class="align-left">{{ value.subtotal|format_currency(metadata.currency) }}</dd>
+                {% endfor %}
+
+                {% for key,value in totals.balance %}
+                    <dt class="order-details">{{ key }}</dt>
+                    <dd class="align-left">{{ value|format_currency(metadata.currency) }}</dd>
+                {% endfor %}
+
+                </div>
+
+            </td>
+        </tr>
+    </table>
+
+    <table width="100%" cellspacing="0" cellpadding="0" class="">
+        {% for key,value in metadata %}
+
+            {% if key != 'currency' %}
+                <div class="container">
+                    <p class="bottom-margin primary-color-highlight">{{ key }}:</p>
+                
+                    <p>{{ value|nl2br }}</p>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </table>
+
+</body>
+
+</ninja>
+
+</html>

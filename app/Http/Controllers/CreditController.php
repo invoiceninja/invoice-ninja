@@ -641,10 +641,8 @@ class CreditController extends BaseController
             case 'send_email':
 
                 $credit->invitations->load('contact.client.country', 'credit.client.country', 'credit.company')->each(function ($invitation) use ($credit) {
-                    EmailEntity::dispatch($invitation, $credit->company, 'credit');
+                    EmailEntity::dispatch($invitation->withoutRelations(), $credit->company->db, 'credit');
                 });
-
-                // $credit->sendEvent(Webhook::EVENT_SENT_CREDIT, "client");
 
                 if (! $bulk) {
                     return response()->json(['message' => 'email sent'], 200);

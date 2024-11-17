@@ -116,7 +116,7 @@
             </div>
         @endif
 
-        @livewire('payment-methods.update-default-method', ['token' => $payment_method, 'client' => $client])
+        @livewire('payment-methods.update-default-method', ['token_id' => $payment_method->id, 'db' => $client->company->db])
         
         <div class="mt-4 mb-4 bg-white shadow sm:rounded-lg">
             <div class="px-4 py-5 sm:p-6">

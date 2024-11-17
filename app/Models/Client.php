@@ -295,9 +295,6 @@ class Client extends BaseModel implements HasLocalePreference
         return $this->hasMany(CompanyLedger::class)->orderBy('id', 'desc');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<CompanyLedger>
-     */
     public function company_ledger(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(CompanyLedger::class, 'company_ledgerable');
@@ -569,9 +566,6 @@ class Client extends BaseModel implements HasLocalePreference
         throw new \Exception('Could not find a settings object', 1);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Document>
-     */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
@@ -740,32 +734,117 @@ class Client extends BaseModel implements HasLocalePreference
             }
         }
 
-
         return null;
     }
 
     public function getBankTransferMethodType()
     {
-        if ($this->currency()->code == 'USD') {
-            return GatewayType::BANK_TRANSFER;
+
+
+        $pms = $this->service()->getPaymentMethods(-1);
+
+        if ($this->currency()->code == 'USD' && in_array(GatewayType::BANK_TRANSFER, array_column($pms, 'gateway_type_id'))) {
+            foreach ($pms as $pm) {
+                if ($pm['gateway_type_id'] == GatewayType::BANK_TRANSFER) {
+                    $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
+
+                    if ($cg && ! property_exists($cg->fees_and_limits, GatewayType::BANK_TRANSFER)) { //@phpstan-ignore-line
+                        $fees_and_limits = $cg->fees_and_limits;
+                        $fees_and_limits->{GatewayType::BANK_TRANSFER} = new FeesAndLimits();
+                        $cg->fees_and_limits = $fees_and_limits;
+                        $cg->save();
+                    }
+
+                    if ($cg && $cg->fees_and_limits->{GatewayType::BANK_TRANSFER}->is_enabled) {
+                        return GatewayType::BANK_TRANSFER;
+                    }
+                }
+            }
         }
 
-        if ($this->currency()->code == 'EUR') {
-            return GatewayType::SEPA;
+        if ($this->currency()->code == 'EUR' && (in_array(GatewayType::BANK_TRANSFER, array_column($pms, 'gateway_type_id')) || in_array(GatewayType::SEPA, array_column($pms, 'gateway_type_id'))  || in_array(GatewayType::DIRECT_DEBIT, array_column($pms, 'gateway_type_id')))) {
+            foreach ($pms as $pm) {
+                if ($pm['gateway_type_id'] == GatewayType::SEPA) {
+                    $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
+
+                    if ($cg && $cg->fees_and_limits->{GatewayType::SEPA}->is_enabled) {
+                        return GatewayType::SEPA;
+                    }
+                    else if ($cg && $cg->fees_and_limits->{GatewayType::BANK_TRANSFER}->is_enabled) {
+                        return GatewayType::BANK_TRANSFER;
+                    }
+                    else if ($cg && $cg->fees_and_limits->{GatewayType::DIRECT_DEBIT}->is_enabled) {
+                        return GatewayType::DIRECT_DEBIT;
+                    }
+
+                }
+            }
         }
 
-        //Special handler for GoCardless
-        if($this->currency()->code == 'CAD' && ($this->getBankTransferGateway()->gateway_key == 'b9886f9257f0c6ee7c302f1c74475f6c') ?? false) {
-            return GatewayType::DIRECT_DEBIT;
+        if (in_array(GatewayType::DIRECT_DEBIT, array_column($pms, 'gateway_type_id'))) {
+            foreach ($pms as $pm) {
+                if ($pm['gateway_type_id'] == GatewayType::DIRECT_DEBIT) {
+                    $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
+
+                    if ($cg && $cg->fees_and_limits->{GatewayType::DIRECT_DEBIT}->is_enabled) {
+                        return GatewayType::DIRECT_DEBIT;
+                    }
+                }
+            }
         }
 
-        if (in_array($this->currency()->code, ['EUR', 'GBP','DKK','SEK','AUD','NZD','USD'])) {
-            return GatewayType::DIRECT_DEBIT;
+        if (in_array($this->currency()->code, ['CAD','USD']) && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
+            // if ($this->currency()->code == 'CAD' && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
+            foreach ($pms as $pm) {
+                if ($pm['gateway_type_id'] == GatewayType::ACSS) {
+                    $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
+
+                    if ($cg && $cg->fees_and_limits->{GatewayType::ACSS}->is_enabled) {
+                        return GatewayType::ACSS;
+                    }
+                }
+            }
         }
 
-        if(in_array($this->currency()->code, ['CAD'])) {
-            return GatewayType::ACSS;
+
+        if (in_array($this->currency()->code, ['GBP']) && in_array(GatewayType::BACS, array_column($pms, 'gateway_type_id'))) {
+            // if ($this->currency()->code == 'CAD' && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
+            foreach ($pms as $pm) {
+                if ($pm['gateway_type_id'] == GatewayType::BACS) {
+                    $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
+
+                    if ($cg && $cg->fees_and_limits->{GatewayType::BACS}->is_enabled) {
+                        return GatewayType::BACS;
+                    }
+                }
+            }
         }
+
+        return null;
+
+
+
+
+        // if ($this->currency()->code == 'USD') {
+        //     return GatewayType::BANK_TRANSFER;
+        // }
+
+        // if ($this->currency()->code == 'EUR') {
+        //     return GatewayType::SEPA;
+        // }
+
+        // //Special handler for GoCardless
+        // if($this->currency()->code == 'CAD' && ($this->getBankTransferGateway()->gateway_key == 'b9886f9257f0c6ee7c302f1c74475f6c') ?? false) {
+        //     return GatewayType::DIRECT_DEBIT;
+        // }
+
+        // if (in_array($this->currency()->code, ['EUR', 'GBP','DKK','SEK','AUD','NZD','USD'])) {
+        //     return GatewayType::DIRECT_DEBIT;
+        // }
+
+        // if(in_array($this->currency()->code, ['CAD'])) {
+        //     return GatewayType::ACSS;
+        // }
     }
 
     public function getCurrencyCode(): string
@@ -857,19 +936,19 @@ class Client extends BaseModel implements HasLocalePreference
         $terms = &$data['terms'];
         $footer = &$data['footer'];
 
-        if (!$terms || ($terms && strlen((string)$terms) == 0)) {
+        if(empty($terms)) {
             $defaults['terms'] = $this->getSetting($entity_name.'_terms');
         } elseif ($terms) {
             $defaults['terms'] = $data['terms'];
         }
 
-        if (!$footer || ($footer && strlen((string)$footer) == 0)) {
+        if(empty($footer)) {
             $defaults['footer'] = $this->getSetting($entity_name.'_footer');
         } elseif ($footer) {
             $defaults['footer'] = $data['footer'];
         }
 
-        if (is_string($this->public_notes) && strlen($this->public_notes) >= 1) {
+        if (strlen($this->public_notes ?? '') >= 1) {
             $defaults['public_notes'] = $this->public_notes;
         }
 

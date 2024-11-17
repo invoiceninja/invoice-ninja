@@ -41,10 +41,11 @@ class BulkInvoiceRequest extends Request
         $user = auth()->user();
 
         if(\Illuminate\Support\Facades\Cache::has($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key)) {
-            throw new DuplicatePaymentException('Duplicate request.', 429);
+            throw new DuplicatePaymentException('Action still processing, please wait. ', 429);
         }
 
-        \Illuminate\Support\Facades\Cache::put(($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key), true, 1);
+        $delay = $this->input('action', 'delete') == 'delete' ? (ceil(count($this->input('ids',4)))) : 1;
+        \Illuminate\Support\Facades\Cache::put(($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key), true, $delay);
 
     }
 

@@ -13,8 +13,11 @@ namespace App\Jobs\Invoice;
 
 use App\Models\Invoice;
 use App\Models\Webhook;
+use App\Services\Email\Email;
 use Illuminate\Bus\Queueable;
 use App\Jobs\Entity\EmailEntity;
+use App\Libraries\MultiDB;
+use App\Services\Email\EmailObject;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,15 +30,28 @@ class BulkInvoiceJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public $invoice;
+    public $tries = 1;
 
-    public $reminder_template;
+    public $timeout = 3600;
+    
+    private array $templates = [
+        'email_template_invoice',
+        'email_template_quote',
+        'email_template_credit',
+        'email_template_payment',
+        'email_template_payment_partial',
+        'email_template_statement',
+        'email_template_reminder1',
+        'email_template_reminder2',
+        'email_template_reminder3',
+        'email_template_reminder_endless',
+        'email_template_custom1',
+        'email_template_custom2',
+        'email_template_custom3',
+        'email_template_purchase_order',
+    ];
 
-    public function __construct(Invoice $invoice, string $reminder_template)
-    {
-        $this->invoice = $invoice;
-        $this->reminder_template = $reminder_template;
-    }
+    public function __construct(public array $invoice_ids, public string $db, public string $reminder_template){}
 
     /**
      * Execute the job.
@@ -44,18 +60,63 @@ class BulkInvoiceJob implements ShouldQueue
      * @return void
      */
     public function handle()
-    {   //only the reminder should mark the reminder sent field
+    {   
+        MultiDB::setDb($this->db);
 
-        $this->invoice->service()->markSent()->save();
+        Invoice::with([
+                'invitations',
+                'invitations.contact.client.country',
+                'invitations.invoice.client.country',
+                'invitations.invoice.company'
+                ])
+                ->withTrashed()
+                ->whereIn('id', $this->invoice_ids)
+                ->cursor()
+                ->each(function ($invoice){
 
-        $this->invoice->invitations->load('contact.client.country', 'invoice.client.country', 'invoice.company')->each(function ($invitation) {
-            EmailEntity::dispatch($invitation, $this->invoice->company, $this->reminder_template)->delay(now()->addSeconds(5));
+                $invoice->service()->markSent()->save();
+
+                $invoice->invitations->each(function ($invitation) {
+                    
+                    $template = $this->resolveTemplateString($this->reminder_template);
+
+                    $mo = new EmailObject();
+                    $mo->entity_id = $invitation->invoice_id;
+                    $mo->template = $template; //full template name in use
+                    $mo->email_template_body = $template;
+                    $mo->email_template_subject = str_replace("template", "subject", $template);
+
+                    $mo->entity_class = get_class($invitation->invoice);
+                    $mo->invitation_id = $invitation->id;
+                    $mo->client_id = $invitation->contact->client_id ?? null;
+                    $mo->vendor_id = $invitation->contact->vendor_id ?? null;
+
+                    Email::dispatch($mo, $invitation->company->withoutRelations());
+
+                });
+
+                if ($invoice->invitations->count() >= 1) {
+                    $invoice->entityEmailEvent($invoice->invitations->first(), 'invoice', $this->reminder_template);
+                    $invoice->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
+                }
+
+                sleep(1); // this is needed to slow down the amount of data that is pushed into cache
         });
+    }
 
-        if ($this->invoice->invitations->count() >= 1) {
-            $this->invoice->entityEmailEvent($this->invoice->invitations->first(), 'invoice', $this->reminder_template);
-            $this->invoice->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
-
-        }
+    private function resolveTemplateString(string $template): string
+    {
+        
+        return match ($template) {
+            'reminder1' => 'email_template_reminder1',
+            'reminder2' => 'email_template_reminder2',
+            'reminder3' => 'email_template_reminder3',
+            'endless_reminder' => 'email_template_reminder_endless',
+            'custom1' => 'email_template_custom1',
+            'custom2' => 'email_template_custom2',
+            'custom3' => 'email_template_custom3',
+            default => "email_template_{$template}",
+        };
+        
     }
 }

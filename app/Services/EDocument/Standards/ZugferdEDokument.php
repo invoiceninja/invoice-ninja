@@ -65,15 +65,18 @@ class ZugferdEDokument extends AbstractService
 
         $this->xdocument = ZugferdDocumentBuilder::CreateNew($profile);
 
+        $user_or_company_phone = strlen($this->document->user->present()->phone()) > 3 ? $this->document->user->present()->phone() : $company->present()->phone; 
+
         $this->xdocument
             ->setDocumentSupplyChainEvent(date_create($this->document->date ?? now()->format('Y-m-d')))
             ->setDocumentSeller($company->getSetting('name'))
             ->setDocumentSellerAddress($company->getSetting("address1"), $company->getSetting("address2"), "", $company->getSetting("postal_code"), $company->getSetting("city"), $company->country()->iso_3166_2, $company->getSetting("state"))
-            ->setDocumentSellerContact($this->document->user->present()->getFullName(), "", $this->document->user->present()->phone(), "", $this->document->user->email)
+            ->setDocumentSellerContact($this->document->user->present()->getFullName(), "", $user_or_company_phone, "", $this->document->user->email)
             ->setDocumentSellerCommunication("EM", $this->document->user->email)
             ->setDocumentBuyer($client->present()->name(), $client->number)
             ->setDocumentBuyerAddress($client->address1, "", "", $client->postal_code, $client->city, $client->country->iso_3166_2, $client->state)
             ->setDocumentBuyerContact($client->present()->primary_contact_name(), "", $client->present()->phone(), "", $client->present()->email())
+            ->setDocumentBuyerCommunication("EM", $client->present()->email())
             ->addDocumentPaymentTerm(ctrans("texts.xinvoice_payable", ['payeddue' => date_create($this->document->date ?? now()->format('Y-m-d'))->diff(date_create($this->document->due_date ?? now()->format('Y-m-d')))->format("%d"), 'paydate' => $this->document->due_date]));
 
         if (!empty($this->document->public_notes)) {
@@ -111,9 +114,7 @@ class ZugferdEDokument extends AbstractService
             $this->xdocument->setDocumentBuyerOrderReferencedDocument($this->document->po_number);
         }
         if (empty($client->routing_id)) {
-
-            $this->xdocument->setDocumentBuyerReference(ctrans("texts.xinvoice_no_buyers_reference"))
-                ->setDocumentSellerCommunication("EM", $client->present()->email());
+            $this->xdocument->setDocumentBuyerReference(ctrans("texts.xinvoice_no_buyers_reference"));
         } else {
             $this->xdocument->setDocumentBuyerReference($client->routing_id)
                  ->setDocumentBuyerCommunication("0204", $client->routing_id);
@@ -121,7 +122,7 @@ class ZugferdEDokument extends AbstractService
         if (isset($client->shipping_address1) && $client->shipping_country) {
             $this->xdocument->setDocumentShipToAddress($client->shipping_address1, $client->shipping_address2, "", $client->shipping_postal_code, $client->shipping_city, $client->shipping_country->iso_3166_2, $client->shipping_state);
         }
-        $custom_value1=$company->settings->custom_value1;
+        $custom_value1 = $company->settings->custom_value1;
         //BR-DE-23 - If „Payment means type code“ (BT-81) contains a code for credit transfer (30, 58), „CREDIT TRANSFER“ (BG-17) shall be provided.
         //Payment Means - Switcher
         if(isset($custom_value1) && !empty($custom_value1) && ($custom_value1 == '30'|| $custom_value1=='58')) {
@@ -145,7 +146,7 @@ class ZugferdEDokument extends AbstractService
         foreach ($this->document->line_items as $index => $item) {
             /** @var InvoiceItem $item **/
             $this->xdocument->addNewPosition($index)
-                ->setDocumentPositionNetPrice($item->line_total);
+                ->setDocumentPositionNetPrice($item->cost);
             if (!empty($item->product_key)) {
                 if (!empty($item->notes)) {
                     $this->xdocument->setDocumentPositionProductDetails($item->product_key, $item->notes);
@@ -175,60 +176,66 @@ class ZugferdEDokument extends AbstractService
             }
 
             $this->xdocument->setDocumentPositionLineSummation($item->line_total);
-            // According to european law, each line item can only have one tax rate
-            if (!(empty($item->tax_name1) && empty($item->tax_name2) && empty($item->tax_name3))) {
-                $taxtype = $this->getTaxType($item->tax_id);
-                if (!empty($item->tax_name1)) {
-                    if ($taxtype == ZugferdDutyTaxFeeCategories::VAT_EXEMPT_FOR_EEA_INTRACOMMUNITY_SUPPLY_OF_GOODS_AND_SERVICES) {
-                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate1, exemptionReason: ctrans('texts.intracommunity_tax_info'));
+            if (isset($company->tax_data->regions->EU->has_sales_above_threshold) && !$company->tax_data->regions->EU->has_sales_above_threshold){
+                // According to european law, each line item can only have one tax rate
+                if (!(empty($item->tax_name1) && empty($item->tax_name2) && empty($item->tax_name3))) {
+                    $taxtype = $this->getTaxType($item->tax_id ?? 2);
+                    if (!empty($item->tax_name1)) {
+                        if ($taxtype == ZugferdDutyTaxFeeCategories::VAT_EXEMPT_FOR_EEA_INTRACOMMUNITY_SUPPLY_OF_GOODS_AND_SERVICES) {
+                            $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate1, exemptionReason: ctrans('texts.intracommunity_tax_info'));
+                        } else {
+                            $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate1);
+                        }
+                        $this->addtoTaxMap($taxtype, $item->line_total, $item->tax_rate1);
+                    } elseif (!empty($item->tax_name2)) {
+                        if ($taxtype == ZugferdDutyTaxFeeCategories::VAT_EXEMPT_FOR_EEA_INTRACOMMUNITY_SUPPLY_OF_GOODS_AND_SERVICES) {
+                            $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate2, exemptionReason: ctrans('texts.intracommunity_tax_info'));
+                        } else {
+                            $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate2);
+                        }
+                        $this->addtoTaxMap($taxtype, $item->line_total, $item->tax_rate2);
+                    } elseif (!empty($item->tax_name3)) {
+                        if ($taxtype == ZugferdDutyTaxFeeCategories::VAT_EXEMPT_FOR_EEA_INTRACOMMUNITY_SUPPLY_OF_GOODS_AND_SERVICES) {
+                            $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate3, exemptionReason: ctrans('texts.intracommunity_tax_info'));
+                        } else {
+                            $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate3);
+                        }
+                        $this->addtoTaxMap($taxtype, $item->line_total, $item->tax_rate3);
                     } else {
-                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate1);
+                        nlog("Can't add correct tax position");
                     }
-                    $this->addtoTaxMap($taxtype, $item->line_total, $item->tax_rate1);
-                } elseif (!empty($item->tax_name2)) {
-                    if ($taxtype == ZugferdDutyTaxFeeCategories::VAT_EXEMPT_FOR_EEA_INTRACOMMUNITY_SUPPLY_OF_GOODS_AND_SERVICES) {
-                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate2, exemptionReason: ctrans('texts.intracommunity_tax_info'));
-                    } else {
-                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate2);
-                    }
-                    $this->addtoTaxMap($taxtype, $item->line_total, $item->tax_rate2);
-                } elseif (!empty($item->tax_name3)) {
-                    if ($taxtype == ZugferdDutyTaxFeeCategories::VAT_EXEMPT_FOR_EEA_INTRACOMMUNITY_SUPPLY_OF_GOODS_AND_SERVICES) {
-                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate3, exemptionReason: ctrans('texts.intracommunity_tax_info'));
-                    } else {
-                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate3);
-                    }
-                    $this->addtoTaxMap($taxtype, $item->line_total, $item->tax_rate3);
                 } else {
-                    nlog("Can't add correct tax position");
-                }
-            } else {
-                if (!empty($this->document->tax_name1)) {
-                    $taxtype = $this->getTaxType($this->document->tax_name1);
-                    $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $this->document->tax_rate1);
-                    $this->addtoTaxMap($taxtype, $item->line_total, $this->document->tax_rate1);
-                } elseif (!empty($this->document->tax_name2)) {
-                    $taxtype = $this->getTaxType($this->document->tax_name2);
-                    $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $this->document->tax_rate2);
-                    $this->addtoTaxMap($taxtype, $item->line_total, $this->document->tax_rate2);
-                } elseif (!empty($this->document->tax_name3)) {
-                    $taxtype = $this->getTaxType($this->document->tax_name3);
-                    $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $this->document->tax_rate3);
-                    $this->addtoTaxMap($taxtype, $item->line_total, $this->document->tax_rate3);
-                } else {
-                    $taxtype = ZugferdDutyTaxFeeCategories::ZERO_RATED_GOODS;
-                    $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', 0);
+                    if (!empty($this->document->tax_name1)) {
+                        $taxtype = $this->getTaxType($this->document->tax_name1);
+                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $this->document->tax_rate1);
+                        $this->addtoTaxMap($taxtype, $item->line_total, $this->document->tax_rate1);
+                    } elseif (!empty($this->document->tax_name2)) {
+                        $taxtype = $this->getTaxType($this->document->tax_name2);
+                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $this->document->tax_rate2);
+                        $this->addtoTaxMap($taxtype, $item->line_total, $this->document->tax_rate2);
+                    } elseif (!empty($this->document->tax_name3)) {
+                        $taxtype = $this->getTaxType($this->document->tax_name3);
+                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', $this->document->tax_rate3);
+                        $this->addtoTaxMap($taxtype, $item->line_total, $this->document->tax_rate3);
+                    } else {
+                        $taxtype = ZugferdDutyTaxFeeCategories::ZERO_RATED_GOODS;
+                        $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', 0);
+                        $this->addtoTaxMap($taxtype, $item->line_total, 0);
+                        // nlog("Can't add correct tax position");
+                    }
+                }} else {
+                    $taxtype = ZugferdDutyTaxFeeCategories::EXEMPT_FROM_TAX;
+                    $this->xdocument->addDocumentPositionTax($taxtype, 'VAT', 0, 0, ctrans('texts.vat_not_registered'), "VATNOTREG");
                     $this->addtoTaxMap($taxtype, $item->line_total, 0);
-                    // nlog("Can't add correct tax position");
                 }
             }
-        }
         if ($this->document->is_amount_discount) {
             $document_discount = abs($this->document->discount);
         } else {
             $document_discount = $this->document->amount * $this->document->discount / 100;
         }
 
+        if (isset($company->tax_data->regions->EU->has_sales_above_threshold) && !$company->tax_data->regions->EU->has_sales_above_threshold){
         $this->xdocument->setDocumentSummation($this->document->amount, $this->document->balance, $invoicing_data->getSubTotal(), $invoicing_data->getTotalSurcharges(), $document_discount, $invoicing_data->getSubTotal() - $document_discount, $invoicing_data->getItemTotalTaxes(), 0.0, $this->document->amount - $this->document->balance);
         foreach ($this->tax_map as $item) {
             if ($document_discount > 0) {
@@ -248,6 +255,8 @@ class ZugferdEDokument extends AbstractService
                 $this->xdocument->addDocumentTax($item["tax_type"], "VAT", $item["net_amount"], $item["tax_rate"] * $item["net_amount"], $item["tax_rate"] * 100);
             }
 
+        }} else {
+            $this->xdocument->addDocumentTax(ZugferdDutyTaxFeeCategories::EXEMPT_FROM_TAX, "VAT", 0, 0, 0, ctrans('texts.vat_not_registered'), "VATNOTREG");
         }
 
         // The validity can be checked using https://portal3.gefeg.com/invoice/validation or https://e-rechnung.bayern.de/app/#/upload

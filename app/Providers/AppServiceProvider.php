@@ -149,8 +149,5 @@ class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        if (Ninja::isHosted()) {
-            $this->app->register(\App\Providers\BroadcastServiceProvider::class);
-        }
     }
 }

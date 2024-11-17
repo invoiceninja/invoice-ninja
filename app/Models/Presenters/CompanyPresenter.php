@@ -154,6 +154,11 @@ class CompanyPresenter extends EntityPresenter
         }
     }
 
+    public function phone()
+    {
+        return $this->entity->settings->phone ?? ' ';
+    }
+
     public function address1()
     {
         return $this->entity->settings->address1;

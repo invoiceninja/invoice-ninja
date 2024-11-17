@@ -191,7 +191,7 @@ class TemplateEmail extends Mailable
 
             }
         } elseif ($this->invitation->quote) {//@phpstan-ignore-line
-            if ($this->invitation->quote->client->getSetting('enable_e_invoice') && $this->invitation->invoice->client->getSetting('ubl_email_attachment') && $this->company->account->hasFeature(Account::FEATURE_PDF_ATTACHMENT)) {
+            if ($this->invitation->quote->client->getSetting('enable_e_invoice') && $this->invitation->quote->client->getSetting('ubl_email_attachment') && $this->company->account->hasFeature(Account::FEATURE_PDF_ATTACHMENT)) {
                 $xml_string = $this->invitation->quote->service()->getEQuote($this->invitation->contact);
 
                 if ($xml_string) {
@@ -200,7 +200,7 @@ class TemplateEmail extends Mailable
 
             }
         } elseif ($this->invitation->purchase_order) {
-            if ($this->invitation->purchase_order->vendor->getSetting('enable_e_invoice') && $this->invitation->invoice->client->getSetting('ubl_email_attachment') && $this->company->account->hasFeature(Account::FEATURE_PDF_ATTACHMENT)) {
+            if ($this->invitation->purchase_order->vendor->getSetting('enable_e_invoice') && $this->invitation->purchase_order->vendor->getSetting('ubl_email_attachment') && $this->company->account->hasFeature(Account::FEATURE_PDF_ATTACHMENT)) {
                 $xml_string = $this->invitation->purchase_order->service()->getEPurchaseOrder($this->invitation->contact);
 
                 if ($xml_string) {

@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $product_id
  * @property int|null $recurring_invoice_id
  * @property int|null $e_invoice_quota
+ * @property bool $is_flagged
  * @property-read \App\Models\RecurringInvoice $recurring_invoice
  * @method static \Illuminate\Database\Eloquent\Builder|StaticModel company()
  * @method static \Illuminate\Database\Eloquent\Builder|StaticModel exclude($columns)
@@ -73,6 +74,10 @@ class License extends StaticModel
     public function url()
     {
         $contact = $this->recurring_invoice->client->contacts()->where('email', $this->email)->first();
+    }
 
+    public function e_invoicing_tokens()
+    {
+        return $this->hasMany(EInvoicingToken::class, 'license_key', 'license_key');
     }
 }

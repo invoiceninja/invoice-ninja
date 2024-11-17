@@ -84,9 +84,9 @@ class QuoteService
         return $this->getEQuote($contact);
     }
 
-    public function sendEmail($contact = null): self
+    public function sendEmail($contact = null, $email_type = 'quote'): self
     {
-        $send_email = new SendEmail($this->quote, null, $contact);
+        $send_email = new SendEmail($this->quote, $email_type, $contact);
 
         $send_email->run();
 

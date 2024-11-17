@@ -68,7 +68,7 @@ class PaymentEmailEngine extends BaseEmailEngine
     {
         App::forgetInstance('translator');
         $t = app('translator');
-        App::setLocale($this->contact->preferredLocale());
+        App::setLocale($this->client->locale());
         $t->replace(Ninja::transformTranslations($this->client->getMergedSettings()));
 
         $this->resolvePaymentTemplate();

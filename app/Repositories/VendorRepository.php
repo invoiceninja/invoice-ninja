@@ -51,6 +51,9 @@ class VendorRepository extends BaseRepository
 
         $vendor->fill($saveable_vendor);
 
+        if(!$vendor->country_id)
+            $vendor->country_id = auth()->user()->company()->country()->id ?? 840; 
+
         $vendor->saveQuietly();
 
         $vendor->service()->applyNumber();

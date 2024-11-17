@@ -30,7 +30,7 @@ class SmtpController extends BaseController
         $company = $user->company();
 
         $smtp_host = $request->input('smtp_host', $company->smtp_host);
-        $smtp_port = $request->input('smtp_port', $company->smtp_port);
+        $smtp_port = (int)$request->input('smtp_port', $company->smtp_port);
         $smtp_username = $request->input('smtp_username', $company->smtp_username);
         $smtp_password = $request->input('smtp_password', $company->smtp_password);
         $smtp_encryption = $request->input('smtp_encryption', $company->smtp_encryption ?? 'tls');

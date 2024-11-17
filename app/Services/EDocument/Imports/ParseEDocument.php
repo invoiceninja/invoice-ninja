@@ -11,12 +11,13 @@
 
 namespace App\Services\EDocument\Imports;
 
+use Exception;
+use App\Utils\Ninja;
 use App\Models\Company;
 use App\Models\Expense;
 use App\Services\AbstractService;
-use App\Utils\Ninja;
-use Exception;
 use Illuminate\Http\UploadedFile;
+use App\Services\EDocument\Imports\UblEDocument;
 
 class ParseEDocument extends AbstractService
 {
@@ -36,10 +37,13 @@ class ParseEDocument extends AbstractService
      * @developer the function should be implemented with local first aproach to save costs of external providers (like mindee ocr)
      *
      * @return Expense
-     * @throws \Exception
+     * @throws \Throwable
      */
     public function run(): Expense
     {
+        nlog("starting");
+        nlog($this->company->id);
+        // nlog($this->file->get());
 
         /** @var \App\Models\Account $account */
         $account = $this->company->owner()->account;
@@ -50,14 +54,20 @@ class ParseEDocument extends AbstractService
         // ZUGFERD - try to parse via Zugferd lib
         switch (true) {
             case ($extension == 'pdf' || $mimetype == 'application/pdf'):
-            case ($extension == 'xml' || $mimetype == 'application/xml') && stristr($this->file->get(), "urn:cen.eu:en16931:2017"):
-            case ($extension == 'xml' || $mimetype == 'application/xml') && stristr($this->file->get(), "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0"):
-            case ($extension == 'xml' || $mimetype == 'application/xml') && stristr($this->file->get(), "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_2.1"):
-            case ($extension == 'xml' || $mimetype == 'application/xml') && stristr($this->file->get(), "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_2.0"):
+            case ($extension == 'xml' || $mimetype == 'application/xml') && stristr($this->file->get(), "<rsm:CrossIndustryInvoice"):
                 try {
                     return (new ZugferdEDocument($this->file, $this->company))->run();
-                } catch (Exception $e) {
+                } catch (\Throwable $e) {
                     nlog("Zugferd Exception: " . $e->getMessage());
+                    break;
+                }
+            case ($extension == 'xml' || $mimetype == 'application/xml') && stristr($this->file->get(), "<Invoice"):
+                try {
+                    return (new UblEDocument($this->file, $this->company))->run();
+                }
+                catch(\Throwable $e){
+                    nlog("UBL Import Exception: " . $e->getMessage());
+                    break;
                 }
         }
 

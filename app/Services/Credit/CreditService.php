@@ -152,9 +152,9 @@ class CreditService
         return $this;
     }
 
-    public function markSent()
+    public function markSent($fire_event = false)
     {
-        $this->credit = (new MarkSent($this->credit->client, $this->credit))->run();
+        $this->credit = (new MarkSent($this->credit->client, $this->credit))->run($fire_event);
 
         return $this;
     }

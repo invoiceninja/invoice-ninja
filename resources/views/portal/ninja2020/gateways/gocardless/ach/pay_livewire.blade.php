@@ -15,16 +15,25 @@
         </form>
 
         @component('portal.ninja2020.components.general.card-element', ['title' => ctrans('texts.pay_with')])
-            @if (count($tokens) > 0)
-                @foreach ($tokens as $token)
-                    <label class="mr-4">
-                        <input type="radio" data-token="{{ $token->token }}" name="payment-type"
-                            class="form-radio cursor-pointer toggle-payment-with-token" />
-                        <span class="ml-1 cursor-pointer">{{ ctrans('texts.bank_transfer') }}
+
+        <ul class="list-none space-y-2">
+            @if(count($tokens) > 0)
+                @foreach($tokens as $token)
+                <li class="py-2 hover:bg-gray-100 rounded transition-colors duration-150">
+                    <label class="flex items-center cursor-pointer px-2">
+                        <input
+                            type="radio"
+                            data-token="{{ $token->token }}"
+                            name="payment-type"
+                            class="form-radio text-indigo-600 rounded-full cursor-pointer toggle-payment-with-token"/>
+                        <span class="ml-2 cursor-pointer">{{ ctrans('texts.bank_transfer') }}
                             (#{{ $token->token }})</span>
                     </label>
+                </li>
                 @endforeach
-            @endisset
+            @endif
+        </ul>
+        
         @endcomponent
 
     @else
@@ -40,24 +49,42 @@
     @endif
 </div>
 
+
 @script
     <script>
-        Array
-            .from(document.getElementsByClassName('toggle-payment-with-token'))
-            .forEach((element) => element.addEventListener('click', (element) => {
-                document.querySelector('input[name=source]').value = element.target.dataset.token;
-            }));
+        // Initial component load
+        Livewire.hook('component.init', ({ component, cleanup }) => {
+            initializePaymentHandlers();
+        })
 
-        document.getElementById('pay-now').addEventListener('click', function() {
-            document.getElementById('server-response').submit();
-        });
+        function initializePaymentHandlers() {
+            // Handle payment token selection
+            Array
+                .from(document.getElementsByClassName('toggle-payment-with-token'))
+                .forEach((element) => element.addEventListener('click', (element) => {
+                    document.querySelector('input[name=source]').value = element.target.dataset.token;
+                }));
 
-        const first = document.querySelector('input[name="payment-type"]');
+            // Handle pay now button
+            const payNowButton = document.getElementById('pay-now');
+            if (payNowButton) {
+                payNowButton.addEventListener('click', function() {
+                    // Disable button and update UI
+                    this.disabled = true;
+                    this.querySelector('svg').classList.remove('hidden');
+                    this.querySelector('span').classList.add('hidden');
 
-        if (first) {
-            first.click();
+                    // Submit form
+                    document.getElementById('server-response').submit();
+                });
+            }
+
+            // Auto-select first payment method
+            const first = document.querySelector('input[name="payment-type"]');
+            if (first) {
+                first.click();
+            }
         }
-
     </script>
 @endscript
 

@@ -331,6 +331,7 @@ class CompanyImport implements ShouldQueue
                      ->purgeCompanyData()
                      ->importCompany()
                      ->importData()
+                     ->miscTransformations()
                      ->postImportCleanup();
 
                 $data = [
@@ -357,6 +358,52 @@ class CompanyImport implements ShouldQueue
         if(Storage::exists($this->file_location)) 
             Storage::delete($this->file_location);
         
+    }
+
+    private function miscTransformations()
+    {
+        Invoice::withTrashed()
+                ->where('company_id', $this->company->id)
+                ->cursor()
+                ->each(function ($invoice){
+
+                $items = $invoice->line_items;
+
+                foreach($items as $key => $value)
+                {
+
+                    if(isset($value->task_id) && strlen($value->task_id) >1) {
+
+                        $t_id = $this->transformId('tasks',$value->task_id);
+
+                        if($t = Task::withTrashed()->where('company_id', $this->company->id)->where('id',$t_id)->first())
+                        {
+                            $items[$key]->task_id = $t->hashed_id;
+                        }
+                        
+                    }
+
+                                        
+                    
+                    if (isset($value->expense_id) && strlen($value->expense_id) > 1) {
+                        
+                        $e_id = $this->transformId('expenses', $value->expense_id);
+
+                        if ($e = Expense::withTrashed()->where('company_id', $this->company->id)->where('id', $e_id)->first()) {
+                            $items[$key]->expense_id = $e->hashed_id;
+                        }
+
+                    }
+
+                }
+
+                $invoice->line_items = array_values($items);
+                $invoice->saveQuietly();
+
+
+        });
+
+        return $this;
     }
 
     //

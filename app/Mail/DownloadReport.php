@@ -22,22 +22,13 @@ class DownloadReport extends Mailable
     use Queueable;
     use SerializesModels;
 
-    protected Company $company;
-
-    protected $csv;
-
-    protected string $file_name;
-
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct(Company $company, $csv, $file_name)
+    public function __construct(protected Company $company, protected array $files)
     {
-        $this->company = $company;
-        $this->csv = $csv;
-        $this->file_name = $file_name;
     }
 
     /**
@@ -49,17 +40,22 @@ class DownloadReport extends Mailable
     {
         App::setLocale($this->company->getLocale());
 
-        return $this->from(config('mail.from.address'), config('mail.from.name'))
+        $mailable = $this->from(config('mail.from.address'), config('mail.from.name'))
             ->subject(ctrans('texts.download_files'))
             ->text('email.admin.download_report_text')
-            ->attachData($this->csv, $this->file_name, [
-                'mime' => 'text/csv',
-            ])
             ->view('email.admin.download_report', [
                 'logo' => $this->company->present()->logo,
                 'whitelabel' => $this->company->account->isPaid() ? true : false,
                 'settings' => $this->company->settings,
                 'greeting' => $this->company->present()->name(),
             ]);
+
+            foreach($this->files as $file)
+            {
+                $mailable->attachData(base64_decode($file['file']), $file['file_name'], ['mime' => $file['mime']]);
+            }
+
+            return $mailable;
+            
     }
 }

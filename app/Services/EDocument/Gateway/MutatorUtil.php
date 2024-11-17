@@ -34,6 +34,7 @@ class MutatorUtil
      * setPaymentMeans
      *
      * Sets the payment means - if it exists
+     * 
      * @param  bool $required
      * @return self
      */

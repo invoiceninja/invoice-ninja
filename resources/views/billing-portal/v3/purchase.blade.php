@@ -1,15 +1,11 @@
 <div class="grid grid-cols-12 bg-gray-50">
-    <div
-    @php
-    nlog($context);
-    @endphp
-    class="col-span-12 xl:col-span-6 bg-white flex flex-col items-center lg:h-screen"
-    >
-        <div class="w-full p-10 lg:mt-24 md:max-w-xl">
+    <!-- Left Column - Cart -->
+    <div class="col-span-12 xl:col-span-6 bg-white border-r border-gray-200">
+        <div class="w-full p-10 lg:mt-24 md:max-w-xl mx-auto">
             <img
                 class="h-8"
-                src="{{ $subscription->company->present()->logo }}"
-                alt="{{ $subscription->company->present()->name }}"
+                src="{{ $this->subscription->company->present()->logo }}"
+                alt="{{ $this->subscription->company->present()->name }}"
             />
 
             <svg id="spinner" class="animate-spin h-8 w-8 text-primary mt-10 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -18,27 +14,29 @@
             </svg>
 
             <div class="my-10" id="container">
-                @livewire($this->component, ['context' => $context, 'subscription' => $this->subscription], key($this->componentUniqueId()))
+                @livewire($this->component, ['context' => $context, 'subscription_id' => $this->subscription->hashed_id], key($this->componentUniqueId()))
             </div>
         </div>
     </div>
 
+    <!-- Right Column - Summary -->
     <div class="col-span-12 xl:col-span-6">
         <div class="sticky top-0">
-            <div class="w-full p-10 lg:mt-24 md:max-w-xl">
+            <div class="w-full p-10 lg:mt-24 md:max-w-xl mx-auto">
                 <div class="my-6 space-y-10 xl:ml-5">
-                    @livewire('billing-portal.summary', ['subscription' => $subscription, 'context' => $context], key($this->summaryUniqueId()))
+                    @livewire('billing-portal.summary', ['subscription_id' => $this->subscription->hashed_id, 'context' => $context], key($this->summaryUniqueId()))
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Hidden Form -->
     <form
         action="{{ route('client.payments.process', ['hash' => $hash, 'sidebar' => 'hidden', 'source' => 'subscriptions']) }}"
         method="post"
-        id="payment-method-form">
+        id="payment-method-form"
+        class="hidden">
         @csrf
-
         <input type="hidden" name="action" value="payment">
         <input type="hidden" name="invoices[]" />
         <input type="hidden" name="payable_invoices[0][amount]" value="{{ $this->context['form']['payable_amount'] ?? '' }}" />
@@ -48,5 +46,5 @@
         <input type="hidden" name="contact_first_name" value="{{ $this->context['contact']['first_name'] ?? '' }}"  />
         <input type="hidden" name="contact_last_name" value="{{ $this->context['contact']['last_name'] ?? '' }}" />
         <input type="hidden" name="contact_email" value="{{ $this->context['contact']['email'] ?? '' }}" />
-  </form>
+    </form>
 </div>

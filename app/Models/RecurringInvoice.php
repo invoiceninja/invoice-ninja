@@ -247,12 +247,9 @@ class RecurringInvoice extends BaseModel
     protected $touches = [];
 
     public static array $bulk_update_columns = [
-        'tax_rate1',
-        'tax_name1',
-        'tax_rate2',
-        'tax_name2',
-        'tax_rate3',
-        'tax_name3',
+        'tax1',
+        'tax2',
+        'tax3',
         'custom_value1',
         'custom_value2',
         'custom_value3',

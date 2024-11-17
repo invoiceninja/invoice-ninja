@@ -20,14 +20,49 @@ use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
 use App\Services\EDocument\Standards\Peppol;
+use App\Services\EDocument\Standards\Validation\XsltDocumentValidator;
 use Illuminate\Support\Facades\App;
+use XSLTProcessor;
 
 class EntityLevel
 {
+    private array $eu_country_codes = [
+            'AT', // Austria
+            'BE', // Belgium
+            'BG', // Bulgaria
+            'CY', // Cyprus
+            'CZ', // Czech Republic
+            'DE', // Germany
+            'DK', // Denmark
+            'EE', // Estonia
+            'ES', // Spain
+            'ES-CN', // Canary Islands
+            'ES-CE', // Ceuta
+            'ES-ML', // Melilla
+            'FI', // Finland
+            'FR', // France
+            'GR', // Greece
+            'HR', // Croatia
+            'HU', // Hungary
+            'IE', // Ireland
+            'IT', // Italy
+            'LT', // Lithuania
+            'LU', // Luxembourg
+            'LV', // Latvia
+            'MT', // Malta
+            'NL', // Netherlands
+            'PL', // Poland
+            'PT', // Portugal
+            'RO', // Romania
+            'SE', // Sweden
+            'SI', // Slovenia
+            'SK', // Slovakia
+    ];
+
     private array $client_fields = [
         'address1',
         'city',
-        'state',
+        // 'state',
         'postal_code',
         'country_id',
     ];
@@ -35,7 +70,7 @@ class EntityLevel
     private array $company_settings_fields = [
         'address1',
         'city',
-        'state',
+        // 'state',
         'postal_code',
         'country_id',
     ];
@@ -95,16 +130,54 @@ class EntityLevel
         $this->errors['client'] = $this->testClientState($invoice->client);
         $this->errors['company'] = $this->testCompanyState($invoice->client); // uses client level settings which is what we want
 
+        if(count($this->errors['client']) > 0){
+            
+            $this->errors['passes'] = false;
+            return $this->errors;
+
+        }
+
         $p = new Peppol($invoice);
 
+        $xml = false;
+
         try{
-            $p->run()->toXml();
+            $xml = $p->run()->toXml();
+
+            if(count($p->getErrors()) >= 1){
+
+                foreach($p->getErrors() as $error)
+                {
+                    $this->errors['invoice'][] = $error;
+                }
+            }
+
         }
         catch(PeppolValidationException $e) {
+            $this->errors['invoice'] = ['field' => $e->getInvalidField(), 'label' => $e->getInvalidField()];
+        }
+        catch(\Throwable $th){
 
-            $this->errors['invoice'] = ['field' => $e->getInvalidField()];
+        }
 
-        };
+        if($xml){
+            // Second pass through the XSLT validator
+            $xslt = new XsltDocumentValidator($xml);
+            $errors = $xslt->validate()->getErrors();
+
+            if(isset($errors['stylesheet']) && count($errors['stylesheet']) > 0){
+                $this->errors['invoice'] = array_merge($this->errors['invoice'], $errors['stylesheet']);
+            }
+        
+            if(isset($errors['general']) && count($errors['general']) > 0) {
+                $this->errors['invoice'] = array_merge($this->errors['invoice'], $errors['general']);
+            }
+
+            if (isset($errors['xsd']) && count($errors['xsd']) > 0) {
+                $this->errors['invoice'] = array_merge($this->errors['invoice'], $errors['xsd']);
+            }
+
+        }
 
         $this->errors['passes'] = count($this->errors['invoice']) == 0 && count($this->errors['client']) == 0 && count($this->errors['company']) == 0;
 
@@ -126,13 +199,13 @@ class EntityLevel
             if($field == 'country_id' && $client->country_id >=1)
                 continue;
 
-            $errors[] = ['field' => ctrans("texts.{$field}")];
+            $errors[] = ['field' => $field, 'label' => ctrans("texts.{$field}")];
 
         }
 
-        //If not an individual, you MUST have a VAT number
-        if ($client->classification != 'individual' && !$this->validString($client->vat_number)) {
-            $errors[] = ['field' => ctrans("texts.vat_number")];
+        //If not an individual, you MUST have a VAT number if you are in the EU
+        if (!in_array($client->classification, ['government', 'individual']) && in_array($client->country->iso_3166_2, $this->eu_country_codes) && !$this->validString($client->vat_number)) {
+            $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
         }
 
         return $errors;
@@ -180,7 +253,7 @@ class EntityLevel
             if($this->validString($settings_object->getSetting($field)))
                 continue;
     
-            $errors[] = ['field' => ctrans("texts.{$field}")];
+            $errors[] = ['field' => $field, 'label' => ctrans("texts.{$field}")];
 
         }
 
@@ -191,8 +264,12 @@ class EntityLevel
         //If not an individual, you MUST have a VAT number
         if($company->getSetting('classification') != 'individual' && !$this->validString($company->getSetting('vat_number')))
         {
-            $errors[] = ['field' => ctrans("texts.vat_number")];
+            $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
         }
+        elseif ($company->getSetting('classification') == 'individual' && !$this->validString($company->getSetting('id_number'))) {
+            $errors[] = ['field' => 'id_number', 'label' => ctrans("texts.id_number")];
+        }
+
 
         // foreach($this->company_fields as $field)
         // {

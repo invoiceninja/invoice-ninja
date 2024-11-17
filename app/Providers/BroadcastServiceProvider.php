@@ -14,7 +14,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\ServiceProvider;
 
-class BroadcastServiceProvider extends ServiceProvider
+class BroadcastServiceProvider extends \Illuminate\Broadcasting\BroadcastServiceProvider
 {
     /**
      * Bootstrap any application services.
@@ -23,7 +23,7 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Broadcast::routes();
+        Broadcast::routes(['middleware' => ['api_db', 'token_auth']]);
 
         require base_path('routes/channels.php');
     }

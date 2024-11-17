@@ -17,7 +17,7 @@
     <script type="application/json" fncls="fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99">
         {
             "f":"{{ $guid }}",
-            "s":"paypal.ppcp.pay"        // unique ID for each web page
+            "s":"paypal.ppcp.pay"        
         }
     </script>
 </div>
@@ -29,7 +29,6 @@
 
 @script
 <script>
-//&buyer-country=US&currency=USD&enable-funding=venmo
     const fundingSource = "{!! $funding_source !!}";
     const clientId = "{{ $client_id }}";
     const orderId = "{!! $order_id !!}";
@@ -95,7 +94,6 @@
             document.getElementById("server_response").submit();
         },
         onClick: function (){
-           // document.getElementById('paypal-button-container').hidden = true;
         }
     
     }).render('#paypal-button-container').catch(function(err) {

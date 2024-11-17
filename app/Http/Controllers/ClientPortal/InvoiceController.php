@@ -59,7 +59,7 @@ class InvoiceController extends Controller
     public function show(ShowInvoiceRequest $request, Invoice $invoice, ?string $hash = null)
     {
         set_time_limit(0);
-
+        
         $invitation = $invoice->invitations()->where('client_contact_id', auth()->guard('contact')->user()->id)->first();
 
         // @phpstan-ignore-next-line
@@ -91,16 +91,21 @@ class InvoiceController extends Controller
 
         return auth()->guard('contact')->user()->client->getSetting('payment_flow') == 'default' ? $this->render('invoices.show', $data) : $this->render('invoices.show_smooth', $data);
 
-        // return $this->render('invoices.show_smooth', $data);
     }
 
     public function showBlob($hash)
     {
         $data = Cache::get($hash);
 
-        if(!$data) {
-            usleep(200000);
+        for($x=0; $x<3; $x++){
+       
             $data = Cache::get($hash);
+            
+            if($data)
+                break;
+    
+            usleep(200000);
+
         }
 
         $invitation = false;

@@ -110,9 +110,14 @@ class CheckoutCreditCard {
 }
 
 function boot() {
-    new CheckoutCreditCard().handle()
+    new CheckoutCreditCard().handle();
+
+    /** @type {NodeListOf<HTMLInputElement>} */
+    const tokens = document.querySelectorAll('input.toggle-payment-with-token');
+
+    if (tokens.length > 0) {
+        tokens[0].click();
+    }
 }
 
-instant() ? boot() : wait('#checkout-credit-card-payment').then(() =>
-    new CheckoutCreditCard().handle()
-);
+instant() ? boot() : wait('#checkout-credit-card-payment').then(() => boot());

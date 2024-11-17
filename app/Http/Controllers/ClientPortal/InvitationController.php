@@ -283,6 +283,18 @@ class InvitationController extends Controller
 
         $invoice = $invitation->invoice->service()->removeUnpaidGatewayFees()->save();
 
+        if (! $invitation->viewed_date) {
+            $invitation->markViewed();
+
+            if (!session()->get('is_silent')) {
+                event(new InvitationWasViewed($invitation->invoice, $invitation, $invitation->invoice->company, Ninja::eventVars()));
+            }
+
+            if (!session()->get('is_silent')) {
+                $this->fireEntityViewedEvent($invitation, $invoice);
+            }
+        }
+
         if ($invoice->partial > 0) {
             $amount = round($invoice->partial, (int)$invoice->client->currency()->precision);
         } else {

@@ -12,14 +12,24 @@
 
 namespace App\Livewire\BillingPortal\Cart;
 
-use App\Models\Subscription;
 use Livewire\Component;
+use App\Models\Subscription;
+use App\Utils\Traits\MakesHash;
+use Livewire\Attributes\Computed;
 
 class OneTimeProducts extends Component
 {
-    public Subscription $subscription;
-
+    use MakesHash;
+    
     public array $context;
+
+    public string $subscription_id;
+
+    #[Computed()]
+    public function subscription()
+    {
+        return Subscription::find($this->decodePrimaryKey($this->subscription_id))->withoutRelations()->makeHidden(['webhook_configuration','steps']);
+    }
 
     public function quantity($id, $value): void
     {

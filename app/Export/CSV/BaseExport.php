@@ -11,6 +11,7 @@
 
 namespace App\Export\CSV;
 
+use App\Jobs\Credit\ZipCredits;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Quote;
@@ -31,6 +32,9 @@ use Illuminate\Support\Carbon;
 use App\Utils\Traits\MakesHash;
 use App\Models\RecurringInvoice;
 use App\Jobs\Document\ZipDocuments;
+use App\Jobs\Invoice\ZipInvoices;
+use App\Jobs\PurchaseOrder\ZipPurchaseOrders;
+use App\Jobs\Quote\ZipQuotes;
 use App\Transformers\TaskTransformer;
 use App\Transformers\PaymentTransformer;
 use Illuminate\Database\Eloquent\Builder;
@@ -452,6 +456,7 @@ class BaseExport
         'billable' => 'task.billable',
         'item_notes' => 'task.item_notes',
         'time_log' => 'task.time_log',
+        'log_duration_words' => 'task.time_log_duration_words',
         'user' => 'task.user_id',
         'assigned_user' => 'task.assigned_user_id',
     ];
@@ -1588,6 +1593,37 @@ class BaseExport
         }
 
         return $clean_row;
+    }
+
+    public function queuePdfs(Builder $query) {
+
+        if(in_array(get_class($query->getModel()), [Invoice::class, Quote::class, Credit::class, PurchaseOrder::class]) && $query->count() > 0) {
+
+            $user = $this->company->owner();
+
+            if ($this->input['user_id'] ?? false) {
+                $user = User::where('id', $this->input['user_id'])->where('account_id', $this->company->account_id)->first();
+            }
+
+            switch (get_class($query->getModel())) {
+                case Invoice::class:
+                    nlog("zipping invoices");
+                    ZipInvoices::dispatch($query->pluck('id'), $this->company, $user);
+                    break;
+                case Quote::class:
+                    ZipQuotes::dispatch($query->pluck('id'), $this->company, $user);
+                    break;
+                case Credit::class:
+                    ZipCredits::dispatch($query->pluck('id'), $this->company, $user);
+                    break;
+                case PurchaseOrder::class:
+                    ZipPurchaseOrders::dispatch($query->pluck('id'),$this->company, $user);
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+        }
     }
 
     public function queueDocuments(Builder $query)

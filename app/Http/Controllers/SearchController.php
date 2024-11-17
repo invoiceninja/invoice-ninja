@@ -58,6 +58,8 @@ class SearchController extends Controller
         $user = auth()->user();
         $company = $user->company();
         
+        \Illuminate\Support\Facades\App::setLocale($company->locale());
+
         $elastic = ClientBuilder::fromConfig(config('elastic.client.connections.default'));
 
         $params = [
@@ -79,7 +81,7 @@ class SearchController extends Controller
                         ],
                     ],
                 ],
-                'size' => 1000,
+                'size' => 100,
             ],
         ];
 

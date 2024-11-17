@@ -1025,6 +1025,10 @@ class UsTaxTest extends TestCase
         $tax_data->seller_subregion = 'CA';
         $tax_data->regions->US->has_sales_above_threshold = true;
         $tax_data->regions->US->tax_all_subregions = true;
+        
+        $tax_data->regions->US->subregions->CA->tax_rate = 6;
+        $tax_data->regions->US->subregions->CA->tax_name = 'Sales Tax';
+
         $tax_data->regions->EU->has_sales_above_threshold = true;
         $tax_data->regions->EU->tax_all_subregions = true;
         $tax_data->regions->EU->subregions->DE->tax_rate = 21;
@@ -1045,6 +1049,7 @@ class UsTaxTest extends TestCase
             'has_valid_vat_number' => false,
             'postal_code' => 'xx',
             'tax_data' => new Response($this->mock_response),
+            'is_tax_exempt' => false,
         ]);
 
         $invoice = Invoice::factory()->create([

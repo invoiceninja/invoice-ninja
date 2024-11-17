@@ -18,13 +18,10 @@ class ProcessSEPA {
     }
 
     setupStripe = () => {
-
         if (this.stripeConnect) {
-
             this.stripe = Stripe(this.key, {
                 stripeAccount: this.stripeConnect,
             });
-
         } else {
             this.stripe = Stripe(this.key);
         }
@@ -33,7 +30,8 @@ class ProcessSEPA {
         var style = {
             base: {
                 color: '#32325d',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                fontFamily:
+                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                 fontSmoothing: 'antialiased',
                 fontSize: '16px',
                 '::placeholder': {
@@ -63,8 +61,11 @@ class ProcessSEPA {
         this.iban = elements.create('iban', options);
         this.iban.mount('#sepa-iban');
 
-        document.getElementById('sepa-name').value = document.querySelector('meta[name=client_name]').content;
-        document.getElementById('sepa-email-address').value = document.querySelector('meta[name=client_email]').content;
+        document.getElementById('sepa-name').value = document.querySelector(
+            'meta[name=client_name]'
+        ).content;
+        document.getElementById('sepa-email-address').value =
+            document.querySelector('meta[name=client_email]').content;
 
         return this;
     };
@@ -98,19 +99,26 @@ class ProcessSEPA {
             });
 
         document.getElementById('pay-now').addEventListener('click', (e) => {
-
-            if (document.querySelector('input[name=token]').value.length !== 0) {
-
+            if (
+                document.querySelector('input[name=token]').value.length !== 0
+            ) {
                 document.getElementById('pay-now').disabled = true;
-                document.querySelector('#pay-now > svg').classList.remove('hidden');
-                document.querySelector('#pay-now > span').classList.add('hidden');
+                document
+                    .querySelector('#pay-now > svg')
+                    .classList.remove('hidden');
+                document
+                    .querySelector('#pay-now > span')
+                    .classList.add('hidden');
 
                 this.stripe
                     .confirmSepaDebitPayment(
                         document.querySelector('meta[name=pi-client-secret')
-                            .content, {
-                        payment_method: document.querySelector('input[name=token]').value
-                    }
+                            .content,
+                        {
+                            payment_method:
+                                document.querySelector('input[name=token]')
+                                    .value,
+                        }
                     )
                     .then((result) => {
                         if (result.error) {
@@ -119,9 +127,7 @@ class ProcessSEPA {
 
                         return this.handleSuccess(result);
                     });
-
             } else {
-
                 if (document.getElementById('sepa-name').value === '') {
                     document.getElementById('sepa-name').focus();
                     errors.textContent = document.querySelector(
@@ -131,7 +137,9 @@ class ProcessSEPA {
                     return;
                 }
 
-                if (document.getElementById('sepa-email-address').value === '') {
+                if (
+                    document.getElementById('sepa-email-address').value === ''
+                ) {
                     document.getElementById('sepa-email-address').focus();
                     errors.textContent = document.querySelector(
                         'meta[name=translation-email-required]'
@@ -140,7 +148,9 @@ class ProcessSEPA {
                     return;
                 }
 
-                if (!document.getElementById('sepa-mandate-acceptance').checked) {
+                if (
+                    !document.getElementById('sepa-mandate-acceptance').checked
+                ) {
                     errors.textContent = document.querySelector(
                         'meta[name=translation-terms-required]'
                     ).content;
@@ -150,24 +160,29 @@ class ProcessSEPA {
                 }
 
                 document.getElementById('pay-now').disabled = true;
-                document.querySelector('#pay-now > svg').classList.remove('hidden');
-                document.querySelector('#pay-now > span').classList.add('hidden');
+                document
+                    .querySelector('#pay-now > svg')
+                    .classList.remove('hidden');
+                document
+                    .querySelector('#pay-now > span')
+                    .classList.add('hidden');
 
                 this.stripe
                     .confirmSepaDebitPayment(
                         document.querySelector('meta[name=pi-client-secret')
-                            .content, {
-                        payment_method: {
-                            sepa_debit: this.iban,
-                            billing_details: {
-                                name: document.getElementById('sepa-name')
-                                    .value,
-                                email: document.getElementById(
-                                    'sepa-email-address'
-                                ).value,
+                            .content,
+                        {
+                            payment_method: {
+                                sepa_debit: this.iban,
+                                billing_details: {
+                                    name: document.getElementById('sepa-name')
+                                        .value,
+                                    email: document.getElementById(
+                                        'sepa-email-address'
+                                    ).value,
+                                },
                             },
-                        },
-                    }
+                        }
                     )
                     .then((result) => {
                         if (result.error) {
@@ -176,16 +191,13 @@ class ProcessSEPA {
 
                         return this.handleSuccess(result);
                     });
-
             }
-
         });
     };
 
     handleSuccess(result) {
-        document.querySelector(
-            'input[name="gateway_response"]'
-        ).value = JSON.stringify(result.paymentIntent);
+        document.querySelector('input[name="gateway_response"]').value =
+            JSON.stringify(result.paymentIntent);
 
         let tokenBillingCheckbox = document.querySelector(
             'input[name="token-billing-checkbox"]:checked'
@@ -215,9 +227,8 @@ class ProcessSEPA {
         document.querySelector('#pay-now > span').classList.remove('hidden');
     }
     handleSuccess(result) {
-        document.querySelector(
-            'input[name="gateway_response"]'
-        ).value = JSON.stringify(result.paymentIntent);
+        document.querySelector('input[name="gateway_response"]').value =
+            JSON.stringify(result.paymentIntent);
 
         let tokenBillingCheckbox = document.querySelector(
             'input[name="token-billing-checkbox"]:checked'
@@ -234,15 +245,20 @@ class ProcessSEPA {
 
 function boot() {
     const publishableKey =
-        document.querySelector('meta[name="stripe-publishable-key"]')?.content ??
-    '';
+        document.querySelector('meta[name="stripe-publishable-key"]')
+            ?.content ?? '';
 
     const stripeConnect =
         document.querySelector('meta[name="stripe-account-id"]')?.content ?? '';
 
     new ProcessSEPA(publishableKey, stripeConnect).setupStripe().handle();
-}
 
-instant() ? boot() : wait('#stripe-sepa-payment').then(() => boot());
+    /** @type {NodeListOf<HTMLInputElement>} */
+    const tokens = document.querySelectorAll('input.toggle-payment-with-token');
+
+    if (tokens.length > 0) {
+        tokens[0].click();
+    }
+}
 
 instant() ? boot() : wait('#stripe-sepa-payment').then(() => boot());

@@ -84,7 +84,7 @@
 <script type="application/json" fncls="fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99">
     {
         "f":"{{ $guid }}",
-        "s":"{{ $identifier }}"        // unique ID for each web page
+        "s":"{{ $identifier }}"        
     }
 </script>
 
@@ -193,12 +193,8 @@
     
     });
 
-  // Render each field after checking for eligibility
   if (cardField.isEligible()) {
       
-      // const nameField = cardField.NameField();
-     //  nameField.render("#card-name-field-container");
-
       const numberField = cardField.NumberField({
         inputEvents: {
             onChange: (event)=> {

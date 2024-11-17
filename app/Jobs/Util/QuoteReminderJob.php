@@ -142,7 +142,7 @@ class QuoteReminderJob implements ShouldQueue
         (Ninja::isSelfHost() || $quote->company->account->isPaidHostedClient())) {
                 $quote->invitations->each(function ($invitation) use ($quote, $reminder_template) {
                     if ($invitation->contact && !$invitation->contact->trashed() && $invitation->contact->email) {
-                        EmailEntity::dispatch($invitation, $invitation->company, $reminder_template);
+                        EmailEntity::dispatch($invitation->withoutRelations(), $invitation->company->db, $reminder_template);
                         nrlog("Firing reminder email for quote {$quote->number} - {$reminder_template}");
                         $quote->entityEmailEvent($invitation, $reminder_template);
                         $quote->sendEvent(Webhook::EVENT_REMIND_QUOTE, "client");

@@ -394,6 +394,8 @@ class HtmlEngine
         $data['$credit.total'] = &$data['$credit.total'];
         $data['$credit.po_number'] = &$data['$invoice.po_number'];
         $data['$credit.date'] = ['value' => $this->translateDate($this->entity->date, $this->client->date_format(), $this->client->locale()), 'label' => ctrans('texts.credit_date')];
+        $data['$credit.valid_until'] = ['value' => $this->translateDate($this->entity->due_date, $this->client->date_format(), $this->client->locale()), 'label' => ctrans('texts.valid_until')];
+
         $data['$balance'] = ['value' => Number::formatMoney($this->getBalance(), $this->client) ?: ' ', 'label' => ctrans('texts.balance')];
         $data['$credit.balance'] = ['value' => Number::formatMoney($this->entity_calc->getBalance(), $this->client) ?: ' ', 'label' => ctrans('texts.credit_balance')];
         $data['$client.credit_balance'] = &$data['$credit.balance'];
@@ -737,6 +739,7 @@ class HtmlEngine
         $data['$refund'] = ['value' => '', 'label' => ctrans('texts.refund')];
         $data['$refunded'] = ['value' => '', 'label' => ctrans('texts.refunded')];
 
+        $data['$payment.payment_balance'] = ['value' => '', 'label' => ctrans('texts.payment_balance')];
         $data['$payment.amount'] = ['value' => '', 'label' => ctrans('texts.payment')];
         $data['$payment.date'] = ['value' => '', 'label' => ctrans('texts.payment_date')];
         $data['$payment.number'] = ['value' => '', 'label' => ctrans('texts.payment_number')];
@@ -755,17 +758,19 @@ class HtmlEngine
 
             $payment = $this->entity->net_payments()->first();
 
-            $data['$payment.custom1'] = ['value' => $payment->custom_value1, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment1')];
-            $data['$payment.custom2'] = ['value' => $payment->custom_value2, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment2')];
-            $data['$payment.custom3'] = ['value' => $payment->custom_value3, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment3')];
-            $data['$payment.custom4'] = ['value' => $payment->custom_value4, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment4')];
+            if($payment)
+            {
+                $data['$payment.custom1'] = ['value' => $payment->custom_value1, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment1')];
+                $data['$payment.custom2'] = ['value' => $payment->custom_value2, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment2')];
+                $data['$payment.custom3'] = ['value' => $payment->custom_value3, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment3')];
+                $data['$payment.custom4'] = ['value' => $payment->custom_value4, 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'payment4')];
 
-            $data['$payment.amount'] = ['value' => Number::formatMoney($payment->amount, $this->client), 'label' => ctrans('texts.payment')];
-            $data['$payment.date'] = ['value' => $this->formatDate($payment->date, $this->client->date_format()), 'label' => ctrans('texts.payment_date')];
-            $data['$payment.number'] = ['value' => $payment->number, 'label' => ctrans('texts.payment_number')];
-            $data['$payment.transaction_reference'] = ['value' => $payment->transaction_reference, 'label' => ctrans('texts.transaction_reference')];
-            $data['$payment.refunded'] = ['value' => $this->getPaymentMeta($payment), 'label' => ctrans('texts.refund')];
-
+                $data['$payment.amount'] = ['value' => Number::formatMoney($payment->amount, $this->client), 'label' => ctrans('texts.payment')];
+                $data['$payment.date'] = ['value' => $this->formatDate($payment->date, $this->client->date_format()), 'label' => ctrans('texts.payment_date')];
+                $data['$payment.number'] = ['value' => $payment->number, 'label' => ctrans('texts.payment_number')];
+                $data['$payment.transaction_reference'] = ['value' => $payment->transaction_reference, 'label' => ctrans('texts.transaction_reference')];
+                $data['$payment.refunded'] = ['value' => $this->getPaymentMeta($payment), 'label' => ctrans('texts.refund')];
+            }
         }
 
         if (($this->entity_string == 'invoice' || $this->entity_string == 'recurring_invoice') && isset($this->company?->custom_fields?->company1)) {
@@ -799,7 +804,8 @@ class HtmlEngine
                         $amount = Number::formatMoney($refunded_invoice['amount'], $payment->client);
                         $notes = ctrans('texts.status_partially_refunded_amount', ['amount' => $amount]);
 
-                        array_push($map, "{$date} {$entity} #{$invoice->number} {$notes}\n");
+                        if($invoice)
+                            array_push($map, "{$date} {$entity} #{$invoice->number} {$notes}\n");
 
                     }
 
@@ -827,7 +833,10 @@ class HtmlEngine
             if($this->entity_calc->getTotalTaxes() > 0) {
                 $tax_label = '';
             }
+        }
 
+        if (isset($this->entity->company->tax_data->regions->EU->has_sales_above_threshold) && !$this->entity->company->tax_data->regions->EU->has_sales_above_threshold){ 
+            $tax_label .= ctrans('text.small_company_info') ."<br>";
         }
 
         return $tax_label;

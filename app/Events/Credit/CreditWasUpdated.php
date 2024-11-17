@@ -11,17 +11,21 @@
 
 namespace App\Events\Credit;
 
+use App\Models\BaseModel;
 use App\Models\Company;
 use App\Models\Credit;
+use App\Utils\Traits\Invoice\Broadcasting\DefaultResourceBroadcast;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CreditWasUpdated
+class CreditWasUpdated implements ShouldBroadcast
 {
     use Dispatchable;
     use InteractsWithSockets;
     use SerializesModels;
+    use DefaultResourceBroadcast;
 
     public $credit;
 
@@ -41,5 +45,12 @@ class CreditWasUpdated
         $this->credit = $credit;
         $this->company = $company;
         $this->event_vars = $event_vars;
+
+        $this->dontBroadcastToCurrentUser();
+    }
+    
+    public function broadcastModel(): BaseModel
+    {
+        return $this->credit;
     }
 }

@@ -2,9 +2,9 @@
     <div class="col-span-8 bg-gray-50 flex flex-col max-h-100px items-center min-h-screen">
         <div class="w-full p-4 md:max-w-3xl">
             <div class="w-full mb-4">
-                <img class="object-scale-down" style="max-height: 100px;"src="{{ $subscription->company->present()->logo }}" alt="{{ $subscription->company->present()->name }}">
+                <img class="object-scale-down" style="max-height: 100px;"src="{{ $this->subscription->company->present()->logo }}" alt="{{ $this->subscription->company->present()->name }}">
                 <h1 id="billing-page-company-logo" class="text-3xl font-bold tracking-wide mt-6  border-b-2">
-                {{ $subscription->name }}
+                {{ $this->subscription->name }}
                 </h1>
             </div>
 
@@ -21,18 +21,18 @@
                     <input type="hidden" name="action" value="payment">
                     <input type="hidden" name="company_gateway_id" value="{{ $company_gateway_id }}"/>
                     <input type="hidden" name="payment_method_id" value="{{ $payment_method_id }}"/>
-                    <input type="hidden" name="contact_first_name" value="{{ $contact ? $contact->first_name : '' }}">
-                    <input type="hidden" name="contact_last_name" value="{{ $contact ? $contact->last_name : '' }}">
-                    <input type="hidden" name="contact_email" value="{{ $contact ? $contact->email : '' }}">
-                    <input type="hidden" name="client_city" value="{{ $contact ? $contact->client->city : '' }}">
-                    <input type="hidden" name="client_postal_code" value="{{ $contact ? $contact->client->postal_code : '' }}">
+                    <input type="hidden" name="contact_first_name" value="{{ $this->contact ? $this->contact->first_name : '' }}">
+                    <input type="hidden" name="contact_last_name" value="{{ $this->contact ? $this->contact->last_name : '' }}">
+                    <input type="hidden" name="contact_email" value="{{ $this->contact ? $this->contact->email : '' }}">
+                    <input type="hidden" name="client_city" value="{{ $this->contact ? $this->contact->client->city : '' }}">
+                    <input type="hidden" name="client_postal_code" value="{{ $this->contact ? $this->contact->client->postal_code : '' }}">
                 </form>
             </div>
 
             <form wire:submit="submit">
             <!-- Recurring Plan Products-->
             <ul role="list" class="-my-6 divide-y divide-gray-200">
-            @if(!empty($subscription->recurring_product_ids))
+            @if(!empty($this->subscription->recurring_product_ids))
                 @foreach($recurring_products as $index => $product)
                     <li class="flex py-6">
                       @if(filter_var($product->product_image, FILTER_VALIDATE_URL))
@@ -48,34 +48,34 @@
                                     {!! $product->markdownNotes() !!}
                                 </article>
                             </h3>
-                            <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $subscription->company) }} / {{ App\Models\RecurringInvoice::frequencyForKey($subscription->frequency_id) }}</p>
+                            <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $this->subscription->company) }} / {{ App\Models\RecurringInvoice::frequencyForKey($this->subscription->frequency_id) }}</p>
                           </div>
                           <p class="mt-1 text-sm text-gray-500"></p>
                         </div>
                         <div class="flex justify-between text-sm mt-1">
-                            @if($subscription->per_seat_enabled)
+                            @if($this->subscription->per_seat_enabled)
                             <p class="text-gray-500 w-3/4"></p>
                             <div class="flex place-content-end">
-                                @if($subscription->use_inventory_management && $product->in_stock_quantity == 0)
+                                @if($this->subscription->use_inventory_management && $product->in_stock_quantity == 0)
                                 <p class="text-sm font-light text-red-500 text-right mr-2 mt-2">Out of stock</p>
                                 @else
                                 <p class="text-sm font-light text-gray-700 text-right mr-2 mt-2">{{ ctrans('texts.qty') }}</p>
                                 @endif
                                 <select wire:model.live.debounce.300ms="data.{{ $index }}.recurring_qty" class="rounded-md border-gray-300 shadow-sm sm:text-sm" 
-                                    @if($subscription->use_inventory_management && $product->in_stock_quantity == 0)
+                                    @if($this->subscription->use_inventory_management && $product->in_stock_quantity == 0)
                                     disabled 
                                     @endif
                                     >
                                     <option value="1" selected="selected">1</option>
 
-                                    @if($subscription->max_seats_limit > 1)
+                                    @if($this->subscription->max_seats_limit > 1)
                                     {
-                                        @for ($i = 2; $i <= ($subscription->use_inventory_management ? min($subscription->max_seats_limit,$product->in_stock_quantity) : $subscription->max_seats_limit); $i++)
+                                        @for ($i = 2; $i <= ($this->subscription->use_inventory_management ? min($this->subscription->max_seats_limit,$product->in_stock_quantity) : $this->subscription->max_seats_limit); $i++)
                                         <option value="{{$i}}">{{$i}}</option>
                                         @endfor
                                     }
                                     @else
-                                        @for ($i = 2; $i <= ($subscription->use_inventory_management ? min($product->in_stock_quantity, max(100,$product->max_quantity)) : max(100,$product->max_quantity)); $i++)
+                                        @for ($i = 2; $i <= $this->subscription->maxQuantity($product); $i++)
                                         <option value="{{$i}}">{{$i}}</option>
                                         @endfor
                                     @endif
@@ -94,7 +94,7 @@
                 @endforeach
             @endif
             <!-- One Time Plan Products-->
-            @if(!empty($subscription->product_ids))
+            @if(!empty($this->subscription->product_ids))
                 @foreach($products as $product)
                     <li class="flex py-6">
                       @if(filter_var($product->product_image, FILTER_VALIDATE_URL))
@@ -110,7 +110,7 @@
                                     {!! $product->markdownNotes() !!}
                                 </article>
                             </h3>
-                            <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $subscription->company) }}</p>
+                            <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $this->subscription->company) }}</p>
                           </div>
                           <p class="mt-1 text-sm text-gray-500"></p>
                         </div>
@@ -126,7 +126,7 @@
             </ul>
         </div>
 
-        @if(!empty($subscription->optional_recurring_product_ids) || !empty($subscription->optional_product_ids))
+        @if(!empty($this->subscription->optional_recurring_product_ids) || !empty($this->subscription->optional_product_ids))
         <div class="w-full p-4 md:max-w-3xl">
             <h2 class="text-2xl font-normal text-left border-b-2">{{ ctrans('texts.optional_products') }}</h2>
         </div>
@@ -135,7 +135,7 @@
 
             <!-- Optional Recurring Products-->
             <ul role="list" class="-my-6 divide-y divide-gray-200">
-                @if(!empty($subscription->optional_recurring_product_ids))
+                @if(!empty($this->subscription->optional_recurring_product_ids))
                     @foreach($optional_recurring_products as $index => $product)
                         <li class="flex py-6">
                           @if(filter_var($product->product_image, FILTER_VALIDATE_URL))
@@ -151,25 +151,25 @@
                                         {!! $product->markdownNotes() !!}
                                     </article>
                                 </h3>
-                                <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $subscription->company) }} / {{ App\Models\RecurringInvoice::frequencyForKey($subscription->frequency_id) }}</p>
+                                <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $this->subscription->company) }} / {{ App\Models\RecurringInvoice::frequencyForKey($this->subscription->frequency_id) }}</p>
                               </div>
                             </div>
                             <div class="flex justify-between text-sm mt-1">
                                 @if(is_numeric($product->max_quantity))
                                 <p class="text-gray-500 w-3/4"></p>
                                 <div class="flex place-content-end">
-                                    @if($subscription->use_inventory_management && $product->in_stock_quantity == 0)
+                                    @if($this->subscription->use_inventory_management && $product->in_stock_quantity == 0)
                                     <p class="w-full text-sm font-light text-red-500 text-right mr-2 mt-2">Out of stock</p>
                                     @else
                                     <p class="text-sm font-light text-gray-700 text-right mr-2 mt-2">{{ ctrans('texts.qty') }}</p>
                                     @endif
                                     <select wire:model.live.debounce.300ms="data.{{ $index }}.optional_recurring_qty" class="rounded-md border-gray-300 shadow-sm sm:text-sm" 
-                                        @if($subscription->use_inventory_management && $product->in_stock_quantity == 0)
+                                        @if($this->subscription->use_inventory_management && $product->in_stock_quantity == 0)
                                         disabled 
                                         @endif
                                         >
                                         <option value="0" selected="selected">0</option>
-                                        @for ($i = 1; $i <= ($subscription->use_inventory_management ? min($product->in_stock_quantity, max(100,$product->max_quantity)) : max(100,$product->max_quantity)); $i++)
+                                        @for ($i = 1; $i <= $this->subscription->maxQuantity($product); $i++)
                                         <option value="{{$i}}">{{$i}}</option>
                                         @endfor
                                     </select>
@@ -180,7 +180,7 @@
                         </li>
                     @endforeach    
                 @endif
-                @if(!empty($subscription->optional_product_ids))
+                @if(!empty($this->subscription->optional_product_ids))
                     @foreach($optional_products as $index => $product)
                         <li class="flex py-6">
                       @if(filter_var($product->product_image, FILTER_VALIDATE_URL))
@@ -196,7 +196,7 @@
                                         {!! $product->markdownNotes() !!}
                                     </article>
                                 </h3>
-                                <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $subscription->company) }}</p>
+                                <p class="ml-0">{{ \App\Utils\Number::formatMoney($product->price, $this->subscription->company) }}</p>
                               </div>
                               <p class="mt-1 text-sm text-gray-500"></p>
                             </div>
@@ -204,14 +204,14 @@
                                 @if(is_numeric($product->max_quantity))
                                 <p class="text-gray-500 w-3/4"></p>
                                 <div class="flex place-content-end">
-                                    @if($subscription->use_inventory_management && $product->in_stock_quantity == 0)
+                                    @if($this->subscription->use_inventory_management && $product->in_stock_quantity == 0)
                                     <p class="w-full text-sm font-light text-red-500 text-right mr-2 mt-2">Out of stock</p>
                                     @else
                                     <p class="text-sm font-light text-gray-700 text-right mr-2 mt-2">{{ ctrans('texts.qty') }}</p>
                                     @endif
                                     <select wire:model.live.debounce.300ms="data.{{ $index }}.optional_qty" class="rounded-md border-gray-300 shadow-sm sm:text-sm">
                                         <option value="0" selected="selected">0</option>
-                                        @for ($i = 1; $i <= ($subscription->use_inventory_management ? min($product->in_stock_quantity, min(100,$product->max_quantity)) : min(100,$product->max_quantity)); $i++)
+                                        @for ($i = 1; $i <= $this->subscription->maxQuantity($product); $i++)
                                         <option value="{{$i}}">{{$i}}</option>
                                         @endfor
                                     </select>
@@ -248,7 +248,7 @@
                     </div>
                 @endforeach
 
-                @if(!empty($subscription->promo_code) && !$subscription->trial_enabled)
+                @if(!empty($this->subscription->promo_code) && !$this->subscription->trial_enabled)
                     <form wire:submit="handleCoupon" class="">
                     @csrf
                         <div class="mt-4">
@@ -289,10 +289,6 @@
 
 
                     @if($discount)
-                    <!-- <div class="flex font-semibold justify-between py-1 text-sm uppercase">
-                        <span>{{ ctrans('texts.subtotal') }}</span>
-                        <span>{{ $sub_total }}</span>
-                    </div> -->
                     <div class="flex font-semibold justify-between py-1 text-sm uppercase">
                         <span>{{ ctrans('texts.discount') }}</span>
                         <span>{{ $discount }}</span>
@@ -319,7 +315,7 @@
                                 {{ session('message') }}
                             @endcomponent
                         @endif
-                        @if($subscription->trial_enabled)
+                        @if($this->subscription->trial_enabled)
                             <form wire:submit="handleTrial" class="mt-8">
                             @csrf
                             <button class="relative -ml-px inline-flex items-center space-x-2 rounded border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
@@ -339,22 +335,22 @@
                             <form wire:submit="handleRff">
                                 @csrf
 
-                            @if(strlen($contact->first_name ?? '') === 0)
-                            <div class="col-auto mt-3 flex items-center space-x-0 @if($contact->first_name) !== 0) hidden @endif">
+                            @if(strlen($this->contact->first_name ?? '') === 0)
+                            <div class="col-auto mt-3 flex items-center space-x-0 @if($this->contact->first_name) !== 0) hidden @endif">
                                 <label for="first_name" class="w-1/4 text-sm font-medium text-white whitespace-nowrap text-left">{{ ctrans('texts.first_name') }}</label>
                                 <input id="first_name" class="w-3/4 rounded-md border-gray-300 pl-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-700" wire:model="contact_first_name" />
                             </div>
                             @endif
 
-                            @if(strlen($contact->last_name ?? '') === 0)
-                            <div class="col-auto mt-3 flex items-center space-x-0 @if($contact->last_name) !== 0) hidden @endif">
+                            @if(strlen($this->contact->last_name ?? '') === 0)
+                            <div class="col-auto mt-3 flex items-center space-x-0 @if($this->contact->last_name) !== 0) hidden @endif">
                                 <label for="last_name" class="w-1/4 text-sm font-medium text-white whitespace-nowrap  text-left">{{ ctrans('texts.last_name') }}</label>
                                 <input id="last_name" class="w-3/4 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-700" wire:model="contact_last_name" />
                             </div>
                             @endif
 
-                            @if(strlen($contact->email ?? '') === 0)
-                            <div class="col-auto mt-3 flex items-center space-x-0 @if($contact->email) !== 0) hidden @endif">
+                            @if(strlen($this->contact->email ?? '') === 0)
+                            <div class="col-auto mt-3 flex items-center space-x-0 @if($this->contact->email) !== 0) hidden @endif">
                                 <label for="email" class="w-1/4 text-sm font-medium text-white whitespace-nowrap  text-left">{{ ctrans('texts.email') }}</label>
                                 <input id="email" class="w-3/4 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-700" wire:model="contact_email" />
                             </div>

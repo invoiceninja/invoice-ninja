@@ -124,26 +124,49 @@ class ClientFilters extends QueryFilters
      */
     public function filter(string $filter = ''): Builder
     {
+        
         if (strlen($filter) == 0) {
             return $this->builder;
         }
 
-        return  $this->builder->where(function ($query) use ($filter) {
-            $query->where('name', 'like', '%'.$filter.'%')
-                          ->orWhere('id_number', 'like', '%'.$filter.'%')
-                          ->orWhere('number', 'like', '%'.$filter.'%')
+        $searchTerms = array_filter(explode(' ', $filter));
 
-                          ->orWhereHas('contacts', function ($query) use ($filter) {
-                              $query->where('first_name', 'like', '%'.$filter.'%');
-                              $query->orWhere('last_name', 'like', '%'.$filter.'%');
-                              $query->orWhere('email', 'like', '%'.$filter.'%');
-                              $query->orWhere('phone', 'like', '%'.$filter.'%');
-                          })
-                          ->orWhere('custom_value1', 'like', '%'.$filter.'%')
-                          ->orWhere('custom_value2', 'like', '%'.$filter.'%')
-                          ->orWhere('custom_value3', 'like', '%'.$filter.'%')
-                          ->orWhere('custom_value4', 'like', '%'.$filter.'%');
+        return $this->builder->where(function ($query) use ($searchTerms) {
+            foreach ($searchTerms as $term) {
+                $query->where(function ($subQuery) use ($term) {
+                    $subQuery->where('name', 'like', '%'.$term.'%')
+                        ->orWhere('id_number', 'like', '%'.$term.'%')
+                        ->orWhere('number', 'like', '%'.$term.'%')
+                        ->orWhereHas('contacts', function ($contactQuery) use ($term) {
+                            $contactQuery->where('first_name', 'like', '%'.$term.'%')
+                                ->orWhere('last_name', 'like', '%'.$term.'%')
+                                ->orWhere('email', 'like', '%'.$term.'%')
+                                ->orWhere('phone', 'like', '%'.$term.'%');
+                        })
+                        ->orWhere('custom_value1', 'like', '%'.$term.'%')
+                        ->orWhere('custom_value2', 'like', '%'.$term.'%')
+                        ->orWhere('custom_value3', 'like', '%'.$term.'%')
+                        ->orWhere('custom_value4', 'like', '%'.$term.'%');
+                });
+            }
         });
+
+
+        // return  $this->builder->where(function ($query) use ($filter) {
+        //     $query->where('name', 'like', '%'.$filter.'%')
+        //                   ->orWhere('id_number', 'like', '%'.$filter.'%')
+        //                   ->orWhere('number', 'like', '%'.$filter.'%')
+        //                   ->orWhereHas('contacts', function ($query) use ($filter) {
+        //                       $query->where('first_name', 'like', '%'.$filter.'%');
+        //                       $query->orWhere('last_name', 'like', '%'.$filter.'%');
+        //                       $query->orWhere('email', 'like', '%'.$filter.'%');
+        //                       $query->orWhere('phone', 'like', '%'.$filter.'%');
+        //                   })
+        //                   ->orWhere('custom_value1', 'like', '%'.$filter.'%')
+        //                   ->orWhere('custom_value2', 'like', '%'.$filter.'%')
+        //                   ->orWhere('custom_value3', 'like', '%'.$filter.'%')
+        //                   ->orWhere('custom_value4', 'like', '%'.$filter.'%');
+        // });
     }
 
     /**

@@ -370,14 +370,12 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
                 $r = $this->handleDuplicateInvoiceId($orderId);
 
-
             }
 
         } catch(\Exception $e) {
 
             //Rescue for duplicate invoice_id
             if(stripos($e->getMessage(), 'DUPLICATE_INVOICE_ID') !== false) {
-
 
                 $r = $this->handleDuplicateInvoiceId($orderId);
 

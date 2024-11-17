@@ -177,6 +177,15 @@ class ExpenseFilters extends QueryFilters
         return $this->builder->whereIn('category_id', $categories_keys);
     }
 
+    public function amount(string $amount = ''): Builder
+    {
+        if (strlen($amount) == 0) {
+            return $this->builder;
+        }
+
+        return $this->builder->where('amount', $amount);
+    }
+
     public function number(string $number = ''): Builder
     {
         if (strlen($number) == 0) {

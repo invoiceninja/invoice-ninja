@@ -120,116 +120,116 @@ class QuickbooksImport implements ShouldQueue
         };
     }
 
-    private function syncQbToNinjaInvoices($records): void
-    {
+    // private function syncQbToNinjaInvoices($records): void
+    // {
        
 
-    }
+    // }
 
     
 
-    private function syncQbToNinjaVendors(array $records): void
-    {
+    // private function syncQbToNinjaVendors(array $records): void
+    // {
 
-        $transformer = new VendorTransformer($this->company);
+    //     $transformer = new VendorTransformer($this->company);
 
-        foreach($records as $record)
-        {
-            $ninja_data = $transformer->qbToNinja($record);
+    //     foreach($records as $record)
+    //     {
+    //         $ninja_data = $transformer->qbToNinja($record);
 
-            if($vendor = $this->findVendor($ninja_data))
-            {
-                $vendor->fill($ninja_data[0]);
-                $vendor->saveQuietly();
+    //         if($vendor = $this->findVendor($ninja_data))
+    //         {
+    //             $vendor->fill($ninja_data[0]);
+    //             $vendor->saveQuietly();
 
-                $contact = $vendor->contacts()->where('email', $ninja_data[1]['email'])->first();
+    //             $contact = $vendor->contacts()->where('email', $ninja_data[1]['email'])->first();
 
-                if(!$contact)
-                {
-                    $contact = VendorContactFactory::create($this->company->id, $this->company->owner()->id);
-                    $contact->vendor_id = $vendor->id;
-                    $contact->send_email = true;
-                    $contact->is_primary = true;
-                    $contact->fill($ninja_data[1]);
-                    $contact->saveQuietly(); 
-                }
-                elseif($this->qbs->syncable('vendor', \App\Enum\SyncDirection::PULL)){
-                    $contact->fill($ninja_data[1]);
-                    $contact->saveQuietly();
-                }
+    //             if(!$contact)
+    //             {
+    //                 $contact = VendorContactFactory::create($this->company->id, $this->company->owner()->id);
+    //                 $contact->vendor_id = $vendor->id;
+    //                 $contact->send_email = true;
+    //                 $contact->is_primary = true;
+    //                 $contact->fill($ninja_data[1]);
+    //                 $contact->saveQuietly(); 
+    //             }
+    //             elseif($this->qbs->syncable('vendor', \App\Enum\SyncDirection::PULL)){
+    //                 $contact->fill($ninja_data[1]);
+    //                 $contact->saveQuietly();
+    //             }
 
-            }
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
-    private function syncQbToNinjaExpenses(array $records): void
-    {
+    // private function syncQbToNinjaExpenses(array $records): void
+    // {
 
-        $transformer = new ExpenseTransformer($this->company);
+    //     $transformer = new ExpenseTransformer($this->company);
 
-        foreach($records as $record)
-        {
-            $ninja_data = $transformer->qbToNinja($record);
+    //     foreach($records as $record)
+    //     {
+    //         $ninja_data = $transformer->qbToNinja($record);
 
-            if($expense = $this->findExpense($ninja_data))
-            {
-                $expense->fill($ninja_data);
-                $expense->saveQuietly();
-            }
+    //         if($expense = $this->findExpense($ninja_data))
+    //         {
+    //             $expense->fill($ninja_data);
+    //             $expense->saveQuietly();
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
-    private function findExpense(array $qb_data): ?Expense
-    {
-        $expense = $qb_data;
+    // private function findExpense(array $qb_data): ?Expense
+    // {
+    //     $expense = $qb_data;
 
-        $search = Expense::query()
-                        ->withTrashed()
-                        ->where('company_id', $this->company->id)
-                        ->where('number', $expense['number']);
+    //     $search = Expense::query()
+    //                     ->withTrashed()
+    //                     ->where('company_id', $this->company->id)
+    //                     ->where('number', $expense['number']);
                         
-        if($search->count() == 0) {
-            return ExpenseFactory::create($this->company->id, $this->company->owner()->id);
-        }
-        elseif($search->count() == 1) {
-            return $this->qbs->syncable('expense', \App\Enum\SyncDirection::PULL) ? $search->first() : null;
-        }
+    //     if($search->count() == 0) {
+    //         return ExpenseFactory::create($this->company->id, $this->company->owner()->id);
+    //     }
+    //     elseif($search->count() == 1) {
+    //         return $this->qbs->syncable('expense', \App\Enum\SyncDirection::PULL) ? $search->first() : null;
+    //     }
         
-        return null;
-    }
+    //     return null;
+    // }
 
-    private function findVendor(array $qb_data) :?Vendor
-    {
-        $vendor = $qb_data[0];
-        $contact = $qb_data[1];
-        $vendor_meta = $qb_data[2];
+    // private function findVendor(array $qb_data) :?Vendor
+    // {
+    //     $vendor = $qb_data[0];
+    //     $contact = $qb_data[1];
+    //     $vendor_meta = $qb_data[2];
 
-        $search = Vendor::query()
-                        ->withTrashed()
-                        ->where('company_id', $this->company->id)
-                        ->where(function ($q) use ($vendor, $vendor_meta, $contact){
+    //     $search = Vendor::query()
+    //                     ->withTrashed()
+    //                     ->where('company_id', $this->company->id)
+    //                     ->where(function ($q) use ($vendor, $vendor_meta, $contact){
 
-                            $q->where('vendor_hash', $vendor_meta['vendor_hash'])
-                            ->orWhere('number', $vendor['number'])
-                            ->orWhereHas('contacts', function ($q) use ($contact){
-                                $q->where('email', $contact['email']);
-                            });
+    //                         $q->where('vendor_hash', $vendor_meta['vendor_hash'])
+    //                         ->orWhere('number', $vendor['number'])
+    //                         ->orWhereHas('contacts', function ($q) use ($contact){
+    //                             $q->where('email', $contact['email']);
+    //                         });
 
-                        });
+    //                     });
                         
-        if($search->count() == 0) {
-            //new client
-            return VendorFactory::create($this->company->id, $this->company->owner()->id);
-        }
-        elseif($search->count() == 1) {
+    //     if($search->count() == 0) {
+    //         //new client
+    //         return VendorFactory::create($this->company->id, $this->company->owner()->id);
+    //     }
+    //     elseif($search->count() == 1) {
 
-            return $this->qbs->syncable('vendor', \App\Enum\SyncDirection::PULL) ? $search->first() : null;
-        }
+    //         return $this->qbs->syncable('vendor', \App\Enum\SyncDirection::PULL) ? $search->first() : null;
+    //     }
         
-        return null;
-    }
+    //     return null;
+    // }
 
     public function middleware()
     {

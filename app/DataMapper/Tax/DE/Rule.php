@@ -237,37 +237,63 @@ class Rule extends BaseRule implements RuleInterface
      */
     public function calculateRates(): self
     {
+            
+        // Tax exempt clients always get zero tax
         if ($this->client->is_tax_exempt) {
-            // nlog("tax exempt");
             $this->tax_rate = 0;
             $this->reduced_tax_rate = 0;
-        } elseif($this->client_subregion != $this->client->company->tax_data->seller_subregion && in_array($this->client_subregion, $this->eu_country_codes) && $this->client->vat_number && $this->client->has_valid_vat_number && $this->eu_business_tax_exempt) {
-            // nlog("euro zone and tax exempt");
+            return $this;
+        }
+
+        // B2B within EU with valid VAT
+        if ($this->client_subregion != $this->client->company->tax_data->seller_subregion &&
+            in_array($this->client_subregion, $this->eu_country_codes) &&
+            $this->client->vat_number &&
+            $this->client->has_valid_vat_number &&
+            $this->eu_business_tax_exempt) {
             $this->tax_rate = 0;
             $this->reduced_tax_rate = 0;
-        } elseif(!in_array($this->client_subregion, $this->eu_country_codes) && ($this->foreign_consumer_tax_exempt || $this->foreign_business_tax_exempt)) { //foreign + tax exempt
-            // nlog("foreign and tax exempt");
-            $this->tax_rate = 0;
-            $this->reduced_tax_rate = 0;
-        } elseif(!in_array($this->client_subregion, $this->eu_country_codes)) {
-            $this->defaultForeign();
-        } elseif(in_array($this->client_subregion, $this->eu_country_codes) && ((strlen($this->client->vat_number ?? '') == 1) || !$this->client->has_valid_vat_number)) { //eu country / no valid vat
-            if($this->client->company->tax_data->seller_subregion != $this->client_subregion) {
-                // nlog("eu zone with sales above threshold");
+            return $this;
+        }
+
+        // Non-EU transactions
+        if (!in_array($this->client_subregion, $this->eu_country_codes)) {
+            if ($this->foreign_consumer_tax_exempt || $this->foreign_business_tax_exempt) {
+                $this->tax_rate = 0;
+                $this->reduced_tax_rate = 0;
+            } else {
+                $this->defaultForeign();
+            }
+            return $this;
+        }
+
+        // B2C or invalid VAT within EU
+        $is_b2c = strlen($this->client->vat_number ?? '') <= 1 ||
+                !$this->client->has_valid_vat_number ||
+                $this->client->classification == 'individual';
+
+        if ($is_b2c) {
+            $is_over_threshold = $this->client->company->tax_data->regions->EU->has_sales_above_threshold ?? false;
+
+            if ($is_over_threshold && $this->client->company->tax_data->seller_subregion != $this->client_subregion) {
+                // Over threshold - use destination country rates
+                $this->tax_name = $this->client->company->tax_data->regions->EU->subregions->{$this->client->country->iso_3166_2}->tax_name;
                 $this->tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->country->iso_3166_2}->tax_rate ?? 0;
                 $this->reduced_tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->country->iso_3166_2}->reduced_tax_rate ?? 0;
             } else {
-                // nlog("EU with intra-community supply ie DE to DE");
+                // Under threshold or domestic - use origin country rates
                 $this->tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->tax_rate ?? 0;
                 $this->reduced_tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->reduced_tax_rate ?? 0;
             }
-        } else {
-            // nlog("default tax");
-            $this->tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->tax_rate ?? 0;
-            $this->reduced_tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->reduced_tax_rate ?? 0;
+            return $this;
         }
 
+        // Default case (B2B without valid VAT)
+        $this->tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->tax_rate ?? 0;
+        $this->reduced_tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->company->country()->iso_3166_2}->reduced_tax_rate ?? 0;
+
         return $this;
+
 
     }
 

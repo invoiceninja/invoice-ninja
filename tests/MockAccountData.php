@@ -32,6 +32,7 @@ use App\Models\ClientContact;
 use App\Models\Company;
 use App\Models\CompanyGateway;
 use App\Models\CompanyToken;
+use App\Models\Country;
 use App\Models\Credit;
 use App\Models\CreditInvitation;
 use App\Models\Expense;
@@ -203,6 +204,10 @@ trait MockAccountData
     {
         config(['database.default' => config('ninja.db.default')]);
 
+        if(Country::count() == 0){
+            Artisan::call('db:seed', ['--force' => true]);
+        }
+
         $this->faker = \Faker\Factory::create();
         $fake_email = $this->faker->email();
 
@@ -339,6 +344,7 @@ trait MockAccountData
             'user_id' => $user_id,
             'company_id' => $this->company->id,
             'currency_id' => 1,
+            // 'country_id' => 840,
         ]);
 
         $vendor_contact = VendorContact::factory()->create([

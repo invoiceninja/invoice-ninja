@@ -276,7 +276,7 @@ class InvoiceFilters extends QueryFilters
     {
         $sort_col = explode('|', $sort);
 
-        if (!is_array($sort_col) || count($sort_col) != 2 || in_array($sort_col[0], ['documents'])) {
+        if (!is_array($sort_col) || count($sort_col) != 2 || !in_array($sort_col[0], \Illuminate\Support\Facades\Schema::getColumnListing($this->builder->getModel()->getTable()))) {
             return $this->builder;
         }
 
@@ -290,9 +290,6 @@ class InvoiceFilters extends QueryFilters
         }
 
         if($sort_col[0] == 'number') {
-            // return $this->builder->orderByRaw('CAST(number AS UNSIGNED), number ' . $dir);
-            // return $this->builder->orderByRaw("number REGEXP '^[A-Za-z]+$',CAST(number as SIGNED INTEGER),CAST(REPLACE(number,'-','')AS SIGNED INTEGER) ,number");
-            // return $this->builder->orderByRaw('ABS(number) ' . $dir);
             return $this->builder->orderByRaw("REGEXP_REPLACE(invoices.number,'[^0-9]+','')+0 " . $dir);
         }
 

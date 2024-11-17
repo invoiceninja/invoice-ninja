@@ -20,7 +20,7 @@ class PaymentMethod extends Component
 {
     use WithSecureContext;
 
-    public $invoice;
+    // public $invoice;
 
     public $variables;
 
@@ -78,9 +78,7 @@ class PaymentMethod extends Component
 
     public function exception($e, $stopPropagation) 
     {
-       
-        nlog($e->getMessage());
+        app('sentry')->captureException($e);
         $stopPropagation();
-
     }
 }

@@ -37,6 +37,13 @@ class RecurringInvoiceFactory
         $invoice->tax_rate1 = 0;
         $invoice->tax_name2 = '';
         $invoice->tax_rate2 = 0;
+        $invoice->tax_name3 = '';
+        $invoice->tax_rate3 = 0;
+        $invoice->uses_inclusive_taxes = false;
+        $invoice->custom_surcharge_tax1 = false;
+        $invoice->custom_surcharge_tax2 = false;
+        $invoice->custom_surcharge_tax3 = false;
+        $invoice->custom_surcharge_tax4 = false;
         $invoice->custom_value1 = '';
         $invoice->custom_value2 = '';
         $invoice->custom_value3 = '';

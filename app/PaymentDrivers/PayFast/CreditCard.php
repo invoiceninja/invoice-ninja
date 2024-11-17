@@ -208,7 +208,7 @@ class CreditCard implements LivewireMethodInterface
         $this->payfast->payment_hash->save();
 
         if ($response_array['payment_status'] == 'COMPLETE') {
-            $this->payfast->logSuccessfulGatewayResponse(['response' => $response_array, 'data' => $this->payfast->payment_hash], SystemLog::TYPE_PAYFAST);
+            $this->payfast->logSuccessfulGatewayResponse(['response' => $response_array, 'data' => $this->payfast->payment_hash->data], SystemLog::TYPE_PAYFAST);
 
             return $this->processSuccessfulPayment($response_array);
         } else {

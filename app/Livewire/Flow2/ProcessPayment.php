@@ -58,16 +58,35 @@ class ProcessPayment extends Component
             throw new PaymentFailed($responder_data['error'], 400);
         }
 
-        $driver = $company_gateway
-            ->driver($invitation->contact->client) // @phpstan-ignore-line
-            ->setPaymentMethod($data['payment_method_id'])
-            ->setPaymentHash($responder_data['payload']['ph']);
+        if(isset($responder_data['payload']['total']['fee_total']))
+        {
 
-        $this->payment_data_payload = $driver->processPaymentViewData($responder_data['payload']);
+            $gateway_fee = data_get($responder_data, 'payload.total.fee_total', false);
+            $amount = data_get($responder_data, 'payload.total.amount_with_fee', 0);
         
-        $this->payment_view = $driver->livewirePaymentView(
-            $this->payment_data_payload,
-        );
+            $this->setContext('amount', $amount);
+            $this->setContext('gateway_fee', $gateway_fee);
+
+            $this->dispatch('payment-view-rendered');
+        }
+    
+        
+        if(isset($responder_data['component']) && $responder_data['component'] == 'CreditPaymentComponent'){
+            $this->payment_view = $responder_data['view'];
+            $this->payment_data_payload = $responder_data['payload'];
+        }
+        else {
+            $driver = $company_gateway
+                ->driver($invitation->contact->client) // @phpstan-ignore-line
+                ->setPaymentMethod($data['payment_method_id'])
+                ->setPaymentHash($responder_data['payload']['ph']);
+
+            $this->payment_data_payload = $driver->processPaymentViewData($responder_data['payload']);
+            
+            $this->payment_view = $driver->livewirePaymentView(
+                $this->payment_data_payload,
+            );
+        }
 
         $this->isLoading = false;
 
@@ -87,6 +106,8 @@ class ProcessPayment extends Component
     public function exception($e, $stopPropagation) 
     {
       
+        app('sentry')->captureException($e);
+
         $errors = session()->get('errors', new \Illuminate\Support\ViewErrorBag());
 
         $bag = new \Illuminate\Support\MessageBag();

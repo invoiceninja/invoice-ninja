@@ -138,6 +138,7 @@ class TemplateAction implements ShouldQueue
 
             if($this->send_email) {
                 $this->sendEmail($pdf, $template);
+                return;
             } else {
                 $filename = "templates/{$this->hash}.pdf";
                 Storage::disk(config('filesystems.default'))->put($filename, $pdf);

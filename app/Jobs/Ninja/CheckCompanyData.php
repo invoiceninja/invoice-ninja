@@ -63,7 +63,6 @@ class CheckCompanyData implements ShouldQueue
         $this->checkPaidToDates();
         $this->checkClientBalances();
         $this->checkContacts();
-        $this->checkCompanyData();
 
         if (Cache::has($this->hash)) {
             $cache_instance = Cache::get($this->hash);

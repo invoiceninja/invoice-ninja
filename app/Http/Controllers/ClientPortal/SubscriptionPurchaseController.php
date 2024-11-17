@@ -77,7 +77,6 @@ class SubscriptionPurchaseController extends Controller
 
     public function v3(Subscription $subscription, Request $request)
     {
-        // Todo: Prerequirement checks for subscription.
 
         return view('billing-portal.v3.index', [
             'subscription' => $subscription,

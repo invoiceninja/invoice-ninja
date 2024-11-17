@@ -419,4 +419,11 @@ class ClientGatewayTokenController extends BaseController
 
         return $this->itemResponse($client_gateway_token->fresh());
     }
+
+    public function setAsDefault(UpdateClientGatewayTokenRequest $request, ClientGatewayToken $client_gateway_token)
+    {
+        $client_gateway_token = $this->client_gateway_token_repo->setDefault($client_gateway_token);
+
+        return $this->itemResponse($client_gateway_token->fresh());
+    }
 }

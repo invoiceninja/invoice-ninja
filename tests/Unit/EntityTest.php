@@ -34,7 +34,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 class EntityTest extends TestCase
 {
     use MockAccountData;
-    use DatabaseTransactions;
+    // use DatabaseTransactions;
 
     public $invoice;
 
@@ -66,6 +66,8 @@ class EntityTest extends TestCase
         $this->assertEquals('InvoiceInvitation', class_basename($entity_type));
 
         $this->assertEquals('InvoiceInvitation', class_basename($invitation));
+
+        $this->invoice->forceDelete();
     }
 
     public function testDocumentRelationExists()
@@ -83,5 +85,21 @@ class EntityTest extends TestCase
         $this->assertTrue(method_exists(Project::class, 'documents'));
         $this->assertTrue(method_exists(Task::class, 'documents'));
 
+    }
+
+    protected function tearDown(): void
+    {
+        
+            
+        // $this->company->company_users->each(function ($company_user) {
+        //     $company_user->user->forceDelete();
+        //     $company_user->forceDelete();
+        // });
+
+        // // Clean up any resources or reset state if necessary
+        // $this->account->delete();
+
+
+        parent::tearDown();
     }
 }

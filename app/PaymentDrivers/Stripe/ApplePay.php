@@ -76,7 +76,7 @@ class ApplePay
         $response_handler = new CreditCard($this->stripe_driver);
 
         if ($server_response->status == 'succeeded') {
-            $this->stripe_driver->logSuccessfulGatewayResponse(['response' => json_decode($request->gateway_response), 'data' => $this->stripe_driver->payment_hash], SystemLog::TYPE_STRIPE);
+            $this->stripe_driver->logSuccessfulGatewayResponse(['response' => json_decode($request->gateway_response), 'data' => $this->stripe_driver->payment_hash->data], SystemLog::TYPE_STRIPE);
 
             return $response_handler->processSuccessfulPayment();
         }

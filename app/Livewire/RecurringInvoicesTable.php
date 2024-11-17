@@ -25,11 +25,13 @@ class RecurringInvoicesTable extends Component
 
     public $per_page = 10;
 
-    public $company;
+    public $company_id;
+
+    public $db;
 
     public function mount()
     {
-        MultiDB::setDb($this->company->db);
+        MultiDB::setDb($this->db);
 
         $this->sort_asc = false;
 
@@ -43,7 +45,7 @@ class RecurringInvoicesTable extends Component
         $query = $query
             // ->with('client')
             ->where('client_id', auth()->guard('contact')->user()->client_id)
-            ->where('company_id', $this->company->id)
+            ->where('company_id', auth()->guard('contact')->user()->company_id)
             ->whereIn('status_id', [RecurringInvoice::STATUS_ACTIVE])
             ->orderBy('status_id', 'asc')
             ->with('client')

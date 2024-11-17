@@ -175,6 +175,15 @@ class CBAPowerBoardPaymentDriver extends BaseDriver
 
     public function tokenBilling(ClientGatewayToken $cgt, PaymentHash $payment_hash)
     {
+        
+        $this->init();
+
+        $this->setPaymentMethod($cgt->gateway_type_id);
+        $this->setPaymentHash($payment_hash);
+        $this->setClient($cgt->client);
+
+        return $this->payment_method->tokenBilling($cgt, false);
+
     }
 
     public function importCustomers()

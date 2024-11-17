@@ -24,6 +24,9 @@ use App\Utils\TempFile;
 use App\Utils\Traits\SavesDocuments;
 use Exception;
 use App\Models\Company;
+use App\Repositories\ExpenseRepository;
+use App\Repositories\VendorContactRepository;
+use App\Repositories\VendorRepository;
 use horstoeko\zugferd\ZugferdDocumentReader;
 use horstoeko\zugferdvisualizer\ZugferdVisualizer;
 use horstoeko\zugferdvisualizer\renderer\ZugferdVisualizerLaravelRenderer;
@@ -90,6 +93,7 @@ class ZugferdEDocument extends AbstractService
                     $this->document->getDocumentTax($categoryCode, $typeCode, $basisAmount, $calculatedAmount, $rateApplicablePercent, $exemptionReason, $exemptionReasonCode, $lineTotalBasisAmount, $allowanceChargeBasisAmount, $taxPointDate, $dueDateTypeCode);
                     $expense->{"tax_amount$counter"} = $calculatedAmount;
                     $expense->{"tax_rate$counter"} = $rateApplicablePercent;
+                    $expense->{"tax_name$counter"} = $typeCode;
                     $counter++;
                 } while ($this->document->nextDocumentTax());
             }
@@ -137,17 +141,22 @@ class ZugferdEDocument extends AbstractService
                 if ($country)
                     $vendor->country_id = $country->id;
 
-                $vendor->save();
+                $vendor_repo = new VendorRepository(new VendorContactRepository());
+                $vendor = $vendor_repo->save([], $vendor);
+
                 $expense->vendor_id = $vendor->id;
             }
             $expense->transaction_reference = $documentno;
         } else {
             // The document exists as an expense
             // Handle accordingly
-            nlog("Zugferd: Document already exists");
+            nlog("Zugferd: Document already exists {$expense->hashed_id}");
             $expense->private_notes = $expense->private_notes . ctrans("texts.edocument_import_already_exists", ["date" => time()]);
         }
-        $expense->save();
+
+        $expense_repo = new ExpenseRepository();
+        $expense = $expense_repo->save([],$expense);
+        
         return $expense;
     }
 }

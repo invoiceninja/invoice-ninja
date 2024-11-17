@@ -180,7 +180,9 @@
         </tr>
     </table>
 
+    <!-- If you are using this template for other entities such as quotes, you'll want to ensure that you change the variable from invoices => quotes here -->
     <ninja>
+        {% if invoices is defined and invoices is not empty %}
         {% set invoice = invoices|first %}
         <table width="100%" cellspacing="0" cellpadding="0" class="">
             <thead class="table-header">
@@ -204,6 +206,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% endif %}
     </ninja>
 
     <table width="100%" cellspacing="0" cellpadding="0" class="">

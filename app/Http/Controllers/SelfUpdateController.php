@@ -28,6 +28,8 @@ class SelfUpdateController extends BaseController
 
     private string $filename = 'invoiceninja.tar';
 
+    private string $version = '';
+
     private array $purge_file_list = [
         'bootstrap/cache/compiled.php',
         'bootstrap/cache/config.php',
@@ -62,6 +64,14 @@ class SelfUpdateController extends BaseController
         nlog('copying release file');
 
         $file_headers = @get_headers($this->getDownloadUrl());
+
+        nlog("Download URL");
+        nlog($this->getDownloadUrl());
+        
+        if(strlen($this->version) == 1){
+            nlog("version server down, trying github");
+            $this->version = trim(file_get_contents('https://raw.githubusercontent.com/invoiceninja/invoiceninja/refs/heads/v5-develop/VERSION.txt'));
+        }
 
         if(!is_array($file_headers)) {
             nlog($file_headers);
@@ -193,9 +203,9 @@ class SelfUpdateController extends BaseController
     private function getDownloadUrl()
     {
 
-        $version = $this->checkVersion();
+        $this->version = $this->checkVersion();
 
-        return "https://github.com/invoiceninja/invoiceninja/releases/download/v{$version}/invoiceninja.tar";
+        return "https://github.com/invoiceninja/invoiceninja/releases/download/v{$this->version}/invoiceninja.tar";
 
     }
 }

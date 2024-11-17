@@ -329,6 +329,9 @@ class BaseDriver extends AbstractPaymentDriver
         $client_contact = $this->getContact();
         $client_contact_id = $client_contact ? $client_contact->id : $this->client->contacts()->first()->id;
 
+        if(isset($data['idempotency_key']))
+            $payment->idempotency_key = $data['idempotency_key'];
+
         $payment->amount = $data['amount'];
         $payment->type_id = $data['payment_type'];
         $payment->transaction_reference = $data['transaction_reference'];
@@ -404,12 +407,10 @@ class BaseDriver extends AbstractPaymentDriver
                             $item->gross_line_total = round($item->gross_line_total, 2);
                             return $item;
                         })
-                        ->whereIn('type_id', ['3'])
-                        ->where('gross_line_total', '<=', round($fee_total,2))
+                        ->whereIn('type_id', ['3','4'])
                         ->count();
 
         if($invoice && $fee_count == 0){
-
             
             nlog("apparently no fee, so injecting here!");
 
@@ -431,6 +432,11 @@ class BaseDriver extends AbstractPaymentDriver
             $invoice_item->quantity = 1;
             $invoice_item->cost = (float)$fee_total;
 
+            if($invoice->discount > 0 && !$invoice->is_amount_discount){
+                $invoice_item->discount = -1 * $invoice->discount;
+                $invoice_item->is_amount_discount = false;
+            }
+
             $invoice_items = $invoice->line_items;
             $invoice_items[] = $invoice_item;
 
@@ -444,7 +450,7 @@ class BaseDriver extends AbstractPaymentDriver
                 $invoice_item->tax_id = (string)\App\Models\Product::PRODUCT_TYPE_OVERRIDE_TAX;
             }
 
-            $invoice->line_items = $invoice_items;
+            $invoice->line_items = array_values($invoice_items);
 
             /**Refresh Invoice values*/
             $invoice = $invoice->calc()->getInvoice();
@@ -452,12 +458,7 @@ class BaseDriver extends AbstractPaymentDriver
             $new_balance = $invoice->balance;
 
             if (floatval($new_balance) - floatval($balance) != 0) {
-                $adjustment = $new_balance - $balance;
-
-                $invoice
-                ->ledger()
-                ->updateInvoiceBalance($adjustment, 'Adjustment for adding gateway fee **Base Driver**');
-
+                $adjustment = $new_balance - $balance; 
                 $invoice->client->service()->calculateBalance();
             }
 

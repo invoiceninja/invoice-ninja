@@ -11,16 +11,18 @@
 
 namespace App\Services\Report;
 
-use App\Export\CSV\BaseExport;
-use App\Libraries\MultiDB;
-use App\Models\Client;
-use App\Models\Company;
-use App\Models\Invoice;
+use App\Models\User;
 use App\Utils\Ninja;
 use App\Utils\Number;
+use App\Models\Client;
+use League\Csv\Writer;
+use App\Models\Company;
+use App\Models\Invoice;
+use App\Libraries\MultiDB;
+use App\Export\CSV\BaseExport;
 use App\Utils\Traits\MakesDates;
 use Illuminate\Support\Facades\App;
-use League\Csv\Writer;
+use App\Services\Template\TemplateService;
 
 class ARSummaryReport extends BaseExport
 {
@@ -33,6 +35,10 @@ class ARSummaryReport extends BaseExport
     public Client $client;
 
     private float $total = 0;
+
+    private array $clients = [];
+
+    private string $template = '/views/templates/reports/ar_summary_report.html';
 
     public array $report_keys = [
         'client_name',
@@ -99,6 +105,31 @@ class ARSummaryReport extends BaseExport
         return $this->csv->toString();
     }
 
+    public function getPdf()
+    {
+        $user = isset($this->input['user_id']) ? User::withTrashed()->find($this->input['user_id']) : $this->company->owner();
+
+        $user_name = $user ? $user->present()->name() : '';
+
+        $data = [
+            'clients' => $this->clients,
+            'company_logo' => $this->company->present()->logo(),
+            'company_name' => $this->company->present()->name(),
+            'created_on' => $this->translateDate(now()->format('Y-m-d'),$this->company->date_format(), $this->company->locale()),
+            'created_by' => $user_name,
+        ];
+
+        $ts = new TemplateService();
+
+        $ts_instance = $ts->setCompany($this->company)
+                    ->setData($data)
+                    ->setRawTemplate(file_get_contents(resource_path($this->template)))
+                    ->parseNinjaBlocks()
+                    ->save();
+
+        return $ts_instance->getPdf();
+    }
+
     private function buildRow(Client $client): array
     {
         $this->client = $client;
@@ -117,6 +148,8 @@ class ARSummaryReport extends BaseExport
         ];
 
         $this->total = 0;
+
+        $this->clients[] = $row;
 
         return $row;
     }

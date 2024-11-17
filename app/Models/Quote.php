@@ -227,7 +227,7 @@ class Quote extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough<Backup>
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function history(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
     {
@@ -270,7 +270,7 @@ class Quote extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Document>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {

@@ -11,6 +11,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataMapper\InvoiceSync;
 use App\Utils\Ninja;
 use App\Models\Quote;
 use App\Models\Credit;
@@ -69,6 +70,7 @@ class EmailController extends BaseController
 
         /** @var \App\Models\User $user */
         $user = auth()->user();
+        $company = $entity_obj->company;
 
         if ($request->cc_email && (Ninja::isSelfHost() || $user->account->isPremium())) {
 
@@ -139,21 +141,7 @@ class EmailController extends BaseController
         return $this->itemResponse($entity_obj->fresh());
     }
 
-    // private function sendPurchaseOrder($entity_obj, $data, $template)
-    // {
-    //     $this->entity_type = PurchaseOrder::class;
-
-    //     $this->entity_transformer = PurchaseOrderTransformer::class;
-
-    //     $data['template'] = $template;
-
-    //     PurchaseOrderEmail::dispatch($entity_obj, $entity_obj->company, $data);
-    //     $entity_obj->sendEvent(Webhook::EVENT_SENT_PURCHASE_ORDER, "vendor");
-
-    //     return $this->itemResponse($entity_obj);
-    // }
-
-    private function resolveClass(string $entity): string
+   private function resolveClass(string $entity): string
     {
         $class = '';
 

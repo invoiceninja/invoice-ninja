@@ -89,7 +89,7 @@
     <script type="application/json" fncls="fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99">
         {
             "f":"{{ $guid }}",
-            "s":"paypal.pay"        // unique ID for each web page
+            "s":"paypal.pay"    
         }
     </script>
 </div>
@@ -135,7 +135,7 @@
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
                 }
-                return response.json(); // or response.json() if the response is JSON
+                return response.json(); 
             })
             .then(data => {
 

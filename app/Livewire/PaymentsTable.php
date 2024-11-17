@@ -26,8 +26,6 @@ class PaymentsTable extends Component
 
     public int $per_page = 10;
 
-    public Company $company;
-
     public int $company_id;
 
     public string $db;
@@ -35,15 +33,13 @@ class PaymentsTable extends Component
     public function mount()
     {
         MultiDB::setDb($this->db);
-
-        $this->company = Company::find($this->company_id);
     }
 
     public function render()
     {
         $query = Payment::query()
             ->with('type', 'client', 'invoices')
-            ->where('company_id', $this->company->id)
+            ->where('company_id', auth()->guard('contact')->user()->company_id)
             ->where('client_id', auth()->guard('contact')->user()->client_id)
             ->whereIn('status_id', [Payment::STATUS_FAILED, Payment::STATUS_COMPLETED, Payment::STATUS_PENDING, Payment::STATUS_REFUNDED, Payment::STATUS_PARTIALLY_REFUNDED])
             ->orderBy($this->sort_field, $this->sort_asc ? 'desc' : 'asc')

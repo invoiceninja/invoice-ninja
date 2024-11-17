@@ -327,8 +327,15 @@ class EmailDefaults
         }
         /** E-Invoice xml file */
         if ($this->email->email_object->settings->enable_e_invoice && $this->email->email_object->settings->enable_e_invoice) {
+            
+            $xml_string = false;
 
-            $xml_string = $this->email->email_object->entity->service()->getEDocument();
+            try{
+                $xml_string = $this->email->email_object->entity->service()->getEDocument();
+            }
+            catch(\Throwable $th){
+                nlog("could not generate e invoice for:: ".$this->email->email_object->entity->id);
+            }
 
             if($xml_string) {
                 $this->email->email_object->attachments = array_merge($this->email->email_object->attachments, [['file' => base64_encode($xml_string), 'name' => explode(".", $this->email->email_object->entity->getFileName('xml'))[0]."-e_invoice.xml"]]);

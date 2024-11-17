@@ -44,7 +44,6 @@ class BulkExpenseRequest extends Request
             'new_value' => ['required_if:action,bulk_update|string'],
         ];
 
-
     }
 
     public function prepareForValidation()
@@ -57,6 +56,10 @@ class BulkExpenseRequest extends Request
 
         if (isset($input['category_id'])) {
             $input['category_id'] = $this->transformKeys($input['category_id']);
+        }
+
+        if(isset($input['newValue'])){
+            $input['new_value'] = $input['newValue'];
         }
 
         $this->replace($input);

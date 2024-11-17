@@ -150,7 +150,7 @@ class ACH implements MethodInterface, LivewireMethodInterface
         ]);
 
         if ($result->success) {
-            $this->braintree->logSuccessfulGatewayResponse(['response' => $request->server_response, 'data' => $this->braintree->payment_hash], SystemLog::TYPE_BRAINTREE);
+            $this->braintree->logSuccessfulGatewayResponse(['response' => $request->server_response, 'data' => $this->braintree->payment_hash->data], SystemLog::TYPE_BRAINTREE);
 
             return $this->processSuccessfulPayment($result);
         }

@@ -115,7 +115,7 @@ class OrderXDocument extends AbstractService
             /** @var \App\DataMapper\InvoiceItem $item **/
             $this->orderxdocument->addNewPosition($index)
                 ->setDocumentPositionGrossPrice($item->gross_line_total)
-                ->setDocumentPositionNetPrice($item->line_total);
+                ->setDocumentPositionNetPrice($item->cost);
             if (!empty($item->product_key)) {
                 if (!empty($item->notes)) {
                     $this->orderxdocument->setDocumentPositionProductDetails($item->product_key, $item->notes);

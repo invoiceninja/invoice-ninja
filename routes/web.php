@@ -57,6 +57,4 @@ Route::get('gocardless/oauth/connect/confirm', [GoCardlessOAuthController::class
 Route::post('gocardless/oauth/connect/webhook', GoCardlessOAuthWebhookController::class)->name('gocardless.oauth.webhook');
 Route::get('gocardless/oauth/connect/{token}', [GoCardlessOAuthController::class, 'connect']);
 
-Route::get('einvoice/beta', [SelfhostController::class, 'index'])->name('einvoice.beta');
-
 \Illuminate\Support\Facades\Broadcast::routes(['middleware' => ['token_auth']]);

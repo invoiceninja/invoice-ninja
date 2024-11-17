@@ -102,7 +102,7 @@ class GroupSetting extends StaticModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Document>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {

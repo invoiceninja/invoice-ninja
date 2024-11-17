@@ -57,6 +57,27 @@ class InvoiceEmailTest extends TestCase
         $this->assertTrue(strpos($email, '@example.com') !== false);
     }
 
+    public function testEntityValidation()
+    {
+        $data = [
+            "body" => "hey what's up",
+            "entity" => 'blergen',
+            "entity_id" => $this->invoice->hashed_id,
+            "subject" => 'Reminder $number',
+            "template" => "email_template_invoice"
+        ];
+
+        $response = false;
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/emails', $data);
+
+        $response->assertStatus(422);
+
+    }
+
 
     public function testClientEmailHistory()
     {

@@ -11,14 +11,20 @@
 
 namespace Tests\Feature;
 
-use App\Factory\DesignFactory;
-use App\Models\Design;
-use App\Utils\Traits\MakesHash;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Session;
-use Tests\MockAccountData;
 use Tests\TestCase;
+use App\Models\Quote;
+use App\Models\Client;
+use App\Models\Credit;
+use App\Models\Design;
+use App\Models\Invoice;
+use Tests\MockAccountData;
+use App\Factory\DesignFactory;
+use App\Utils\Traits\MakesHash;
+use App\DataMapper\ClientSettings;
+use App\Factory\GroupSettingFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
  * 
@@ -40,12 +46,337 @@ class DesignApiTest extends TestCase
 
         $this->makeTestData();
 
-        Session::start();
-
         $this->faker = \Faker\Factory::create();
 
-        Model::reguard();
     }
+
+    public function testSelectiveDefaultDesignUpdatesInvoice()
+    {
+        $settings = ClientSettings::defaults();
+        $hashed_design_id = $this->encodePrimaryKey(5);
+        $settings->invoice_design_id = $hashed_design_id;
+
+        $c = Client::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'settings' => $settings
+        ]);
+
+        $i = Invoice::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'client_id' => $c->id,
+            'design_id' => 5
+        ]);
+
+        $this->assertEquals(5, $i->design_id);
+        $this->assertEquals($hashed_design_id, $c->settings->invoice_design_id);
+
+        $new_design_hash = $this->encodePrimaryKey(7);
+
+        $data = [
+            'entity' => 'invoice',
+            'design_id' => $new_design_hash,
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $new_design_truth_test = Invoice::where('company_id', $this->company->id)->orderBy('id','asc')->where('design_id', 7)->exists();
+
+        $this->assertTrue($new_design_truth_test);
+
+        ///Test Client Level
+
+        $data = [
+            'entity' => 'invoice',
+            'design_id' => $new_design_hash,
+            'settings_level' => 'client',
+            'client_id' => $c->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $i = $i->fresh();
+
+        $this->assertEquals(7, $i->design_id);
+
+        ////////////////////////////////////////////
+
+        // Group Settings
+                
+        $gs = GroupSettingFactory::create($this->company->id, $this->user->id);
+        $settings = $gs->settings;
+        $settings->invoice_design_id = $this->encodePrimaryKey(4);
+        $gs->settings = $settings;
+        $gs->name = "GS Setter";
+        $gs->save();
+
+        $c2 = Client::factory()->create([
+                'company_id' => $this->company->id,
+                'user_id' => $this->user->id,
+                'group_settings_id' => $gs->id,
+            ]);
+
+
+        $this->assertNotNull($c2->group_settings_id);
+
+        $i2 = Invoice::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'client_id' => $c2->id,
+            'design_id' => 4
+        ]);
+
+        $new_gs_design_hash = $this->encodePrimaryKey(1);
+
+        $data = [
+            'entity' => 'invoice',
+            'design_id' => $new_gs_design_hash,
+            'settings_level' => 'group_settings',
+            'group_settings_id' => $gs->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $i2 = $i2->fresh();
+
+        $this->assertEquals(1, $i2->design_id);
+
+    }
+
+    public function testSelectiveDefaultDesignUpdatesQuote()
+    {
+        $settings = ClientSettings::defaults();
+        $hashed_design_id = $this->encodePrimaryKey(5);
+        $settings->quote_design_id = $hashed_design_id;
+
+        $c = Client::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'settings' => $settings
+        ]);
+
+        $i = \App\Models\Quote::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'client_id' => $c->id,
+            'design_id' => 5
+        ]);
+
+        $this->assertEquals(5, $i->design_id);
+        $this->assertEquals($hashed_design_id, $c->settings->quote_design_id);
+
+        $new_design_hash = $this->encodePrimaryKey(7);
+
+        $data = [
+            'entity' => 'quote',
+            'design_id' => $new_design_hash,
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $new_design_truth_test = Quote::where('company_id', $this->company->id)->orderBy('id','asc')->where('design_id', 7)->exists();
+
+        $this->assertTrue($new_design_truth_test);
+
+        ///Test Client Level
+
+        $data = [
+            'entity' => 'quote',
+            'design_id' => $new_design_hash,
+            'settings_level' => 'client',
+            'client_id' => $c->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $i = $i->fresh();
+
+        $this->assertEquals(7, $i->design_id);
+
+        ////////////////////////////////////////////
+
+        // Group Settings
+                
+        $gs = GroupSettingFactory::create($this->company->id, $this->user->id);
+        $settings = $gs->settings;
+        $settings->quote_design_id = $this->encodePrimaryKey(4);
+        $gs->settings = $settings;
+        $gs->name = "GS Setter";
+        $gs->save();
+
+        $c2 = Client::factory()->create([
+                'company_id' => $this->company->id,
+                'user_id' => $this->user->id,
+                'group_settings_id' => $gs->id,
+            ]);
+
+
+        $this->assertNotNull($c2->group_settings_id);
+
+        $i2 = Quote::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'client_id' => $c2->id,
+            'design_id' => 4
+        ]);
+
+        $new_gs_design_hash = $this->encodePrimaryKey(1);
+
+        $data = [
+            'entity' => 'quote',
+            'design_id' => $new_gs_design_hash,
+            'settings_level' => 'group_settings',
+            'group_settings_id' => $gs->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $i2 = $i2->fresh();
+
+        $this->assertEquals(1, $i2->design_id);
+
+    }
+
+    public function testSelectiveDefaultDesignUpdatesCredit()
+    {
+        $settings = ClientSettings::defaults();
+        $hashed_design_id = $this->encodePrimaryKey(5);
+        $settings->credit_design_id = $hashed_design_id;
+
+        $c = Client::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'settings' => $settings
+        ]);
+
+        $i = Credit::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'client_id' => $c->id,
+            'design_id' => 5
+        ]);
+
+        $this->assertEquals(5, $i->design_id);
+        $this->assertEquals($hashed_design_id, $c->settings->credit_design_id);
+
+        $new_design_hash = $this->encodePrimaryKey(7);
+
+        $data = [
+            'entity' => 'credit',
+            'design_id' => $new_design_hash,
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $new_design_truth_test = Credit::where('company_id', $this->company->id)->orderBy('id','asc')->where('design_id', 7)->exists();
+
+        $this->assertTrue($new_design_truth_test);
+
+        ///Test Client Level
+
+        $data = [
+            'entity' => 'credit',
+            'design_id' => $new_design_hash,
+            'settings_level' => 'client',
+            'client_id' => $c->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $i = $i->fresh();
+
+        $this->assertEquals(7, $i->design_id);
+
+        ////////////////////////////////////////////
+
+        // Group Settings
+                
+        $gs = GroupSettingFactory::create($this->company->id, $this->user->id);
+        $settings = $gs->settings;
+        $settings->credit_design_id = $this->encodePrimaryKey(4);
+        $gs->settings = $settings;
+        $gs->name = "GS Setter";
+        $gs->save();
+
+        $c2 = Client::factory()->create([
+                'company_id' => $this->company->id,
+                'user_id' => $this->user->id,
+                'group_settings_id' => $gs->id,
+            ]);
+
+
+        $this->assertNotNull($c2->group_settings_id);
+
+        $i2 = Credit::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'client_id' => $c2->id,
+            'design_id' => 4
+        ]);
+
+        $new_gs_design_hash = $this->encodePrimaryKey(1);
+
+        $data = [
+            'entity' => 'credit',
+            'design_id' => $new_gs_design_hash,
+            'settings_level' => 'group_settings',
+            'group_settings_id' => $gs->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->post('/api/v1/designs/set/default', $data);
+
+        $response->assertStatus(200);
+
+        $i2 = $i2->fresh();
+
+        $this->assertEquals(1, $i2->design_id);
+
+    }
+
 
     public function testFindInSetQueries()
     {

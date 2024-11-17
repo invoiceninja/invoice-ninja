@@ -16,6 +16,7 @@ use App\Models\Document;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Invoice;
+use App\Models\Project;
 use App\Models\Vendor;
 use App\Utils\Traits\MakesHash;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -41,6 +42,7 @@ class ExpenseTransformer extends EntityTransformer
         'vendor',
         'category',
         'invoice',
+        'project',
     ];
 
     public function includeDocuments(Expense $expense)
@@ -48,6 +50,17 @@ class ExpenseTransformer extends EntityTransformer
         $transformer = new DocumentTransformer($this->serializer);
 
         return $this->includeCollection($expense->documents, $transformer, Document::class);
+    }
+
+    public function includeProject(Expense $expense): ?Item
+    {
+        $transformer = new ProjectTransformer($this->serializer);
+
+        if (!$expense->project) {
+            return null;
+        }
+
+        return $this->includeItem($expense->project, $transformer, Project::class);
     }
 
     public function includeClient(Expense $expense): ?Item

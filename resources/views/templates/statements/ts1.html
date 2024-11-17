@@ -132,7 +132,7 @@
         </div>
     </div>
     <ninja>
-        {% if invoices|e %}
+        {% if invoices is defined and invoices is not empty %}
         <div class="entity-container">
             <h2>Invoices<h2>
                 <table width="100%" cellspacing="0" cellpadding="0" class="">
@@ -162,7 +162,7 @@
     </ninja>
 
     <ninja>
-        {% if payments|e %}
+        {% if payments is defined and payments is not empty %}
         <div class="entity-container">
             <h2>Payments<h2>
                     <table width="100%" cellspacing="0" cellpadding="0" class="">
@@ -194,7 +194,7 @@
     </ninja>
 
     <ninja>
-        {% if credits|e %}
+        {% if credits is defined and credits is not empty %}
         <div class="entity-container">
             <h2>Credits<h2>
                     <table width="100%" cellspacing="0" cellpadding="0" class="">
@@ -222,7 +222,7 @@
     </ninja>
 
     <ninja>
-        {% if aging %}
+        {% if aging is defined %}
         <div class="entity-container">
             <h2>Aging<h2>
                     <table width="100%" cellspacing="0" cellpadding="0" class="">

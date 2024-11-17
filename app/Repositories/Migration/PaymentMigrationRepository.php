@@ -105,7 +105,7 @@ class PaymentMigrationRepository extends BaseRepository
         }
 
         /*Ensure payment number generated*/
-        if (! $payment->number || strlen($payment->number) == 0) {
+        if (! $payment->number || strlen($payment->number) == 0) {//@phpstan-ignore-line
             $payment->number = $payment->client->getNextPaymentNumber($payment->client, $payment);
         }
 

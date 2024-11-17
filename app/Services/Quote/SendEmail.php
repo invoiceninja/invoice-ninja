@@ -13,23 +13,16 @@ namespace App\Services\Quote;
 
 use App\Models\Webhook;
 use App\Models\ClientContact;
+use App\Services\Email\Email;
 use App\Jobs\Entity\EmailEntity;
+use App\Models\Quote;
+use App\Services\Email\EmailObject;
 
 class SendEmail
 {
-    public $quote;
 
-    protected $reminder_template;
-
-    protected $contact;
-
-    public function __construct($quote, $reminder_template = null, ClientContact $contact = null)
+    public function __construct(public Quote $quote, public ?string $reminder_template = null, protected ?ClientContact $contact = null)
     {
-        $this->quote = $quote;
-
-        $this->reminder_template = $reminder_template;
-
-        $this->contact = $contact;
     }
 
     /**
@@ -39,15 +32,30 @@ class SendEmail
     public function run()
     {
 
-        if (! $this->reminder_template) {
-            $this->reminder_template = $this->quote->calculateTemplate('quote');
-        }
+        $this->reminder_template = $this->reminder_template ? "email_template_{$this->reminder_template}" : "email_template_".$this->quote->calculateTemplate('quote');
+        // if (! $this->reminder_template) {
+        //     $this->reminder_template = $this->quote->calculateTemplate('quote');
+        // }
 
         $this->quote->service()->markSent()->save();
 
         $this->quote->invitations->each(function ($invitation) {
             if (! $invitation->contact->trashed() && $invitation->contact->email) {
-                EmailEntity::dispatch($invitation, $invitation->company, $this->reminder_template);
+                
+                //@refactor 2024-11-10
+                $mo = new EmailObject();
+                $mo->entity_id = $invitation->quote_id;
+                $mo->template = $this->reminder_template; //full template name in use
+                $mo->email_template_body = $this->reminder_template;
+                $mo->email_template_subject = str_replace("template", "subject", $this->reminder_template);
+
+                $mo->entity_class = get_class($invitation->quote);
+                $mo->invitation_id = $invitation->id;
+                $mo->client_id = $invitation->contact->client_id ?? null;
+                $mo->vendor_id = $invitation->contact->vendor_id ?? null;
+
+                Email::dispatch($mo, $invitation->company);
+
             }
         });
 

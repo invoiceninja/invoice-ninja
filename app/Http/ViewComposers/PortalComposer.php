@@ -106,44 +106,44 @@ class PortalComposer
         $data = [];
 
         if ($this->settings->enable_client_portal_dashboard) {
-            $data[] = [ 'title' => ctrans('texts.dashboard'), 'url' => 'client.dashboard', 'icon' => 'activity'];
+            $data[] = [ 'title' => ctrans('texts.dashboard'), 'url' => 'client.dashboard', 'icon' => 'activity', 'id' => 'dashboard'];
         }
 
         if (self::MODULE_INVOICES & $enabled_modules) {
-            $data[] = ['title' => ctrans('texts.invoices'), 'url' => 'client.invoices.index', 'icon' => 'file-text'];
+            $data[] = ['title' => ctrans('texts.invoices'), 'url' => 'client.invoices.index', 'icon' => 'file-text', 'id' => 'invoices'];
         }
 
         if (self::MODULE_RECURRING_INVOICES & $enabled_modules) {
-            $data[] = ['title' => ctrans('texts.recurring_invoices'), 'url' => 'client.recurring_invoices.index', 'icon' => 'file'];
+            $data[] = ['title' => ctrans('texts.recurring_invoices'), 'url' => 'client.recurring_invoices.index', 'icon' => 'file', 'id' => 'recurring_invoices'];
         }
 
-        $data[] = ['title' => ctrans('texts.payments'), 'url' => 'client.payments.index', 'icon' => 'credit-card'];
+        $data[] = ['title' => ctrans('texts.payments'), 'url' => 'client.payments.index', 'icon' => 'credit-card', 'id' => 'payments'];
 
         if (self::MODULE_QUOTES & $enabled_modules) {
-            $data[] = ['title' => ctrans('texts.quotes'), 'url' => 'client.quotes.index', 'icon' => 'align-left'];
+            $data[] = ['title' => ctrans('texts.quotes'), 'url' => 'client.quotes.index', 'icon' => 'align-left', 'id' => 'quotes'];
         }
 
         if (self::MODULE_CREDITS & $enabled_modules) {
-            $data[] = ['title' => ctrans('texts.credits'), 'url' => 'client.credits.index', 'icon' => 'credit-card'];
+            $data[] = ['title' => ctrans('texts.credits'), 'url' => 'client.credits.index', 'icon' => 'credit-card', 'id' => 'credits'];
         }
 
-        $data[] = ['title' => ctrans('texts.payment_methods'), 'url' => 'client.payment_methods.index', 'icon' => 'shield'];
-        $data[] = ['title' => ctrans('texts.documents'), 'url' => 'client.documents.index', 'icon' => 'download'];
+        $data[] = ['title' => ctrans('texts.payment_methods'), 'url' => 'client.payment_methods.index', 'icon' => 'shield', 'id' => 'payment_methods'];
+        $data[] = ['title' => ctrans('texts.documents'), 'url' => 'client.documents.index', 'icon' => 'download', 'id' => 'documents'];
 
         if (auth()->guard('contact')->user()->client->getSetting('enable_client_portal_tasks')) {
-            $data[] = ['title' => ctrans('texts.tasks'), 'url' => 'client.tasks.index', 'icon' => 'clock'];
+            $data[] = ['title' => ctrans('texts.tasks'), 'url' => 'client.tasks.index', 'icon' => 'clock', 'id' => 'tasks'];
         }
 
-        $data[] = ['title' => ctrans('texts.statement'), 'url' => 'client.statement', 'icon' => 'activity'];
+        $data[] = ['title' => ctrans('texts.statement'), 'url' => 'client.statement', 'icon' => 'activity', 'id' => 'statement'];
 
-        // if (Ninja::isHosted() && auth()->guard('contact')->user()->company->id == config('ninja.ninja_default_company_id')) {
-        $data[] = ['title' => ctrans('texts.plan'), 'url' => 'client.plan', 'icon' => 'credit-card'];
-        // } else {
-        $data[] = ['title' => ctrans('texts.subscriptions'), 'url' => 'client.subscriptions.index', 'icon' => 'calendar'];
-        // }
+        if (Ninja::isHosted() && auth()->guard('contact')->user() && auth()->guard('contact')->user()->company_id == config('ninja.ninja_default_company_id')) {
+            $data[] = ['title' => ctrans('texts.plan'), 'url' => 'client.plan', 'icon' => 'credit-card', 'id' => 'plan'];
+        } else {
+            $data[] = ['title' => ctrans('texts.subscriptions'), 'url' => 'client.subscriptions.index', 'icon' => 'calendar', 'id' => 'subsciptions'];
+        }
 
         if (auth()->guard('contact')->user()->client->getSetting('client_initiated_payments')) {
-            $data[] = ['title' => ctrans('texts.pre_payment'), 'url' => 'client.pre_payments.index', 'icon' => 'dollar-sign'];
+            $data[] = ['title' => ctrans('texts.pre_payment'), 'url' => 'client.pre_payments.index', 'icon' => 'dollar-sign', 'id' => 'pre_payment'];
         }
 
         return $data;

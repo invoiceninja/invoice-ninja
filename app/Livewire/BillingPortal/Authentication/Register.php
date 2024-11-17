@@ -12,14 +12,18 @@
 
 namespace App\Livewire\BillingPortal\Authentication;
 
-use Illuminate\Support\Facades\Validator;
 use Livewire\Component;
 use App\Models\Subscription;
 use App\Models\ClientContact;
+use App\Utils\Traits\MakesHash;
+use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Validator;
 
 class Register extends Component
 {
-    public Subscription $subscription;
+    use MakesHash;
+
+    public string $subscription_id;
 
     public array $context;
 
@@ -28,6 +32,8 @@ class Register extends Component
     public ?string $password;
 
     public ?int $otp;
+
+    public array $formData = []; 
 
     public array $state = [
         'initial_completed' => false,
@@ -38,12 +44,19 @@ class Register extends Component
 
     public array $additional_fields = [];
 
+
+    #[Computed()]
+    public function subscription()
+    {
+        return Subscription::find($this->decodePrimaryKey($this->subscription_id))->withoutRelations()->makeHidden(['webhook_configuration','steps']);
+    }
+    
     public function initial(): void
     {
         $this->validateOnly('email', ['email' => 'required|bail|email:rfc']);
 
         $contact = ClientContact::where('email', $this->email)
-            ->where('company_id', $this->subscription->company_id)
+            ->where('company_id', $this->subscription()->company_id)
             ->first();
 
         if ($contact) {
@@ -59,13 +72,19 @@ class Register extends Component
 
     public function register(array $data)
     {
+
+        $data = array_merge($data, [
+            'country_id' => $this->formData['country_id'] ?? null,
+            'shipping_country_id' => $this->formData['shipping_country_id'] ?? null,
+        ]);
+
         $service = new ClientRegisterService(
-            company: $this->subscription->company,
+            company: $this->subscription()->company,
             additional: $this->additional_fields,
         );
 
         $rules = $service->rules();
-
+        
         $data = Validator::make($data, $rules)->validate();
 
         $client = $service->createClient($data);
@@ -73,19 +92,19 @@ class Register extends Component
 
         auth()->guard('contact')->loginUsingId($contact->id, true);
 
-        $this->dispatch('purchase.context', property: 'contact', value: $contact);
+        // $this->dispatch('purchase.context', property: 'contact', value: $contact);
         $this->dispatch('purchase.next');
     }
 
     public function registerForm()
     {
-        $count = collect($this->subscription->company->client_registration_fields ?? [])
+        $count = collect($this->subscription()->company->client_registration_fields ?? [])
             ->filter(fn ($field) => $field['required'] === true || $field['visible'] === true)
             ->count();
 
         if ($count === 0) {
             $service = new ClientRegisterService(
-                company: $this->subscription->company,
+                company: $this->subscription()->company,
             );
 
             $client = $service->createClient([]);
@@ -93,15 +112,15 @@ class Register extends Component
 
             auth()->guard('contact')->loginUsingId($contact->id, true);
 
-            $this->dispatch('purchase.context', property: 'contact', value: $contact);
+            // $this->dispatch('purchase.context', property: 'contact', value: $contact);
             $this->dispatch('purchase.next');
 
             return;
         }
 
-        $this->register_fields = [...collect($this->subscription->company->client_registration_fields ?? [])->toArray()];
+        $this->register_fields = [...collect($this->subscription()->company->client_registration_fields ?? [])->toArray()];
 
-        $first_gateway = collect($this->subscription->company->company_gateways)
+        $first_gateway = collect($this->subscription()->company->company_gateways()->withoutTrashed()->get())
             ->sortBy('sort_order')
             ->first();
 
@@ -142,9 +161,10 @@ class Register extends Component
     public function mount()
     {
         if (auth()->guard('contact')->check()) {
-            $this->dispatch('purchase.context', property: 'contact', value: auth()->guard('contact')->user());
+            // $this->dispatch('purchase.context', property: 'contact', value: auth()->guard('contact')->user());
             $this->dispatch('purchase.next');
         }
+
     }
 
     public function render()

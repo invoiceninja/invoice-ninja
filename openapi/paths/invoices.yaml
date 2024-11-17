@@ -475,7 +475,7 @@
                     type: string
               example:
                 action: bulk_download
-                ids: "['D2J234DFA','D2J234DFA','D2J234DFA']"
+                ids: ['D2J234DFA','D2J234DFA','D2J234DFA']
               
       responses:
         200:

@@ -14,23 +14,42 @@ namespace App\Livewire\RecurringInvoices;
 
 use App\Models\Invoice;
 use Livewire\Component;
+use App\Libraries\MultiDB;
+use App\Models\RecurringInvoice;
+use Livewire\Attributes\Computed;
 
 class UpdateAutoBilling extends Component
 {
-    /** @var \App\Models\RecurringInvoice */
-    public $invoice;
+    public $invoice_id;
+
+    public $db;
+
+    public function mount()
+    {
+        MultiDB::setDb($this->db);
+    }
+
+    #[Computed]
+    public function invoice()
+    {
+        return RecurringInvoice::withTrashed()->find($this->invoice_id);
+    }
 
     public function updateAutoBilling(): void
     {
-        if ($this->invoice->auto_bill == 'optin' || $this->invoice->auto_bill == 'optout') {
-            $this->invoice->auto_bill_enabled = ! $this->invoice->auto_bill_enabled;
-            $this->invoice->saveQuietly();
+        $invoice = $this->invoice();
 
-            Invoice::where('recurring_id', $this->invoice->id)
+        if ($invoice->auto_bill == 'optin' || $invoice->auto_bill == 'optout') {
+            $invoice->auto_bill_enabled = ! $invoice->auto_bill_enabled;
+            $invoice->saveQuietly();
+
+            Invoice::withTrashed()
+                        ->where('company_id', $invoice->company_id)
+                        ->where('recurring_id', $invoice->id)
                         ->whereIn('status_id', [2,3])
                         ->where('is_deleted', 0)
                         ->where('balance', '>', 0)
-                        ->update(['auto_bill_enabled' => $this->invoice->auto_bill_enabled]);
+                        ->update(['auto_bill_enabled' => $invoice->auto_bill_enabled]);
         }
     }
 

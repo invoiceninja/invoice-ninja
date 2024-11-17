@@ -19,6 +19,7 @@ use App\Models\Company;
 use App\Models\CompanyToken;
 use App\Models\CompanyUser;
 use App\Models\User;
+use App\Repositories\UserRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -44,20 +45,17 @@ class UserTest extends TestCase
     {
         parent::setUp();
 
-        // Session::start();
-
         $this->faker = \Faker\Factory::create();
-
-        $this->makeTestData();
-
-        // Model::reguard();
-
-        // $this->withoutExceptionHandling();
 
         $this->withoutMiddleware(
             ThrottleRequests::class,
             PasswordProtection::class
         );
+
+        $this->makeTestData();
+
+        // $this->withoutExceptionHandling();
+
     }
 
     private function mockAccount()
@@ -72,7 +70,7 @@ class UserTest extends TestCase
         $account->save();
 
         $user = User::factory()->create([
-            'account_id' => $this->account->id,
+            'account_id' => $account->id,
             'confirmation_code' => 'xyz123',
             'email' => $this->faker->unique()->safeEmail(),
             'password' => \Illuminate\Support\Facades\Hash::make('ALongAndBriliantPassword'),
@@ -86,7 +84,6 @@ class UserTest extends TestCase
             'account_id' => $account->id,
             'settings' => $settings,
         ]);
-
 
         $cu = CompanyUserFactory::create($user->id, $company->id, $account->id);
         $cu->is_owner = true;
@@ -109,9 +106,48 @@ class UserTest extends TestCase
 
     }
 
+    // public function testCrossAccountFunctionality()
+    // {
+    //     $ct = $this->mockAccount();
+
+    //     $u= $ct->user;
+
+    //     auth()->login($u, true);
+
+    //     $account = Account::factory()->create([
+    //             'hosted_client_count' => 1000,
+    //             'hosted_company_count' => 1000,
+    //         ]);
+
+    //     $account->num_users = 3;
+    //     $account->save();
+
+    //     $user = User::factory()->create([
+    //         'account_id' => $this->account->id,
+    //         'confirmation_code' => 'xyz123',
+    //         'email' => $this->faker->unique()->safeEmail(),
+    //         'password' => \Illuminate\Support\Facades\Hash::make('ALongAndBriliantPassword'),
+    //     ]);
+
+
+    //     $user_repo = new UserRepository();
+
+
+    //     // try{
+    //         $x = $user_repo->save(['first_name' => 'bobby'], $user);
+    //     // }
+    //     // catch(\Exception $e){
+
+    //         // $this->assertEquals(401, $e->getCode());
+    //     // }
+
+    //     nlog($x);
+
+
+    // }
+
     public function testValidEmailUpdate()
     {
-        
         $company_token = $this->mockAccount();
         $user = $company_token->user;
         $user->load('company_user');

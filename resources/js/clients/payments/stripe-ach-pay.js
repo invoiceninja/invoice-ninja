@@ -33,6 +33,12 @@ function ach() {
         });
     }
 
+    const first = document.querySelector('input[name="payment-type"]');
+
+    if (first) {
+        first.click();
+    }
+
     document.getElementById('new-bank').addEventListener('click', (ev) => {
         if (!document.getElementById('accept-terms').checked) {
             errors.textContent =

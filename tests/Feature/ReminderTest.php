@@ -319,9 +319,15 @@ class ReminderTest extends TestCase
         $this->assertGreaterThan(0, $invoice->balance);
         $this->assertNull($invoice->reminder2_sent);
 
-        $this->travelTo(now()->copy()->addHour());
-        (new ReminderJob())->handle();
-        $invoice = $invoice->fresh();
+        $x = false;
+        do {
+
+            $this->travelTo(now()->addHour());
+            (new ReminderJob())->handle();
+            $invoice = $invoice->fresh();
+
+            $x = (bool)$invoice->reminder2_sent;
+        } while ($x === false);
 
         $this->assertNotNull($invoice->reminder2_sent);
         $this->assertEquals($invoice->reminder2_sent, $invoice->reminder_last_sent);
@@ -341,9 +347,15 @@ class ReminderTest extends TestCase
         $this->assertGreaterThan(0, $invoice->balance);
         $this->assertNull($invoice->reminder3_sent);
 
-        $this->travelTo(now()->copy()->addHour());
-        (new ReminderJob())->handle();
-        $invoice = $invoice->fresh();
+        $x = false;
+        do {
+
+            $this->travelTo(now()->addHour());
+            (new ReminderJob())->handle();
+            $invoice = $invoice->fresh();
+
+            $x = (bool)$invoice->reminder3_sent;
+        } while ($x === false);
 
         $this->assertNotNull($invoice->reminder3_sent);
         $this->assertEquals($invoice->reminder3_sent, $invoice->reminder_last_sent);

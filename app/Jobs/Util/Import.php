@@ -247,6 +247,7 @@ class Import implements ShouldQueue
             $this->company->account->companies()->update(['is_large' => true]);
         }
 
+        $this->company->smtp_port = (int)$this->company->smtp_port;
         $this->company->client_registration_fields = \App\DataMapper\ClientRegistrationFields::generate();
         $this->company->save();
 
@@ -431,15 +432,20 @@ class Import implements ShouldQueue
             }
         }
 
-        $rules = (new UpdateCompanyRequest())->rules();
+        // $rules = (new UpdateCompanyRequest())->rules();
 
-        unset($rules['expense_mailbox']);
-        
-        $validator = Validator::make($data, $rules);
+        // unset($rules['expense_mailbox']);
+        // unset($rules['e_invoice']);
+        // unset($rules['smtp_port']);
+        // unset($rules['settings']);
 
-        if ($validator->fails()) {
-            throw new MigrationValidatorFailed(json_encode($validator->errors()));
-        }
+        // $validator = Validator::make($data, $rules);
+
+        // nlog($validator->errors());
+
+        // if ($validator->fails()) {
+        //     throw new MigrationValidatorFailed(json_encode($validator->errors()));
+        // }
 
         if (isset($data['account_id'])) {
             unset($data['account_id']);
@@ -1565,6 +1571,7 @@ class Import implements ShouldQueue
 
 
             } catch(\Exception $e) {
+                nlog($e->getMessage());
                 //do nothing, gracefully :)
             }
         }

@@ -96,7 +96,7 @@ class TriggeredActions extends AbstractService
         $reminder_template = $this->invoice->calculateTemplate('invoice');
 
         $this->invoice->invitations->load('contact.client.country', 'invoice.client.country', 'invoice.company')->each(function ($invitation) use ($reminder_template) {
-            EmailEntity::dispatch($invitation, $this->invoice->company, $reminder_template);
+            EmailEntity::dispatch($invitation->withoutRelations(), $this->invoice->company->db, $reminder_template);
         });
 
         if ($this->invoice->invitations->count() > 0) {

@@ -20,17 +20,11 @@
     @endcomponent
 @endsection
 <script>
+function submitResponse(response){        
+    document.querySelector(
+                'input[name="gateway_response"]'
+            ).value = JSON.stringify(response);
 
-    function submitResponse(response){
-        
-        console.log("lets go!");
-        
-        document.querySelector(
-                    'input[name="gateway_response"]'
-                ).value = JSON.stringify(response);
-
-        document.getElementById('server-response').submit();
-            console.log("we did not go!!");
-    }
-
+    document.getElementById('server-response').submit();
+}
 </script>

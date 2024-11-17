@@ -61,7 +61,7 @@ class RecurringInvoiceTest extends TestCase
         $this->makeTestData();
     }
 
-public function testBulkUpdatesTaxes()
+    public function testBulkUpdatesTaxes()
     {
         RecurringInvoice::factory(5)->create([
             'user_id' => $this->user->id,
@@ -80,7 +80,7 @@ public function testBulkUpdatesTaxes()
         $data = [
             'action' => 'bulk_update',
             'ids' => $ri->get()->pluck('hashed_id'),
-            'column' => 'tax_name1',
+            'column' => 'tax1',
             'new_value' => 'GST||10',
         ];
 

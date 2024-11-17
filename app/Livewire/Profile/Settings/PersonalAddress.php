@@ -6,7 +6,6 @@ use Livewire\Component;
 
 class PersonalAddress extends Component
 {
-    public $profile;
 
     public $address1;
 
@@ -34,7 +33,7 @@ class PersonalAddress extends Component
     public function mount()
     {
         $this->fill([
-            'profile' => auth()->guard('contact')->user()->client,
+            // 'profile' => auth()->guard('contact')->user()->client,
             'address1' => auth()->guard('contact')->user()->client->address1,
             'address2' => auth()->guard('contact')->user()->client->address2,
             'city' => auth()->guard('contact')->user()->client->city,
@@ -58,7 +57,9 @@ class PersonalAddress extends Component
             $data['country_id'] = null;
         }
 
-        $this->profile
+        $profile = auth()->guard('contact')->user()->client;
+
+        $profile
             ->fill($data)
             ->save();
 

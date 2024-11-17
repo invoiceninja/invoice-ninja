@@ -86,7 +86,7 @@ class CheckData extends Command
     /**
      * @var string
      */
-    protected $signature = 'ninja:check-data {--database=} {--fix=} {--portal_url=} {--client_id=} {--vendor_id=} {--paid_to_date=} {--client_balance=} {--ledger_balance=} {--balance_status=} {--bank_transaction=} {--line_items=}';
+    protected $signature = 'ninja:check-data {--database=} {--fix=} {--portal_url=} {--client_id=} {--vendor_id=} {--paid_to_date=} {--client_balance=} {--ledger_balance=} {--balance_status=} {--bank_transaction=} {--line_items=} {--payment_balance=}';
 
     /**
      * @var string
@@ -153,6 +153,9 @@ class CheckData extends Command
             $this->cleanInvoiceLineItems();
         }
 
+        if($this->option('payment_balance')){
+            $this->updateClientPaymentBalances();
+        }
         $this->logMessage('Done: '.strtoupper($this->isValid ? Account::RESULT_SUCCESS : Account::RESULT_FAILURE));
         $this->logMessage('Total execution time in seconds: ' . (microtime(true) - $time_start));
 
@@ -550,6 +553,19 @@ class CheckData extends Command
         ");
 
         return $results;
+    }
+
+    private function updateClientPaymentBalances()
+    {
+        Client::withTrashed()
+            ->where('payment_balance', '!=', 0)
+            ->where('is_deleted', 0)
+            ->cursor()
+            ->each(function ($client) {
+                
+                $client->service()->updatePaymentBalance();
+                $this->logMessage("{$client->present()->name()} payment balance = {$client->payment_balance}");
+            });
     }
 
     private function clientCreditPaymentables($client)

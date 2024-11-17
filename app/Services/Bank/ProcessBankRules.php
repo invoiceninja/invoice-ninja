@@ -54,6 +54,26 @@ class ProcessBankRules extends AbstractService
         }
     }
 
+    private function matchCredit()
+    {
+        $this->invoices = Invoice::query()->where('company_id', $this->bank_transaction->company_id)
+                                ->whereIn('status_id', [1,2,3])
+                                ->where('is_deleted', 0)
+                                ->get();
+
+        $invoice = $this->invoices->first(function ($value, $key) {
+            return str_contains($this->bank_transaction->description, $value->number) || str_contains(str_replace("\n", "", $this->bank_transaction->description), $value->number);
+        });
+
+        if ($invoice) {
+            $this->bank_transaction->invoice_ids = $invoice->hashed_id;
+            $this->bank_transaction->status_id = BankTransaction::STATUS_MATCHED;
+            $this->bank_transaction->save();
+            return;
+        }
+
+    }
+
     // $payment.amount
     // $payment.transaction_reference
     // $payment.custom1
@@ -73,210 +93,210 @@ class ProcessBankRules extends AbstractService
     // $client.custom2
     // $client.custom3
     // $client.custom4
-    private function matchCredit()
-    {
-        $match_set = [];
+    // private function matchCreditXX() //phpstan-ignore-line
+    // {
+    //     $match_set = [];
 
-        $this->credit_rules = $this->bank_transaction->company->credit_rules();
+    //     $this->credit_rules = $this->bank_transaction->company->credit_rules();
 
-        foreach ($this->credit_rules as $bank_transaction_rule) {
-            $match_set = [];
+    //     foreach ($this->credit_rules as $bank_transaction_rule) {
+    //         $match_set = [];
 
-            if (!is_array($bank_transaction_rule['rules'])) {
-                continue;
-            }
+    //         if (!is_array($bank_transaction_rule['rules'])) {
+    //             continue;
+    //         }
 
-            $rule_count = count($bank_transaction_rule['rules']);
+    //         $rule_count = count($bank_transaction_rule['rules']);
 
-            foreach ($bank_transaction_rule['rules'] as $rule) {
+    //         foreach ($bank_transaction_rule['rules'] as $rule) {
 
-                $results = [];
+    //             $results = [];
                 
-                $payments = Payment::query()
-                                    ->withTrashed()
-                                    ->whereIn('status_id', [1,4])
-                                    ->where('is_deleted', 0)
-                                    ->whereNull('transaction_id')
-                                    ->get();
+    //             $payments = Payment::query()
+    //                                 ->withTrashed()
+    //                                 ->whereIn('status_id', [1,4])
+    //                                 ->where('is_deleted', 0)
+    //                                 ->whereNull('transaction_id')
+    //                                 ->get();
 
-                $invoices = Invoice::query()
-                        ->withTrashed()
-                        ->where('company_id', $this->bank_transaction->company_id)
-                        ->whereIn('status_id', [1,2,3])
-                        ->where('is_deleted', 0)
-                        ->get();
+    //             $invoices = Invoice::query()
+    //                     ->withTrashed()
+    //                     ->where('company_id', $this->bank_transaction->company_id)
+    //                     ->whereIn('status_id', [1,2,3])
+    //                     ->where('is_deleted', 0)
+    //                     ->get();
 
-                match($rule['search_key']) {
-                    '$payment.amount' => $results = [Payment::class, $this->searchPaymentResource('amount', $rule, $payments)],
-                    '$payment.transaction_reference' => $results = [Payment::class, $this->searchPaymentResource('transaction_reference', $rule, $payments)],
-                    '$payment.custom1' => $results = [Payment::class, $this->searchPaymentResource('custom_value1', $rule, $payments)],
-                    '$payment.custom2' => $results = [Payment::class, $this->searchPaymentResource('custom_value2', $rule, $payments)],
-                    '$payment.custom3' => $results = [Payment::class, $this->searchPaymentResource('custom_value3', $rule, $payments)],
-                    '$payment.custom4' => $results = [Payment::class, $this->searchPaymentResource('custom_value4', $rule, $payments)],
-                    '$invoice.amount' => $results = [Invoice::class, $this->searchInvoiceResource('amount', $rule, $invoices)],
-                    '$invoice.number' => $results = [Invoice::class, $this->searchInvoiceResource('number', $rule, $invoices)],
-                    '$invoice.po_number' => $results = [Invoice::class, $this->searchInvoiceResource('po_number', $rule, $invoices)],
-                    '$invoice.custom1' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value1', $rule, $invoices)],
-                    '$invoice.custom2' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value2', $rule, $invoices)],
-                    '$invoice.custom3' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value3', $rule, $invoices)],
-                    '$invoice.custom4' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value4', $rule, $invoices)],
-                    '$client.id_number' => $results = [Client::class, $this->searchClientResource('id_number', $rule, $invoices, $payments)],
-                    '$client.email' => $results = [Client::class, $this->searchClientResource('email', $rule, $invoices, $payments)],
-                    '$client.custom1' => $results = [Client::class, $this->searchClientResource('custom_value1', $rule, $invoices, $payments)],
-                    '$client.custom2' => $results = [Client::class, $this->searchClientResource('custom_value2', $rule, $invoices, $payments)],
-                    '$client.custom3' => $results = [Client::class, $this->searchClientResource('custom_value3', $rule, $invoices, $payments)],
-                    '$client.custom4' => $results = [Client::class, $this->searchClientResource('custom_value4', $rule, $invoices, $payments)],
-                    default => $results = [Client::class, [collect([]), Invoice::class]],
-                };
+    //             match($rule['search_key']) {
+    //                 '$payment.amount' => $results = [Payment::class, $this->searchPaymentResource('amount', $rule, $payments)],
+    //                 '$payment.transaction_reference' => $results = [Payment::class, $this->searchPaymentResource('transaction_reference', $rule, $payments)],
+    //                 '$payment.custom1' => $results = [Payment::class, $this->searchPaymentResource('custom_value1', $rule, $payments)],
+    //                 '$payment.custom2' => $results = [Payment::class, $this->searchPaymentResource('custom_value2', $rule, $payments)],
+    //                 '$payment.custom3' => $results = [Payment::class, $this->searchPaymentResource('custom_value3', $rule, $payments)],
+    //                 '$payment.custom4' => $results = [Payment::class, $this->searchPaymentResource('custom_value4', $rule, $payments)],
+    //                 '$invoice.amount' => $results = [Invoice::class, $this->searchInvoiceResource('amount', $rule, $invoices)],
+    //                 '$invoice.number' => $results = [Invoice::class, $this->searchInvoiceResource('number', $rule, $invoices)],
+    //                 '$invoice.po_number' => $results = [Invoice::class, $this->searchInvoiceResource('po_number', $rule, $invoices)],
+    //                 '$invoice.custom1' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value1', $rule, $invoices)],
+    //                 '$invoice.custom2' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value2', $rule, $invoices)],
+    //                 '$invoice.custom3' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value3', $rule, $invoices)],
+    //                 '$invoice.custom4' => $results = [Invoice::class, $this->searchInvoiceResource('custom_value4', $rule, $invoices)],
+    //                 '$client.id_number' => $results = [Client::class, $this->searchClientResource('id_number', $rule, $invoices, $payments)],
+    //                 '$client.email' => $results = [Client::class, $this->searchClientResource('email', $rule, $invoices, $payments)],
+    //                 '$client.custom1' => $results = [Client::class, $this->searchClientResource('custom_value1', $rule, $invoices, $payments)],
+    //                 '$client.custom2' => $results = [Client::class, $this->searchClientResource('custom_value2', $rule, $invoices, $payments)],
+    //                 '$client.custom3' => $results = [Client::class, $this->searchClientResource('custom_value3', $rule, $invoices, $payments)],
+    //                 '$client.custom4' => $results = [Client::class, $this->searchClientResource('custom_value4', $rule, $invoices, $payments)],
+    //                 default => $results = [Client::class, [collect([]), Invoice::class]],
+    //             };
 
-                if($results[0] == 'App\Models\Client') {
-                    $set = $results[1];
-                    $result_set = $set[0];
-                    $entity = $set[1];
+    //             if($results[0] == 'App\Models\Client') {
+    //                 $set = $results[1];
+    //                 $result_set = $set[0];
+    //                 $entity = $set[1];
 
-                    if($result_set->count() > 0) {
-                        $match_set[] = [$entity, $result_set->pluck('id')];
-                    }
+    //                 if($result_set->count() > 0) {
+    //                     $match_set[] = [$entity, $result_set->pluck('id')];
+    //                 }
 
-                } elseif($results[1]->count() > 0) {
-                    $match_set[] = $results;
-                }
-            }
+    //             } elseif($results[1]->count() > 0) {
+    //                 $match_set[] = $results;
+    //             }
+    //         }
             
-            if (($bank_transaction_rule['matches_on_all'] && $this->checkMatchSetForKey($match_set, $rule_count)) || (!$bank_transaction_rule['matches_on_all'] && count($match_set) > 0)) 
-            {
+    //         if (($bank_transaction_rule['matches_on_all'] && $this->checkMatchSetForKey($match_set, $rule_count)) || (!$bank_transaction_rule['matches_on_all'] && count($match_set) > 0)) 
+    //         {
 
-                $this->bank_transaction->status_id = BankTransaction::STATUS_MATCHED;
-                $this->bank_transaction->bank_transaction_rule_id = $bank_transaction_rule->id;
-                $this->bank_transaction->save();
+    //             $this->bank_transaction->status_id = BankTransaction::STATUS_MATCHED;
+    //             $this->bank_transaction->bank_transaction_rule_id = $bank_transaction_rule->id;
+    //             $this->bank_transaction->save();
 
-                $first_result = reset($match_set);
+    //             $first_result = reset($match_set);
 
-                $invoice_id = false;
-                $payment_id = false;
+    //             $invoice_id = false;
+    //             $payment_id = false;
     
-                if($first_result[0] == Payment::class) {
-                    $payment_id = $first_result[1][0];
-                }                
-                elseif($first_result[0] == Invoice::class) {
-                    $invoice_id = $first_result[1][0];
-                }
+    //             if($first_result[0] == Payment::class) {
+    //                 $payment_id = $first_result[1][0];
+    //             }                
+    //             elseif($first_result[0] == Invoice::class) {
+    //                 $invoice_id = $first_result[1][0];
+    //             }
 
-                if ($bank_transaction_rule['auto_convert']) {
-                    (new MatchBankTransactions($this->bank_transaction->company->id, $this->bank_transaction->company->db, [
-                        'transactions' => [
-                            [
-                            'id' => $this->bank_transaction->id,
-                            'invoice_ids' => $invoice_id ?? '',
-                            'payment_id' => $payment_id ?? '',
-                            ],
-                    ],
-                    ]))->handle();
-                }
-                else {
+    //             if ($bank_transaction_rule['auto_convert']) {
+    //                 (new MatchBankTransactions($this->bank_transaction->company->id, $this->bank_transaction->company->db, [
+    //                     'transactions' => [
+    //                         [
+    //                         'id' => $this->bank_transaction->id,
+    //                         'invoice_ids' => $invoice_id ?? '',
+    //                         'payment_id' => $payment_id ?? '',
+    //                         ],
+    //                 ],
+    //                 ]))->handle();
+    //             }
+    //             else {
 
-                    if($invoice_id){
-                        $this->bank_transaction->invoice_ids = $this->encodePrimaryKey($invoice_id);
-                    }
-                    elseif($payment_id){
-                        $this->bank_transaction->payment_id = $payment_id;
-                    }
+    //                 if($invoice_id){
+    //                     $this->bank_transaction->invoice_ids = $this->encodePrimaryKey($invoice_id);
+    //                 }
+    //                 elseif($payment_id){
+    //                     $this->bank_transaction->payment_id = $payment_id;
+    //                 }
 
-                    $this->bank_transaction->save();
+    //                 $this->bank_transaction->save();
 
-                }
+    //             }
 
-            }
+    //         }
 
-        }
+    //     }
 
-    }
+    // }
 
-    private function checkMatchSetForKey(array $match_set, $rule_count)
-    {
+    // private function checkMatchSetForKey(array $match_set, $rule_count)
+    // {
 
-    }
+    // }
 
-    private function searchInvoiceResource(string $column, array $rule, $invoices)
-    {
+    // private function searchInvoiceResource(string $column, array $rule, $invoices)
+    // {
 
-        return $invoices->when($column != 'amount', function ($q) use ($rule, $column) {
-            return $q->filter(function ($record) use ($rule, $column) {
-                return $this->matchStringOperator($this->bank_transaction->description, $record->{$column}, $rule['operator']);
-            });
-        })
-                ->when($column == 'amount', function ($q) use ($rule, $column) {
-                    return $q->filter(function ($record) use ($rule, $column) {
-                        return $this->matchNumberOperator($this->bank_transaction->amount, $record->{$column}, $rule['operator']);
-                    });
-                })->pluck("id");
+    //     return $invoices->when($column != 'amount', function ($q) use ($rule, $column) {
+    //         return $q->filter(function ($record) use ($rule, $column) {
+    //             return $this->matchStringOperator($this->bank_transaction->description, $record->{$column}, $rule['operator']);
+    //         });
+    //     })
+    //             ->when($column == 'amount', function ($q) use ($rule, $column) {
+    //                 return $q->filter(function ($record) use ($rule, $column) {
+    //                     return $this->matchNumberOperator($this->bank_transaction->amount, $record->{$column}, $rule['operator']);
+    //                 });
+    //             })->pluck("id");
 
-    }
+    // }
 
-    private function searchPaymentResource(string $column, array $rule, $payments)
-    {
-        return $payments->when($column != 'amount', function ($q) use ($rule, $column) {
-            return $q->filter(function ($record) use ($rule, $column) {
+    // private function searchPaymentResource(string $column, array $rule, $payments)
+    // {
+    //     return $payments->when($column != 'amount', function ($q) use ($rule, $column) {
+    //         return $q->filter(function ($record) use ($rule, $column) {
                 
-                $bool =  $this->matchStringOperator($this->bank_transaction->description, $record->{$column},  $rule['operator']);
-                return $bool;
-            });
-        })
-        ->when($column == 'amount', function ($q) use ($rule, $column) {
-            return $q->filter(function ($record) use ($rule, $column) {
-                return $this->matchNumberOperator($this->bank_transaction->amount, $record->{$column}, $rule['operator']);
-            });
-        })->pluck("id");
+    //             $bool =  $this->matchStringOperator($this->bank_transaction->description, $record->{$column},  $rule['operator']);
+    //             return $bool;
+    //         });
+    //     })
+    //     ->when($column == 'amount', function ($q) use ($rule, $column) {
+    //         return $q->filter(function ($record) use ($rule, $column) {
+    //             return $this->matchNumberOperator($this->bank_transaction->amount, $record->{$column}, $rule['operator']);
+    //         });
+    //     })->pluck("id");
 
-    }
+    // }
 
-    private function searchClientResource(string $column, array $rule, $invoices, $payments)
-    {
+    // private function searchClientResource(string $column, array $rule, $invoices, $payments)
+    // {
 
-        $invoice_matches = Client::query()
-                ->whereIn('id', $invoices->pluck('client_id'))
-                ->when($column == 'email', function ($q) {
-                    return $q->whereHas('contacts', function ($qc) {
-                        $qc->where('email', $this->bank_transaction->description);
-                    });
-                })
-                ->when($column != 'email', function ($q) use ($rule, $column) {
+    //     $invoice_matches = Client::query()
+    //             ->whereIn('id', $invoices->pluck('client_id'))
+    //             ->when($column == 'email', function ($q) {
+    //                 return $q->whereHas('contacts', function ($qc) {
+    //                     $qc->where('email', $this->bank_transaction->description);
+    //                 });
+    //             })
+    //             ->when($column != 'email', function ($q) use ($rule, $column) {
 
-                    return $q->cursor()->filter(function ($record) use ($rule, $column) {
-                        return $this->matchStringOperator($this->bank_transaction->description, $record->{$column}, $rule['operator']);
-                    });
-                })->pluck('id');
+    //                 return $q->cursor()->filter(function ($record) use ($rule, $column) {
+    //                     return $this->matchStringOperator($this->bank_transaction->description, $record->{$column}, $rule['operator']);
+    //                 });
+    //             })->pluck('id');
 
 
-        $intersection = $invoices->whereIn('client_id', $invoice_matches);
+    //     $intersection = $invoices->whereIn('client_id', $invoice_matches);
 
-        if($intersection->count() > 0) {
-            return [$intersection, Invoice::class];
-        }
+    //     if($intersection->count() > 0) {
+    //         return [$intersection, Invoice::class];
+    //     }
 
-        $payments_matches = Client::query()
-                ->whereIn('id', $payments->pluck('client_id'))
-                ->when($column == 'email', function ($q) {
-                    return $q->whereHas('contacts', function ($qc) {
-                        $qc->where('email', $this->bank_transaction->description);
-                    });
-                })
-                ->when($column != 'email', function ($q) use ($rule, $column) {
+    //     $payments_matches = Client::query()
+    //             ->whereIn('id', $payments->pluck('client_id'))
+    //             ->when($column == 'email', function ($q) {
+    //                 return $q->whereHas('contacts', function ($qc) {
+    //                     $qc->where('email', $this->bank_transaction->description);
+    //                 });
+    //             })
+    //             ->when($column != 'email', function ($q) use ($rule, $column) {
 
-                    return $q->cursor()->filter(function ($record) use ($rule, $column) {
-                        return $this->matchStringOperator($this->bank_transaction->description, $record->{$column}, $rule['operator']);
-                    });
-                })->pluck('id');
+    //                 return $q->cursor()->filter(function ($record) use ($rule, $column) {
+    //                     return $this->matchStringOperator($this->bank_transaction->description, $record->{$column}, $rule['operator']);
+    //                 });
+    //             })->pluck('id');
 
-        $intersection = $payments->whereIn('client_id', $payments_matches);
+    //     $intersection = $payments->whereIn('client_id', $payments_matches);
 
-        if($intersection->count() > 0) {
-            return [$intersection, Payment::class];
-        }
+    //     if($intersection->count() > 0) {
+    //         return [$intersection, Payment::class];
+    //     }
 
-        return [Client::class, collect([])];
+    //     return [Client::class, collect([])];
 
-    }
+    // }
     
     private function matchDebit()
     {

@@ -52,6 +52,10 @@ class VendorContactController extends Controller
 
     public function edit(VendorContact $vendor_contact)
     {
+
+        if(!$vendor_contact->vendor->country_id)
+            $vendor_contact->vendor->country_id = auth()->guard('vendor')->user()->company->country()->id ?? 840;
+
         return $this->render('vendor_profile.edit', [
             'contact' => $vendor_contact,
             'vendor' => $vendor_contact->vendor,
@@ -77,7 +81,7 @@ class VendorContactController extends Controller
         $data = [];
 
         if (self::MODULE_PURCHASE_ORDERS & $enabled_modules) {
-            $data[] = ['title' => ctrans('texts.purchase_orders'), 'url' => 'vendor.purchase_orders.index', 'icon' => 'file-text'];
+            $data[] = ['title' => ctrans('texts.purchase_orders'), 'url' => 'vendor.purchase_orders.index', 'icon' => 'file-text', 'id' => 'purchase_orders'];
         }
 
         return $data;

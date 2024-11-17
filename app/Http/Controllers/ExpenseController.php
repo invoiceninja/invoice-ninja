@@ -647,7 +647,7 @@ class ExpenseController extends BaseController
         $user = auth()->user();
 
         foreach ($request->file("documents") as $file) {
-            ImportEDocument::dispatch($file->get(), $file->getClientOriginalName(), $request->file("documents")->getMimeType(), $user->company());
+            ImportEDocument::dispatch($file->get(), $file->getClientOriginalName(), $file->getMimeType(), $user->company());
         }
 
         return response()->json(['message' => 'Processing....'], 200);

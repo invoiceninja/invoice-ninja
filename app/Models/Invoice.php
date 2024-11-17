@@ -292,7 +292,7 @@ class Invoice extends BaseModel
     // }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Company>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function company()
     {
@@ -345,7 +345,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Document>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
@@ -353,7 +353,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany<Payment>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany
      */
     public function payments(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
@@ -361,7 +361,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany<Payment>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany
      */
     public function net_payments(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
@@ -369,7 +369,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<CompanyLedger>
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function company_ledger(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
@@ -382,7 +382,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough<Backup>
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function history(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
     {
@@ -400,7 +400,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Task>
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function task(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
@@ -408,7 +408,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Quote>
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function quote(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
@@ -421,7 +421,7 @@ class Invoice extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Expense>
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function expense(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
@@ -467,7 +467,7 @@ class Invoice extends BaseModel
 
     public function isPayable(): bool
     {
-        if($this->is_deleted || $this->status_id == self::STATUS_PAID) {
+        if($this->is_deleted || $this->status_id == self::STATUS_PAID || $this->balance < 0) {
             return false;
         } elseif ($this->status_id == self::STATUS_DRAFT && $this->is_deleted == false) {
             return true;

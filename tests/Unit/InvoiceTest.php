@@ -17,6 +17,8 @@ use App\Factory\InvoiceItemFactory;
 use App\Helpers\Invoice\InvoiceSum;
 use App\Helpers\Invoice\InvoiceSumInclusive;
 use App\Models\Invoice;
+use App\Models\Payment;
+use App\Repositories\InvoiceRepository;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\MockAccountData;
 use Tests\TestCase;
@@ -47,6 +49,243 @@ class InvoiceTest extends TestCase
         $this->invoice->uses_inclusive_taxes = true;
 
         $this->invoice_calc = new InvoiceSum($this->invoice);
+    }
+
+    public function testDeletingCancelledAndTrashedInvoicePayment()
+    {
+        
+        $c = \App\Models\Client::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+        ]);
+
+        $item = InvoiceItemFactory::create();
+        $item->quantity = 1;
+        $item->cost = 10.00;
+        $item->type_id = '1';
+        $item->tax_id = '1';
+        $line_items[] = $item;
+
+        $i = Invoice::factory()->create([
+            'discount' => 0,
+            'tax_name1' => '',
+            'tax_name2' => '',
+            'tax_name3' => '',
+            'tax_rate1' => 0,
+            'tax_rate2' => 0,
+            'tax_rate3' => 0,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'client_id' => $c->id,
+            'line_items' => $line_items,
+            'status_id' => 1,
+            'uses_inclusive_taxes' => false,
+        ]);
+
+        $invoice_calc = new InvoiceSum($i);
+        $ii = $invoice_calc->build()->getInvoice();
+
+        $ii = $ii->service()->markSent()->save();
+
+        $this->assertEquals(10, $ii->balance);
+        $this->assertEquals(2, $ii->status_id);
+
+        $data = [
+            'client_id' => $c->hashed_id,
+            'invoices' => [
+                [
+                    'invoice_id' => $i->hashed_id,
+                    'amount' => 5,
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/payments/', $data);
+
+        $response->assertStatus(200);
+
+        $payment_data = $response->json();
+
+        $payment_hashed_id = $payment_data['data']['id'];
+
+        $ii = $ii->fresh();
+
+        $this->assertEquals(5, $ii->balance);
+        $this->assertEquals(5, $ii->paid_to_date);
+        $this->assertEquals(3, $ii->status_id);
+
+        $ii->service()->handleCancellation()->save();
+
+        $this->assertEquals(0, $ii->balance);
+        $this->assertEquals(5, $ii->paid_to_date);
+        $this->assertEquals(5, $ii->status_id);
+
+        $repo = new InvoiceRepository();
+        $repo->archive($ii);
+
+        $payment = Payment::find($this->decodePrimaryKey($payment_hashed_id));
+        $payment->service()->deletePayment(false)->save();
+
+        $ii = $ii->fresh();
+        
+        $this->assertEquals(0, $ii->balance);
+        $this->assertEquals(0, $ii->paid_to_date);
+        $this->assertEquals(5, $ii->status_id);
+
+    }
+
+    public function testDeletingCancelledInvoicePayment()
+    {
+        
+        $c = \App\Models\Client::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+        ]);
+
+        $item = InvoiceItemFactory::create();
+        $item->quantity = 1;
+        $item->cost = 10.00;
+        $item->type_id = '1';
+        $item->tax_id = '1';
+        $line_items[] = $item;
+
+        $i = Invoice::factory()->create([
+            'discount' => 0,
+            'tax_name1' => '',
+            'tax_name2' => '',
+            'tax_name3' => '',
+            'tax_rate1' => 0,
+            'tax_rate2' => 0,
+            'tax_rate3' => 0,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'client_id' => $c->id,
+            'line_items' => $line_items,
+            'status_id' => 1,
+            'uses_inclusive_taxes' => false,
+        ]);
+
+        $invoice_calc = new InvoiceSum($i);
+        $ii = $invoice_calc->build()->getInvoice();
+
+        $ii = $ii->service()->markSent()->save();
+
+        $this->assertEquals(10, $ii->balance);
+        $this->assertEquals(2, $ii->status_id);
+
+        $data = [
+            'client_id' => $c->hashed_id,
+            'invoices' => [
+                [
+                    'invoice_id' => $i->hashed_id,
+                    'amount' => 5,
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/payments/', $data);
+
+        $response->assertStatus(200);
+
+        $payment_data = $response->json();
+
+        $payment_hashed_id = $payment_data['data']['id'];
+
+        $ii = $ii->fresh();
+
+        $this->assertEquals(5, $ii->balance);
+        $this->assertEquals(5, $ii->paid_to_date);
+        $this->assertEquals(3, $ii->status_id);
+
+        $ii->service()->handleCancellation()->save();
+
+        $this->assertEquals(0, $ii->balance);
+        $this->assertEquals(5, $ii->paid_to_date);
+        $this->assertEquals(5, $ii->status_id);
+
+        $payment = Payment::find($this->decodePrimaryKey($payment_hashed_id));
+        $payment->service()->deletePayment(false)->save();
+
+        $ii = $ii->fresh();
+        
+        $this->assertEquals(0, $ii->balance);
+        $this->assertEquals(0, $ii->paid_to_date);
+        $this->assertEquals(5, $ii->status_id);
+
+    }
+
+    public function testRefundPaidToDateRelation()
+    {
+                
+        $c = \App\Models\Client::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+        ]);
+
+        $item = InvoiceItemFactory::create();
+        $item->quantity = 1;
+        $item->cost = 10.00;
+        $item->type_id = '1';
+        $item->tax_id = '1';
+        $line_items[] = $item;
+
+        $i = Invoice::factory()->create([
+            'discount' => 0,
+            'tax_name1' => '',
+            'tax_name2' => '',
+            'tax_name3' => '',
+            'tax_rate1' => 0,
+            'tax_rate2' => 0,
+            'tax_rate3' => 0,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'client_id' => $c->id,
+            'line_items' => $line_items,
+            'status_id' => 1,
+            'uses_inclusive_taxes' => false,
+        ]);
+
+        $invoice_calc = new InvoiceSum($i);
+        $ii = $invoice_calc->build()->getInvoice();
+
+        $ii = $ii->service()->markSent()->save();
+
+        $this->assertEquals(10, $ii->balance);
+        $this->assertEquals(2, $ii->status_id);
+        
+        $ii = $ii->service()->markPaid()->save();
+
+        $this->assertEquals(10, $ii->amount);
+        $this->assertEquals(0, $ii->balance);
+        $this->assertEquals(10, $ii->paid_to_date);
+        $this->assertEquals(4, $ii->status_id);
+
+        $p = $ii->payments->first();
+
+        $this->assertEquals(10, $p->amount);
+        $this->assertEquals(10, $p->applied);
+        $this->assertEquals(0, $p->refunded);
+
+        $refund_data['gateway_refund']=false;
+        $refund_data['invoices'][] = [
+            'invoice_id' => $ii->id,
+            'amount' => 10
+        ];
+
+        $p->service()->refundPayment($refund_data);
+
+        $ii = $ii->fresh();
+
+        $this->assertEquals(2, $ii->status_id);
+        $this->assertEquals(10, $ii->balance);
+        $this->assertEquals(0, $ii->paid_to_date);
+
     }
 
     public function testRappenRounding()

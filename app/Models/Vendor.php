@@ -118,6 +118,7 @@ class Vendor extends BaseModel
         'language_id',
         'classification',
         'is_tax_exempt',
+        'routing_id',
     ];
 
     protected $casts = [

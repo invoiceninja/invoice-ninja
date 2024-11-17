@@ -11,7 +11,7 @@
                                 for="{{ $field['key'] }}"
                                 class="input-label">
                                 @if(in_array($field['key'], ['custom_value1','custom_value2','custom_value3','custom_value4']))
-                                    {{ (new App\Utils\Helpers())->makeCustomField($subscription->company->custom_fields, str_replace("custom_value","client", $field['key']))}}
+                                    {{ (new App\Utils\Helpers())->makeCustomField($this->subscription->company->custom_fields, str_replace("custom_value","client", $field['key']))}}
                                 @elseif(array_key_exists('label', $field))
                                     {{ ctrans("texts.{$field['label']}") }}
                                 @else
@@ -46,20 +46,22 @@
                                 name="currency_id">
                                 @foreach(App\Utils\TranslationHelper::getCurrencies() as $currency)
                                     <option
-                                        {{ $currency->id == $subscription->company->settings->currency_id ? 'selected' : null }} value="{{ $currency->id }}">
+                                        {{ $currency->id == $this->subscription->company->settings->currency_id ? 'selected' : null }} value="{{ $currency->id }}">
                                         {{ $currency->getName() }}
                                     </option>
                                 @endforeach
                             </select>
                         @elseif($field['key'] === 'country_id')
                             <select
-                                id="shipping_country"
+                                id="country_id"
                                 class="input w-full form-select bg-white"
+                                wire:change="$set('formData.country_id', $event.target.value)"
                                 name="country_id">
-                                <option value="none"></option>
+                                <option value=""></option>
                                 @foreach(App\Utils\TranslationHelper::getCountries() as $country)
                                     <option
-                                        {{ $country == isset(auth()->user()->client->shipping_country->id) ? 'selected' : null }} value="{{ $country->id }}">
+                                        {{ isset(auth()->user()->client->country->id) && $country->id == auth()->user()->client->country->id ? 'selected' : '' }}
+                                        value="{{ $country->id }}">
                                         {{ $country->iso_3166_2 }}
                                         ({{ $country->getName() }})
                                     </option>
@@ -67,13 +69,15 @@
                             </select>
                         @elseif($field['key'] === 'shipping_country_id')
                             <select
-                                id="shipping_country"
+                                id="shipping_country_id"
                                 class="input w-full form-select bg-white"
+                                wire:change="$set('formData.shipping_country_id', $event.target.value)"
                                 name="shipping_country_id">
-                                <option value="none"></option>
+                                <option value=""></option>
                                 @foreach(App\Utils\TranslationHelper::getCountries() as $country)
                                     <option
-                                        {{ $country == isset(auth()->user()->client->shipping_country->id) ? 'selected' : null }} value="{{ $country->id }}">
+                                        {{ isset(auth()->user()->client->shipping_country->id) && $country->id == auth()->user()->client->shipping_country->id ? 'selected' : '' }}
+                                        value="{{ $country->id }}">
                                         {{ $country->iso_3166_2 }}
                                         ({{ $country->getName() }})
                                     </option>
@@ -124,15 +128,15 @@
 
     <div class="col-span-12 md:col-span-6">
         <span class="inline-flex items-center" x-data="{ terms_of_service: false, privacy_policy: false }">
-            @if(!empty($subscription->company->settings->client_portal_terms) || !empty($subscription->company->settings->client_portal_privacy_policy))
+            @if(!empty($this->subscription->company->settings->client_portal_terms) || !empty($this->subscription->company->settings->client_portal_privacy_policy))
                 <input type="checkbox" name="terms" class="form-checkbox mr-2 cursor-pointer" checked>
                 <span class="text-sm text-gray-800">
 
                 {{ ctrans('texts.i_agree_to_the') }}
             @endif
 
-            @includeWhen(!empty($subscription->company->settings->client_portal_terms), 'portal.ninja2020.auth.includes.register.popup', ['property' => 'terms_of_service', 'title' => ctrans('texts.terms_of_service'), 'content' => $subscription->company->settings->client_portal_terms])
-            @includeWhen(!empty($subscription->company->settings->client_portal_privacy_policy), 'portal.ninja2020.auth.includes.register.popup', ['property' => 'privacy_policy', 'title' => ctrans('texts.privacy_policy'), 'content' => $subscription->company->settings->client_portal_privacy_policy])
+            @includeWhen(!empty($this->subscription->company->settings->client_portal_terms), 'portal.ninja2020.auth.includes.register.popup', ['property' => 'terms_of_service', 'title' => ctrans('texts.terms_of_service'), 'content' => $this->subscription->company->settings->client_portal_terms])
+            @includeWhen(!empty($this->subscription->company->settings->client_portal_privacy_policy), 'portal.ninja2020.auth.includes.register.popup', ['property' => 'privacy_policy', 'title' => ctrans('texts.privacy_policy'), 'content' => $this->subscription->company->settings->client_portal_privacy_policy])
 
             @error('terms')
                 <p class="text-red-600">{{ $message }}</p>

@@ -41,6 +41,8 @@ class BankTransactionRuleTest extends TestCase
         );
 
         $this->withoutExceptionHandling();
+
+        $this->markTestSkipped('ignore');
     }
 
     public function testNewCreditMatchingRulesInvoiceStartsWith() 

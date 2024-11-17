@@ -232,8 +232,7 @@ class LivewireInstantPayment
         ];
 
         if ($this->is_credit_payment) {
-
-            $this->mergeResponder(['success' => true, 'component' => 'CreditPaymentComponent', 'payload' => $data]);
+            $this->mergeResponder(['success' => true, 'view' => 'gateways.credit.pay_livewire', 'component' => 'CreditPaymentComponent', 'payload' => $data]);
             return $this->getResponder();
         }
 

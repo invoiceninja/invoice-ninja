@@ -106,6 +106,8 @@ class BaseRule implements RuleInterface
             'US' => 'US', // United States
 
             'AU' => 'AU', // Australia
+
+            'GB' => 'UK', //Great Britain
     ];
 
     /** EU TAXES */
@@ -139,7 +141,7 @@ class BaseRule implements RuleInterface
 
     public function shouldCalcTax(): bool
     {
-        return $this->should_calc_tax && $this->checkIfInvoiceLocked();
+        return $this->should_calc_tax && $this->checkIfInvoiceLocked() && $this->invoice->client;
     }
     /**
      * Initializes the tax rule for the entity.
@@ -155,13 +157,24 @@ class BaseRule implements RuleInterface
 
         $this->resolveRegions();
 
+        
         if(!$this->isTaxableRegion()) {
+            $this->tax_data = null;
+            $this->tax_rate1 = 0;
+            $this->tax_name1 = '';
+            $this->tax_rate2 = 0;
+            $this->tax_name2 = '';
+            $this->tax_rate3 = 0;
+            $this->tax_name3 = '';
             return $this;
         }
 
         $this->configTaxData();
 
         $this->tax_data = new Response($this->invoice->tax_data);
+
+        if($this->invoice instanceof \App\Models\RecurringInvoice)
+            $this->tax_data = new Response($this->client->tax_data);
 
         return $this;
     }
@@ -246,12 +259,13 @@ class BaseRule implements RuleInterface
     private function resolveRegions(): self
     {
 
-        $this->client_region = $this->region_codes[$this->client->country->iso_3166_2];
+        $this->client_region = $this->region_codes[$this->client->country->iso_3166_2 ?? $this->client->company->country()->iso_3166_2];
 
         match($this->client_region) {
             'US' => $this->client_subregion = isset($this->invoice?->client?->tax_data?->geoState) ? $this->invoice->client->tax_data->geoState : $this->getUSState(),
             'EU' => $this->client_subregion = $this->client->country->iso_3166_2,
             'AU' => $this->client_subregion = 'AU',
+            'UK' => $this->client_subregion = 'GB',
             default => $this->client_subregion = $this->client->country->iso_3166_2,
         };
 
@@ -305,7 +319,8 @@ class BaseRule implements RuleInterface
 
             return $this;
 
-        } elseif($this->client_region == 'AU') { //these are defaults and are only stubbed out for now, for AU we can actually remove these
+        } 
+        elseif($this->client_region == 'AU') { //these are defaults and are only stubbed out for now, for AU we can actually remove these
 
             $this->tax_rate1 = $this->client->company->tax_data->regions->AU->subregions->AU->tax_rate;
             $this->tax_name1 = $this->client->company->tax_data->regions->AU->subregions->AU->tax_name;
@@ -314,8 +329,36 @@ class BaseRule implements RuleInterface
         }
 
         if(isset($this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion})) {
-            $this->tax_rate1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_rate;
-            $this->tax_name1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_name;
+            if ($this->client_region === 'EU') {
+                $company_country_code = $this->client->company->country()->iso_3166_2;
+                $client_country_code = $this->client->country->iso_3166_2;
+
+                $is_over_threshold = isset($this->client->company->tax_data->regions->EU->has_sales_above_threshold) &&
+                                    $this->client->company->tax_data->regions->EU->has_sales_above_threshold;
+
+                $is_b2c = strlen($this->client->vat_number) < 2 ||
+                        !($this->client->has_valid_vat_number ?? false) ||
+                        $this->client->classification == 'individual';
+
+                // Use destination VAT only for B2C transactions over threshold
+                if ($is_b2c && $is_over_threshold) {
+                    $this->tax_rate1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_rate;
+                    $this->tax_name1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_name;
+                }
+                // Otherwise, use origin country tax rates
+                elseif (in_array($company_country_code, $this->eu_country_codes)) {
+                    $this->tax_rate1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$company_country_code}->tax_rate;
+                    $this->tax_name1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$company_country_code}->tax_name;
+                }
+                elseif($is_over_threshold){
+                    $this->tax_rate1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_rate;
+                    $this->tax_name1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_name;
+                }
+            }
+            else {
+                $this->tax_rate1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_rate;
+                $this->tax_name1 = $this->client->company->tax_data->regions->{$this->client_region}->subregions->{$this->client_subregion}->tax_name;
+            }
         }
 
         return $this;
@@ -324,7 +367,7 @@ class BaseRule implements RuleInterface
     public function tax($item = null): self
     {
 
-        if ($this->client->is_tax_exempt || !property_exists($item, 'tax_id')) {
+        if ($this->client->is_tax_exempt || !property_exists($item, 'tax_id') ) {
 
             return $this->taxExempt($item);
 
@@ -341,10 +384,17 @@ class BaseRule implements RuleInterface
                 Product::PRODUCT_TYPE_REDUCED_TAX => $this->taxReduced($item),
                 Product::PRODUCT_TYPE_OVERRIDE_TAX => $this->override($item),
                 Product::PRODUCT_TYPE_ZERO_RATED => $this->zeroRated($item),
+                Product::PRODUCT_TYPE_REVERSE_TAX => $this->zeroRated($item),
+                Product::PRODUCT_INTRA_COMMUNITY => $this->zeroRated($item),
                 default => $this->defaultForeign(),
             };
 
+            return $this;
+
         }
+
+        $this->taxByType($item);
+
         return $this;
 
     }

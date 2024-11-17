@@ -18,9 +18,9 @@ use App\Services\EDocument\Gateway\Storecove\StorecoveRouter;
 
 class Mutator implements MutatorInterface
 {
-
+    
     private \InvoiceNinja\EInvoice\Models\Peppol\Invoice $p_invoice;
-
+    
     private ?\InvoiceNinja\EInvoice\Models\Peppol\Invoice $_client_settings;
 
     private ?\InvoiceNinja\EInvoice\Models\Peppol\Invoice $_company_settings;
@@ -30,7 +30,7 @@ class Mutator implements MutatorInterface
     private array $storecove_meta = [];
 
     private MutatorUtil $mutator_util;
-    // Constructor
+
     public function __construct(public Storecove $storecove)
     {
         $this->mutator_util = new MutatorUtil($this);
@@ -51,7 +51,7 @@ class Mutator implements MutatorInterface
     /**
      * setPeppol
      *
-     * @param  mixed $p_invoice
+     * @param  \InvoiceNinja\EInvoice\Models\Peppol\Invoice $p_invoice
      * @return self
      */
     public function setPeppol($p_invoice): self
@@ -63,7 +63,7 @@ class Mutator implements MutatorInterface
     /**
      * getPeppol
      *
-     * @return mixed
+     * @return \InvoiceNinja\EInvoice\Models\Peppol\Invoice
      */
     public function getPeppol(): mixed
     {
@@ -85,7 +85,7 @@ class Mutator implements MutatorInterface
     /**
      * setCompanySettings
      *  
-     * @param  mixed $company_settings
+     * @param  \InvoiceNinja\EInvoice\Models\Peppol\Invoice $company_settings
      * @return self
      */
     public function setCompanySettings($company_settings): self
@@ -93,22 +93,43 @@ class Mutator implements MutatorInterface
         $this->_company_settings = $company_settings;
         return $this;
     }
-
+    
+    /**
+     * getClientSettings
+     *
+     * @return \InvoiceNinja\EInvoice\Models\Peppol\Invoice
+     */
     public function getClientSettings(): mixed
     {
         return $this->_client_settings;
     }
-
+    
+    /**
+     * getCompanySettings
+     *
+     * @return \InvoiceNinja\EInvoice\Models\Peppol\Invoice
+     */
     public function getCompanySettings(): mixed
     {
         return $this->_company_settings;
     }
-
+    
+    /**
+     * getInvoice
+     *
+     * @return mixed
+     */
     public function getInvoice(): mixed
     {
         return $this->invoice;
     }
-
+    
+    /**
+     * getSetting
+     *
+     * @param  string $property_path
+     * @return mixed
+     */
     public function getSetting(string $property_path): mixed
     {
         return $this->mutator_util->getSetting($property_path);
@@ -351,7 +372,7 @@ class Mutator implements MutatorInterface
                 // ["scheme" => 'IT:CUUO', "id" => $this->invoice->client->routing_id]
             ]));
 
-            $this->setEmailRouting($this->invoice->client->present()->email());
+            $this->setEmailRouting($this->getIndividualEmailRoute());
 
             return $this;
         }
@@ -496,9 +517,7 @@ class Mutator implements MutatorInterface
 
         $this->p_invoice->AccountingCustomerParty->Party->PostalAddress->CountrySubentity = $resolved_state;
         $this->p_invoice->AccountingCustomerParty->Party->PostalAddress->CityName = $resolved_city;
-        $this->p_invoice->AccountingCustomerParty->Party->PhysicalLocation->Address->CountrySubentity = $resolved_state;
-        $this->p_invoice->AccountingCustomerParty->Party->PhysicalLocation->Address->CityName = $resolved_city;
-
+        
         return $this;
     }
     
@@ -552,8 +571,52 @@ class Mutator implements MutatorInterface
         return $this;
     }
 
-
     /////////////// Storecove Helpers ///////////////
+    private function getIndividualEmailRoute(): string
+    {
+        return $this->invoice->client->present()->email();
+    }
+    
+    private function getClientPublicIdentifier(string $code): string
+    {
+        if($this->invoice->client->classification == 'individual' && strlen($this->invoice->client->id_number ?? '') > 2)
+            return $this->invoice->client->id_number;
+
+        // elseif($this->invoice->client->classification == 'business')
+        return $this->invoice->client->vat_number;
+    }
+
+    public function setClientRoutingCode(): self
+    {
+
+        if($this->invoice->client->classification == 'individual' || (strlen($this->invoice->client->vat_number ?? '') < 2 && strlen($this->invoice->client->id_number ?? '') < 2)){ 
+            return $this->setEmailRouting($this->getIndividualEmailRoute());
+        }
+
+        //Regardless, always include the client email address as a route - Storecove will only use this as a fallback.
+        $this->setEmailRouting($this->getIndividualEmailRoute());
+
+        $code = $this->getClientRoutingCode();
+        $identifier = false;
+
+        if($this->invoice->client->country->iso_3166_2 == 'FR')
+            $identifier = $this->invoice->client->id_number;
+        else
+            $identifier = $this->invoice->client->vat_number;
+
+        if($this->invoice->client->country->iso_3166_2 == 'DE' && $this->invoice->client->classification == 'government')
+            $identifier = $this->invoice->client->routing_id;
+        
+        if(!$identifier)
+            $identifier = $this->getClientPublicIdentifier($code);
+
+
+        $this->setStorecoveMeta($this->buildRouting([
+                ["scheme" => $code, "id" => $identifier]
+            ]));
+
+        return $this;
+    }
 
     /**
      * getClientRoutingCode
@@ -562,7 +625,7 @@ class Mutator implements MutatorInterface
      */
     private function getClientRoutingCode(): string
     {
-        return (new StorecoveRouter())->resolveRouting($this->invoice->client->country->iso_3166_2, $this->invoice->client->classification);
+        return (new StorecoveRouter())->setInvoice($this->invoice)->resolveRouting($this->invoice->client->country->iso_3166_2, $this->invoice->client->classification);
     }
 
 
@@ -593,7 +656,6 @@ class Mutator implements MutatorInterface
      */
     private function setEmailRouting(string $email): self
     {
-
         $meta = $this->getStorecoveMeta();
 
         if(isset($meta['routing']['emails'])) {
@@ -622,7 +684,7 @@ class Mutator implements MutatorInterface
     private function setStorecoveMeta(array $meta): self
     {
 
-        $this->storecove_meta = array_merge($this->storecove_meta, $meta);
+        $this->storecove_meta = array_merge_recursive($this->storecove_meta, $meta);
 
         return $this;
     }

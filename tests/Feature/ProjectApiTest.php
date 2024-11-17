@@ -14,7 +14,9 @@ namespace Tests\Feature;
 use App\Models\Expense;
 use Tests\TestCase;
 use App\Models\Invoice;
+use App\Models\Project;
 use App\Models\Quote;
+use App\Models\Task;
 use Tests\MockAccountData;
 use App\Utils\Traits\MakesHash;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +48,49 @@ class ProjectApiTest extends TestCase
 
         Model::reguard();
     }
+
+    public function testInvoiceProject()
+    {
+
+        $p = Project::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'name' => 'Best Project',
+            'task_rate' => 100,
+        ]);
+
+        $t = Task::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'project_id' => $p->id,
+            'client_id' => $this->client->id,
+            'time_log' => '[[1731391977,1731399177,"item description",true],[1731399178,1731499177,"item description 2", true]]',
+            'description' => 'Top level Task Description',
+        ]);
+
+        $e = Expense::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'project_id' => $p->id,
+            'amount' => 100,
+            'public_notes' => 'Expensive Business!!',
+            'should_be_invoiced' => true,
+        ]);
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson("/api/v1/projects/{$p->hashed_id}/invoice");
+
+        $response->assertStatus(200);
+
+        $arr = $response->json();
+
+        nlog($arr);
+    }
+
+
 
     public function testCreateProjectWithNullTaskRate()
     {

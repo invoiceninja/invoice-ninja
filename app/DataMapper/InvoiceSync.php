@@ -23,7 +23,9 @@ class InvoiceSync implements Castable
     
     public function __construct(array $attributes = [])
     {
+        
         $this->qb_id = $attributes['qb_id'] ?? '';
+        
     }
 
     /**

@@ -14,22 +14,44 @@ namespace Tests\Integration\Einvoice\Storecove;
 use Tests\TestCase;
 use App\Models\Client;
 use App\Models\Company;
+use App\Models\Country;
 use App\Models\Invoice;
 use Tests\MockAccountData;
+use Illuminate\Support\Str;
+use App\Models\ClientContact;
 use App\DataMapper\InvoiceItem;
+use App\DataMapper\Tax\TaxModel;
 use App\DataMapper\ClientSettings;
 use App\DataMapper\CompanySettings;
-use App\Models\ClientContact;
 use App\Services\EDocument\Standards\Peppol;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use InvoiceNinja\EInvoice\Models\Peppol\PaymentMeans;
-
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use App\Services\EDocument\Gateway\Storecove\Storecove;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
+use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
+use InvoiceNinja\EInvoice\Models\Peppol\Invoice as PeppolInvoice;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
+use App\Services\EDocument\Gateway\Storecove\PeppolToStorecoveNormalizer;
+use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
+use App\Services\EDocument\Gateway\Storecove\Models\Invoice as StorecoveInvoice;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 class StorecoveTest extends TestCase
 {
     use MockAccountData;
     use DatabaseTransactions;
 
-    private int $routing_id;
+    private int $routing_id = 0;
 
     protected function setUp(): void
     {
@@ -40,10 +62,577 @@ class StorecoveTest extends TestCase
         if (config('ninja.testvars.travis') !== false || !config('ninja.storecove_api_key')) {
             $this->markTestSkipped("do not run in CI");
         }
+                
+        $this->withoutMiddleware(
+            ThrottleRequests::class
+        );
+
     }
 
+    private function setupTestData(array $params = []): array
+    {
+        
+        $settings = CompanySettings::defaults();
+        $settings->vat_number = $params['company_vat'] ?? 'DE123456789';
+        $settings->id_number = $params['company_id_number'] ?? '';
+        $settings->classification = $params['company_classification'] ?? 'business';
+        $settings->country_id = Country::where('iso_3166_2', 'DE')->first()->id;
+        $settings->email = $this->faker->safeEmail();
+        $settings->currency_id = '3';
+
+        $tax_data = new TaxModel();
+        $tax_data->regions->EU->has_sales_above_threshold = $params['over_threshold'] ?? false;
+        $tax_data->regions->EU->tax_all_subregions = true;
+        $tax_data->seller_subregion = $params['company_country'] ?? 'DE';
+
+        $einvoice = new \InvoiceNinja\EInvoice\Models\Peppol\Invoice();
+
+        $fib = new \InvoiceNinja\EInvoice\Models\Peppol\BranchType\FinancialInstitutionBranch();
+        $fib->ID = "DEUTDEMMXXX"; //BIC
+
+        $pfa = new \InvoiceNinja\EInvoice\Models\Peppol\FinancialAccountType\PayeeFinancialAccount();
+        $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\ID();
+        $id->value = 'DE89370400440532013000';
+        $pfa->ID = $id;
+        $pfa->Name = 'PFA-NAME';
+
+        $pfa->FinancialInstitutionBranch = $fib;
+
+        $pm = new \InvoiceNinja\EInvoice\Models\Peppol\PaymentMeans();
+        $pm->PayeeFinancialAccount = $pfa;
+
+        $pmc = new \InvoiceNinja\EInvoice\Models\Peppol\CodeType\PaymentMeansCode();
+        $pmc->value = '30';
+
+        $pm->PaymentMeansCode = $pmc;
+
+        $einvoice->PaymentMeans[] = $pm;
+
+        $stub = new \stdClass();
+        $stub->Invoice = $einvoice;
+
+        $this->company->settings = $settings;
+        $this->company->tax_data = $tax_data;
+        $this->company->calculate_taxes = true;
+        $this->company->legal_entity_id = 290868;
+        $this->company->e_invoice = $stub;
+        $this->company->save();
+        $company = $this->company;
+
+        $client = Client::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'country_id' => Country::where('iso_3166_2', $params['client_country'] ?? 'FR')->first()->id,
+            'vat_number' => $params['client_vat'] ?? '',
+            'classification' => $params['classification'] ?? 'individual',
+            'has_valid_vat_number' => $params['has_valid_vat'] ?? false,
+            'name' => 'Test Client',
+            'is_tax_exempt' => $params['is_tax_exempt'] ?? false,
+            'id_number' => $params['client_id_number'] ?? '',
+        ]);
+
+        $contact = ClientContact::factory()->create([
+            'client_id' => $client->id,
+            'company_id' =>$client->company_id,
+            'user_id' => $client->user_id,
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
+            'email' => $this->faker->safeEmail()
+        ]);
+
+        $invoice = \App\Models\Invoice::factory()->create([
+            'client_id' => $client->id,
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'date' => now()->addDay()->format('Y-m-d'),
+            'due_date' => now()->addDays(2)->format('Y-m-d'),
+            'uses_inclusive_taxes' => false,
+            'tax_rate1' => 0,
+            'tax_name1' => '',
+            'tax_rate2' => 0,
+            'tax_name2' => '',
+            'tax_rate3' => 0,
+            'tax_name3' => '',
+        ]);
+
+        $items = $invoice->line_items;
+        foreach($items as &$item)
+        {
+          $item->tax_name2 = '';
+          $item->tax_rate2 = 0;
+          $item->tax_name3 = '';
+          $item->tax_rate3 = 0;
+          $item->uses_inclusive_taxes = false;
+        }
+        unset($item);
+
+        $invoice->line_items = array_values($items);
+        $invoice = $invoice->calc()->getInvoice();
+
+        return compact('company', 'client', 'invoice');
+    }
+
+    public function testDEtoFRB2BReverseCharge()
+    {
+      
+        $this->routing_id = 290868;
+
+        $scenario = [
+            'company_vat' => 'DE923356489',
+            'company_id_number' => '01234567890',
+            'company_country' => 'DE',
+            'company_classification' => 'business',
+            'client_country' => 'FR',
+            'client_vat' => 'FRAA123456789',
+            'client_id_number' => '',
+            'classification' => 'business',
+            'has_valid_vat' => false,
+            'over_threshold' => false,
+            'legal_entity_id' => 290868,
+            'is_tax_exempt' => true,
+        ];
+
+        $data = $this->setupTestData($scenario);
+
+        $invoice = $data['invoice'];
+
+        $line_items = $invoice->line_items;
+
+        foreach($line_items as &$item)
+        {
+          $item->tax_id = (string)\App\Models\Product::PRODUCT_TYPE_REVERSE_TAX;
+        }
+        unset($item);
+
+        $invoice->line_items = array_values($line_items);
+
+        $invoice = $invoice->calc()->getInvoice();
+
+        $this->assertEquals(floatval(0), floatval($invoice->total_taxes));
+    }
+
+    public function testDEIToDEGNoTaxes()
+    {
+      
+        $this->routing_id = 290868;
+
+        $scenario = [
+            'company_vat' => '',
+            'company_id_number' => '01234567890',
+            'company_country' => 'DE',
+            'company_classification' => 'individual',
+            'client_country' => 'DE',
+            'client_vat' => '',
+            'client_id_number' => '',
+            'classification' => 'government',
+            'has_valid_vat' => false,
+            'over_threshold' => false,
+            'legal_entity_id' => 290868,
+            'is_tax_exempt' => true,
+        ];
+
+        $data = $this->setupTestData($scenario);
+
+        $invoice = $data['invoice'];
+        $invoice = $invoice->calc()->getInvoice();
+
+        $this->assertEquals(floatval(0), floatval($invoice->total_taxes));
+    }
+
+    public function testDeNoVatNumberToDeVatNumber()
+    {
+      
+        $this->routing_id = 290868;
+
+        $scenario = [
+            'company_vat' => '',
+            'company_id_number' => '01234567890',
+            'company_country' => 'DE',
+            'company_classification' => 'individual',
+            'client_country' => 'DE',
+            'client_vat' => 'DE923356489',
+            'client_id_number' => '',
+            'classification' => 'business',
+            'has_valid_vat' => true,
+            'over_threshold' => false,
+            'legal_entity_id' => 290868,
+            'is_tax_exempt' => false,
+        ];
+
+        $data = $this->setupTestData($scenario);
+
+        $invoice = $data['invoice'];
+        $invoice = $invoice->calc()->getInvoice();
+
+        $this->assertGreaterThan(0, $invoice->total_taxes);
+    }
+
+    public function testDeToFrClientTaxExemptSending()
+    {
+        $this->routing_id = 290868;
+
+        $scenario = [
+            'company_vat' => 'DE923356489',
+            'company_country' => 'DE',
+            'client_country' => 'FR',
+            'client_vat' => 'FRAA123456789',
+            'client_id_number' => '123456789',
+            'classification' => 'business',
+            'has_valid_vat' => true,
+            'over_threshold' => true,
+            'legal_entity_id' => 290868,
+            'is_tax_exempt' => false,
+        ];
+
+        $data = $this->setupTestData($scenario);
+
+        $invoice = $data['invoice'];
+        $invoice = $invoice->calc()->getInvoice();
+        $company = $data['company'];
+        $client = $data['client'];
+        $client->save();
+
+        $this->assertEquals('DE', $company->country()->iso_3166_2);
+        $this->assertEquals('FR', $client->country->iso_3166_2);
+
+        foreach($invoice->line_items as $item)
+        {
+          $this->assertEquals('1', $item->tax_id);
+          $this->assertEquals(0, $item->tax_rate1);
+        }
+
+        $this->assertEquals(floatval(0), floatval($invoice->total_taxes));
+        $this->sendDocument($invoice);
+    }
+        
+    /**
+     * PtestDeToDeClientTaxExemptSending
+     *
+     * Disabled for now - there is an issue with internal tax exempt client in same country
+     * @return void
+     */
+    public function PtestDeToDeClientTaxExemptSending()
+    {
+        $this->routing_id = 290868;
+
+        $scenario = [
+            'company_vat' => 'DE923356489',
+            'company_country' => 'DE',
+            'client_country' => 'DE',
+            'client_vat' => 'DE173755434',
+          'classification' => 'business',
+            'has_valid_vat' => true,
+            'over_threshold' => true,
+            'legal_entity_id' => 290868,
+            'is_tax_exempt' => true,
+        ];
+
+        $data = $this->setupTestData($scenario);
+
+        $invoice = $data['invoice'];
+        $invoice = $invoice->calc()->getInvoice();
+        $company = $data['company'];
+        $client = $data['client'];
+        $client->save();
+
+        $this->assertEquals('DE', $company->country()->iso_3166_2);
+        $this->assertEquals('DE', $client->country->iso_3166_2);
+
+        foreach($invoice->line_items as $item)
+        {
+          $this->assertEquals('1', $item->tax_id);
+          $this->assertEquals(0, $item->tax_rate1);
+        }
+
+        $this->assertEquals(floatval(0), floatval($invoice->total_taxes));
+        $this->sendDocument($invoice);
+    }
+
+    public function testDeToDeSending()
+    {
+        $this->routing_id = 290868;
+
+        $scenario = [
+            'company_vat' => 'DE923356489',
+            'company_country' => 'DE',
+            'client_country' => 'DE',
+            'client_vat' => '',
+            'classification' => 'individual',
+            'has_valid_vat' => false,
+            'over_threshold' => true,
+            'legal_entity_id' => 290868,
+        ];
+
+        $data = $this->setupTestData($scenario);
+
+        $invoice = $data['invoice'];
+        $invoice = $invoice->calc()->getInvoice();
+        $company = $data['company'];
+        $client = $data['client'];
+        $tax_rate = $company->tax_data->regions->EU->subregions->DE->tax_rate;
+
+        $this->assertEquals('DE', $company->country()->iso_3166_2);
+        $this->assertEquals('DE', $client->country->iso_3166_2);
+
+        foreach($invoice->line_items as $item)
+        {
+          $this->assertEquals('1', $item->tax_id);
+          $this->assertEquals($tax_rate, $item->tax_rate1);
+        }
+
+        $this->sendDocument($invoice);
+    }
+
+    private function sendDocument($model)
+    {
+        $storecove = new Storecove();
+        $p = new Peppol($model);
+        $p->run();
+
+        try {
+            $processor = new \Saxon\SaxonProcessor();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('saxon not installed');
+        }
+
+        $validator = new \App\Services\EDocument\Standards\Validation\XsltDocumentValidator($p->toXml());
+        $validator->validate();
+
+        if (count($validator->getErrors()) > 0) {
+            nlog($p->toXml());
+            nlog($validator->getErrors());
+        }
+
+        $this->assertCount(0, $validator->getErrors());
+
+        $identifiers = $p->gateway->mutator->setClientRoutingCode()->getStorecoveMeta();
+
+        $result = $storecove->build($model)->getResult();
+
+        if (count($result['errors']) > 0) {
+            nlog("errors!");
+            nlog($result);
+            return $result['errors'];
+        }
+
+        $payload = [
+            'legal_entity_id' => $model->company->legal_entity_id,
+            "idempotencyGuid" => \Illuminate\Support\Str::uuid(),
+            'document' => [
+                'document_type' => 'invoice',
+                'invoice' => $result['document'],
+            ],
+            'tenant_id' => $model->company->company_key,
+            'routing' => $identifiers['routing'],
+        ];
+        /** Concrete implementation current linked to Storecove only */
+
+        //@testing only
+        $sc = new \App\Services\EDocument\Gateway\Storecove\Storecove();
+        $r = $sc->sendJsonDocument($payload);
+
+        nlog($r);
+    }
+
+    public function testTransformPeppolToStorecove()
+    {
+      
+        $phpDocExtractor = new PhpDocExtractor();
+        $reflectionExtractor = new ReflectionExtractor();
+        // list of PropertyListExtractorInterface (any iterable)
+        $typeExtractors = [$reflectionExtractor,$phpDocExtractor];
+        // list of PropertyDescriptionExtractorInterface (any iterable)
+        $descriptionExtractors = [$phpDocExtractor];
+        // list of PropertyAccessExtractorInterface (any iterable)
+        $propertyInitializableExtractors = [$reflectionExtractor];
+        $propertyInfo = new PropertyInfoExtractor(
+            $propertyInitializableExtractors,
+            $descriptionExtractors,
+            $typeExtractors,
+        );
+        $xml_encoder = new XmlEncoder(['xml_format_output' => true, 'remove_empty_tags' => true,]);
+        $json_encoder = new JsonEncoder();
+
+        $classMetadataFactory = new ClassMetadataFactory(new AttributeLoader());
+        $metadataAwareNameConverter = new MetadataAwareNameConverter($classMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
+
+        $normalizer = new ObjectNormalizer($classMetadataFactory, $metadataAwareNameConverter, null, $propertyInfo);
+
+        $normalizers = [new DateTimeNormalizer(), $normalizer,  new ArrayDenormalizer()];
+        $encoders = [$xml_encoder, $json_encoder];
+        $serializer = new Serializer($normalizers, $encoders);
+
+        $context = [
+          DateTimeNormalizer::FORMAT_KEY => 'Y-m-d', 
+          AbstractObjectNormalizer::SKIP_NULL_VALUES => true,
+        ];
+
+        $p = file_get_contents(base_path('tests/Integration/Einvoice/samples/peppol.xml'));
+
+        $e = new \InvoiceNinja\EInvoice\EInvoice();
+        $peppolInvoice = $e->decode('Peppol', $p, 'xml');
+
+        $this->assertInstanceOf(\InvoiceNinja\EInvoice\Models\Peppol\Invoice::class, $peppolInvoice);
+
+        $parent = \App\Services\EDocument\Gateway\Storecove\Models\Invoice::class;
+
+        $peppolInvoice = $data = $e->encode($peppolInvoice, 'json', $context);
+
+        $invoice = $serializer->deserialize($peppolInvoice, $parent, 'json', $context);
+        
+        $this->assertInstanceOf($parent, $invoice);
+                
+        $s_invoice = $serializer->encode($invoice, 'json', $context);
+
+        $arr = json_decode($s_invoice, true);
+
+        $arr = $this->removeEmptyValues($arr);
+
+        nlog($arr);
+        
+    }
+
+
+    private function removeEmptyValues(array $array): array
+    {
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $array[$key] = $this->removeEmptyValues($value);
+                if (empty($array[$key])) {
+                    unset($array[$key]);
+                }
+            } elseif ($value === null || $value === '') {
+                unset($array[$key]);
+            }
+        }
+        // nlog($array);
+        return $array;
+    }
+
+
+    public function testNormalizingToStorecove()
+    {
+      
+        $e_invoice = new \InvoiceNinja\EInvoice\Models\Peppol\Invoice();
+
+        $invoice = $this->createATData();
+
+        $stub = json_decode('{"Invoice":{"Note":"Nooo","PaymentMeans":[{"ID":{"value":"afdasfasdfasdfas"},"PayeeFinancialAccount":{"Name":"PFA-NAME","ID":{"value":"DE89370400440532013000"},"AliasName":"PFA-Alias","AccountTypeCode":{"value":"CHECKING"},"AccountFormatCode":{"value":"IBAN"},"CurrencyCode":{"value":"EUR"},"FinancialInstitutionBranch":{"ID":{"value":"DEUTDEMMXXX"},"Name":"Deutsche Bank"}}}]}}');
+        foreach ($stub as $key => $value) {
+            $e_invoice->{$key} = $value;
+        }
+
+        $invoice->e_invoice = $e_invoice;
+
+        $p = new Peppol($invoice);
+
+        $this->assertIsString($p->run()->toXml());
+        
+
+    }
+
+    public function testStorecoveTransformerWithPercentageDiscount()
+    {
+            
+      $e_invoice = new \InvoiceNinja\EInvoice\Models\Peppol\Invoice();
+
+      $invoice = $this->createATData();
+      $invoice->is_amount_discount = false;
+      
+      $item = new InvoiceItem();
+      $item->product_key = "Product Key";
+      $item->notes = "Product Description";
+      $item->cost = 10;
+      $item->quantity = 10;
+      $item->is_amount_discount = false;
+      $item->discount=5;
+      $item->tax_rate1 = 20;
+      $item->tax_name1 = 'VAT';
+
+      $invoice->line_items = [$item];
+      $invoice->calc()->getInvoice();
+
+      $stub = json_decode('{"Invoice":{"Note":"Nooo","PaymentMeans":[{"ID":{"value":"afdasfasdfasdfas"},"PayeeFinancialAccount":{"Name":"PFA-NAME","ID":{"value":"DE89370400440532013000"},"AliasName":"PFA-Alias","AccountTypeCode":{"value":"CHECKING"},"AccountFormatCode":{"value":"IBAN"},"CurrencyCode":{"value":"EUR"},"FinancialInstitutionBranch":{"ID":{"value":"DEUTDEMMXXX"},"Name":"Deutsche Bank"}}}]}}');
+      foreach ($stub as $key => $value) {
+          $e_invoice->{$key} = $value;
+      }
+
+      $invoice->e_invoice = $e_invoice;
+
+      $p = new Peppol($invoice);
+      $p->run();
+      $peppolInvoice = $p->getInvoice();
+
+      $this->assertNotNull($peppolInvoice);
+    }
+
+
+
+    public function testUnsetOfVatNumers()
+    {
+
+      $settings = CompanySettings::defaults();
+      $settings->country_id = '276'; // germany
+
+      $tax_data = new TaxModel();
+      $tax_data->seller_subregion = 'DE';
+      $tax_data->regions->EU->has_sales_above_threshold = false;
+      $tax_data->regions->EU->tax_all_subregions = true;
+      $tax_data->regions->US->tax_all_subregions = true;
+      $tax_data->regions->US->has_sales_above_threshold = true;
+      
+      $tax_data->regions->EU->subregions->DE->vat_number = 'DE12345';
+      $tax_data->regions->EU->subregions->RO->vat_number = 'RO12345';
+
+      $company = Company::factory()->create([
+          'account_id' => $this->account->id,
+          'settings' => $settings,
+          'tax_data' => $tax_data,
+          'calculate_taxes' => true,
+      ]);
+
+
+      $this->assertEquals('DE12345', $company->tax_data->regions->EU->subregions->DE->vat_number);
+      $this->assertEquals('RO12345', $company->tax_data->regions->EU->subregions->RO->vat_number);
+      
+      $this->assertEquals('DE12345', $company->tax_data->regions->EU->subregions->DE->vat_number);
+      $this->assertEquals('RO12345', $company->tax_data->regions->EU->subregions->RO->vat_number);
+
+      $company->tax_data = $this->unsetVatNumbers($company->tax_data);
+
+      $company->save();
+
+      $company = $company->fresh();
+
+      $this->assertFalse(property_exists($company->tax_data->regions->EU->subregions->DE, 'vat_number'), "DE subregion should not have vat_number property");
+      $this->assertFalse(property_exists($company->tax_data->regions->EU->subregions->RO, 'vat_number'), "RO subregion should not have vat_number property");
+
+    }
+
+
+  private function unsetVatNumbers(mixed $taxData): mixed
+    {
+        if (isset($taxData->regions->EU->subregions)) {
+            foreach ($taxData->regions->EU->subregions as $country => $data) {
+                if (isset($data->vat_number)) {
+                    $newData = new \stdClass();
+                    if (is_object($data)) {
+                        $dataArray = get_object_vars($data);
+                        foreach ($dataArray as $key => $value) {
+                            if ($key !== 'vat_number') {
+                                $newData->$key = $value;
+                            }
+                        }
+                    }
+                    $taxData->regions->EU->subregions->$country = $newData;
+                }
+            }
+        }
+
+        return $taxData;
+    }
     // public function testCreateLegalEntity()
-    // {
+    // {12/345/67890
 
     // $data = [
     //     'acts_as_receiver' => true,
@@ -59,7 +648,7 @@ class StorecoveTest extends TestCase
     //     'tenant_id' => $this->company->company_key,
     //     'zip' => $this->company->settings->postal_code,
     //     'peppol_identifiers' => [
-    //         'scheme' => 'DE:VAT',
+    //         'scheme' => 'DE:STNR',
     //         'id' => 'DE:VAT'
     //     ],
     // ];
@@ -1398,5 +1987,6 @@ class StorecoveTest extends TestCase
 
 
     }
+
 
 }

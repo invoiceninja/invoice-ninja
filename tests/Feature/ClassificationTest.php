@@ -33,7 +33,6 @@ class ClassificationTest extends TestCase
 
         $this->makeTestData();
 
-
     }
 
     public function testClientClassification()

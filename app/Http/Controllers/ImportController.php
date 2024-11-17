@@ -285,7 +285,10 @@ class ImportController extends Controller
             'WINDOWS-1251', // CP1251
             'UTF-16',
             'UTF-32',
-            'ASCII'
+            'ASCII',
+            'WINDOWS-1254', // Turkish, which sometimes includes Georgian
+            'WINDOWS-1256', // Arabic, which sometimes includes Georgian
+            'ISO-8859-10',
         ];
 
         foreach ($data as $key => $value) {

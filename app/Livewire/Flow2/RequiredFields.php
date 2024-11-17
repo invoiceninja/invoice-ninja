@@ -12,11 +12,12 @@
 
 namespace App\Livewire\Flow2;
 
+use Livewire\Component;
 use App\Libraries\MultiDB;
 use App\Models\CompanyGateway;
+use Livewire\Attributes\Computed;
 use App\Services\Client\RFFService;
 use App\Utils\Traits\WithSecureContext;
-use Livewire\Component;
 
 class RequiredFields extends Component
 {
@@ -44,7 +45,7 @@ class RequiredFields extends Component
     public ?string $client_custom_value3;
     public ?string $client_custom_value4;
 
-    public $contact;
+    // public $contact;
     
     /** @var array<int, string> */
     public array $fields = [];
@@ -61,12 +62,12 @@ class RequiredFields extends Component
 
         $this->fields = $this->getContext()['fields'];
 
+        $contact = auth()->guard('contact')->user();
+
         $this->company_gateway = CompanyGateway::withTrashed()
             ->with('company')
             ->find($this->getContext()['company_gateway_id']);
-
-        $contact = auth()->guard('contact')->user();
-
+        
         $this->client_name = $contact->client->name;
         $this->contact_first_name = $contact->first_name;
         $this->contact_last_name = $contact->last_name;
@@ -96,13 +97,11 @@ class RequiredFields extends Component
         /** @var \App\Models\ClientContact $contact */
         $rff->check($contact);
 
-        if ($rff->unfilled_fields === 0) {
+        if ($rff->unfilled_fields === 0 && !$this->company_gateway->always_show_required_fields)
             $this->dispatch('required-fields');
-        }
-
-        if ($rff->unfilled_fields > 0) {
+        else
             $this->is_loading = false;
-        }
+
     }
 
     public function handleSubmit(array $data)
@@ -138,9 +137,8 @@ class RequiredFields extends Component
     
     public function exception($e, $stopPropagation) 
     {
-       
+        app('sentry')->captureException($e);
         nlog($e->getMessage());
-
         $stopPropagation();
 
     }

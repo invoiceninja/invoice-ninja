@@ -106,7 +106,7 @@ class BACS implements LivewireMethodInterface
         $this->stripe->payment_hash->save();
 
         if ($state['payment_intent']->status == 'processing') {
-            $this->stripe->logSuccessfulGatewayResponse(['response' => $state['payment_intent'], 'data' => $this->stripe->payment_hash], SystemLog::TYPE_STRIPE);
+            $this->stripe->logSuccessfulGatewayResponse(['response' => $state['payment_intent'], 'data' => $this->stripe->payment_hash->data], SystemLog::TYPE_STRIPE);
 
             return $this->processSuccessfulPayment($state['payment_intent']);
         }
