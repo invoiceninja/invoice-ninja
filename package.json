@@ -14,7 +14,7 @@
         "@tailwindcss/line-clamp": "^0.4.4",
         "@tailwindcss/typography": "^0.5.10",
         "autoprefixer": "^10.4.18",
-        "cypress": "^12.5.1",
+        "cypress": "^13.16.0",
         "laravel-mix-purgecss": "^6.0.0",
         "laravel-vite-plugin": "^0.8.0",
         "postcss": "^8.4.35",
