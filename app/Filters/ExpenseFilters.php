@@ -218,6 +218,14 @@ class ExpenseFilters extends QueryFilters
                     ->whereColumn('clients.id', 'expenses.client_id'), $sort_col[1]);
         }
 
+        
+        if ($sort_col[0] == 'project' && in_array($sort_col[1], ['asc', 'desc'])) {
+            return $this->builder
+                    ->orderByRaw('ISNULL(project_id), project_id '. $sort_col[1])
+                    ->orderBy(\App\Models\Project::select('name')
+                    ->whereColumn('projects.id', 'expenses.project_id'), $sort_col[1]);
+        }
+
         if ($sort_col[0] == 'vendor_id' && in_array($sort_col[1], ['asc', 'desc'])) {
             return $this->builder
                     ->orderByRaw('ISNULL(vendor_id), vendor_id '. $sort_col[1])

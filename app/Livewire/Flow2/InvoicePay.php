@@ -238,16 +238,18 @@ class InvoicePay extends Component
         $this->setContext('db', $this->db); // $this->context['db'] = $this->db;
         $this->setContext('invitation_id', $this->invitation_id);
 
-        $this->invoices = Invoice::find($this->transformKeys($this->invoices));
+        $invoices = Invoice::withTrashed()
+                                    ->whereIn('id', $this->transformKeys($this->invoices))
+                                    ->where('is_deleted', 0)
+                                    ->get()
+                                    ->filter(function ($i) {
+                                        $i = $i->service()
+                                            ->markSent()
+                                            ->removeUnpaidGatewayFees()
+                                            ->save();
 
-        $invoices = $this->invoices->filter(function ($i) {
-            $i = $i->service()
-                ->markSent()
-                ->removeUnpaidGatewayFees()
-                ->save();
-
-            return $i->isPayable();
-        });
+                                        return $i->isPayable();
+                                    });
 
         //under-over / payment
 
@@ -260,7 +262,7 @@ class InvoicePay extends Component
         $this->setContext('variables', $this->variables); // $this->context['variables'] = $this->variables;
         $this->setContext('invoices', $invoices); // $this->context['invoices'] = $invoices;
         $this->setContext('settings', $settings); // $this->context['settings'] = $settings;
-        $this->setContext('invitation', $invite); // $this->context['invitation'] = $invite;
+        // $this->setContext('invitation', $invite->withoutRelations()); // $this->context['invitation'] = $invite;
 
         $payable_invoices = $invoices->map(function ($i) {
             /** @var \App\Models\Invoice $i */
@@ -271,7 +273,8 @@ class InvoicePay extends Component
                 'formatted_currency' => Number::formatMoney($i->partial > 0 ? $i->partial : $i->balance, $i->client),
                 'number' => $i->number,
                 'date' => $i->translateDate($i->date, $i->client->date_format(), $i->client->locale()),
-                'due_date' => $i->translateDate($i->due_date, $i->client->date_format(), $i->client->locale())
+                'due_date' => $i->translateDate($i->due_date, $i->client->date_format(), $i->client->locale()),
+                'terms' => $i->terms,
             ];
         })->toArray();
 

@@ -30,7 +30,14 @@ class Terms extends Component
     #[Computed()]
     public function invoice()
     {
-        return $this->getContext()['invoices']->first();
+        
+        $invitation_id = $this->getContext()['invitation_id'];
+
+        $db = $this->getContext()['db'];
+
+        $invite = \App\Models\InvoiceInvitation::on($db)->withTrashed()->find($invitation_id);
+
+        return $invite->invoice;
     }
 
     public function render()

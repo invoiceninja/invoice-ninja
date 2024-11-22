@@ -371,6 +371,15 @@ class EInvoiceValidationTest extends TestCase
             'postal_code' => '2113',
         ]);
 
+        $cc = ClientContact::factory()->create([
+            'client_id' => $client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $company->id,
+            'first_name' => 'Bob',
+            'last_name' => 'Doe',
+            'email' => 'wasa@b.com',
+        ]);
+
         $el = new EntityLevel();
         $validation = $el->checkClient($client);
 
@@ -398,6 +407,17 @@ class EInvoiceValidationTest extends TestCase
             'postal_code' => '2113',
         ]);
 
+        
+        $cc = ClientContact::factory()->create([
+            'client_id' => $client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $company->id,
+            'first_name' => 'Bob',
+            'last_name' => 'Doe',
+            'email' => 'wasa@b.com',
+        ]);
+
+
         $el = new EntityLevel();
         $validation = $el->checkClient($client);
 
@@ -423,6 +443,16 @@ class EInvoiceValidationTest extends TestCase
             'city' => 'Sydney',
             'state' => 'NSW',
             'postal_code' => '2113',
+        ]);
+
+        
+        $cc = ClientContact::factory()->create([
+            'client_id' => $client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $company->id,
+            'first_name' => 'Bob',
+            'last_name' => 'Doe',
+            'email' => 'wasa@b.com',
         ]);
 
         $el = new EntityLevel();

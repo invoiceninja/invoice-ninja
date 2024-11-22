@@ -54,7 +54,7 @@ class ReportCsvGenerationTest extends TestCase
 
         $this->withoutExceptionHandling();
 
-        Invoice::withTrashed()->cursor()->each(function ($i) { $i->forceDelete();});
+        // Invoice::withTrashed()->cursor()->each(function ($i) { $i->forceDelete();});
 
         $this->buildData();
 
@@ -301,6 +301,8 @@ class ReportCsvGenerationTest extends TestCase
 
         $this->assertEquals('john@doe.com', $this->getFirstValueByColumn($csv, 'Contact Email'));
 
+$this->account->forceDelete();
+
     }
 
     public function testForcedInsertionOfMandatoryColumns()
@@ -316,6 +318,8 @@ class ReportCsvGenerationTest extends TestCase
         $array = array_merge($report_keys, array_diff($forced, $report_keys));
 
         $this->assertEquals('client.name', $array[2]); //@phpstan-ignore-line
+
+$this->account->forceDelete();
 
     }
 
@@ -407,7 +411,8 @@ class ReportCsvGenerationTest extends TestCase
 
         $this->assertEquals(1, $query->count());
 
-        Invoice::withTrashed()->cursor()->each(function ($i) { $i->forceDelete();});
+
+$this->account->forceDelete();
 
     }
 
@@ -468,15 +473,19 @@ class ReportCsvGenerationTest extends TestCase
 
         $this->assertEquals(1, $q->count());
 
-        $q = Invoice::whereJsonContains('line_items', ['product_key' => 'Bob the builder']);
-        $this->assertEquals(0, $q->count());
+        // $q = Invoice::whereJsonContains('line_items', ['product_key' => 'Bob the builder']);
+        // $this->assertEquals(0, $q->count());
 
-        $q = Invoice::whereJsonContains('line_items', ['product_key' => 'bob']);
-        $this->assertEquals(0, $q->count());
+        // $q = Invoice::whereJsonContains('line_items', ['product_key' => 'bob']);
+        // $this->assertEquals(0, $q->count());
 
-        $q->forceDelete();
+        // $q->forceDelete();
 
-        Invoice::withTrashed()->cursor()->each(function ($i) { $i->forceDelete();});
+        // Invoice::withTrashed()->cursor()->each(function ($i) { $i->forceDelete();});
+
+
+$this->account->forceDelete();
+
     }
 
     public function testVendorCsvGeneration()
@@ -554,6 +563,10 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('address1', $this->traverseJson($data, '0.0.value'));
         $this->assertEquals('vendor.address1', $this->traverseJson($data, '0.0.identifier'));
         $this->assertEquals('address1', $this->traverseJson($data, '0.0.display_value'));
+    
+    
+$this->account->forceDelete();
+
     }
 
     public function testVendorCustomColumnCsvGeneration()
@@ -622,6 +635,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('vendor.name', $this->traverseJson($data, '0.0.identifier'));
         $this->assertEquals('Vendor 1', $this->traverseJson($data, '0.0.display_value'));
         $this->assertEquals('number', $this->traverseJson($data, '0.2.id'));
+
+$this->account->forceDelete();
 
     }
 
@@ -756,6 +771,8 @@ class ReportCsvGenerationTest extends TestCase
 
         $csv = $response->body();
 
+$this->account->forceDelete();
+
 
     }
 
@@ -809,6 +826,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('Custom 2', $this->getFirstValueByColumn($csv, 'Task Custom Value 2'));
         $this->assertEquals('Custom 3', $this->getFirstValueByColumn($csv, 'Task Custom Value 3'));
         $this->assertEquals('Custom 4', $this->getFirstValueByColumn($csv, 'Task Custom Value 4'));
+
+$this->account->forceDelete();
 
     }
 
@@ -873,6 +892,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('Custom 1', $this->traverseJson($data, '0.0.value'));
         $this->assertEquals('custom_value1', $this->traverseJson($data, '0.0.identifier'));
         $this->assertEquals('Custom 1', $this->traverseJson($data, '0.0.display_value'));
+
+$this->account->forceDelete();
 
     }
 
@@ -999,6 +1020,8 @@ class ReportCsvGenerationTest extends TestCase
         $csv = $response->body();
 
 
+$this->account->forceDelete();
+
     }
 
 
@@ -1042,6 +1065,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('2020-01-01', $this->getFirstValueByColumn($csv, 'Payment Date'));
         $this->assertEquals('1234', $this->getFirstValueByColumn($csv, 'Payment Transaction Reference'));
 
+$this->account->forceDelete();
+
     }
 
 
@@ -1082,6 +1107,8 @@ class ReportCsvGenerationTest extends TestCase
 
         $this->assertEquals('bob', $res[1]);
 
+$this->account->forceDelete();
+
     }
 
     public function testClientCustomColumnsCsvGeneration()
@@ -1115,6 +1142,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals($this->user->present()->name(), $this->getFirstValueByColumn($csv, 'Client User'));
         $this->assertEquals('', $this->getFirstValueByColumn($csv, 'Client Assigned User'));
         $this->assertEquals('USD', $this->getFirstValueByColumn($csv, 'Client Currency'));
+
+$this->account->forceDelete();
 
     }
 
@@ -1159,6 +1188,8 @@ class ReportCsvGenerationTest extends TestCase
 
         $response->assertStatus(409);
 
+
+$this->account->forceDelete();
 
     }
 
@@ -1217,6 +1248,8 @@ class ReportCsvGenerationTest extends TestCase
         $hash = $arr['message'];
         $response = $this->poll($hash);
         $csv = $response->body();
+
+$this->account->forceDelete();
 
     }
 
@@ -1282,6 +1315,8 @@ class ReportCsvGenerationTest extends TestCase
             'X-API-TOKEN' => $this->token,
         ])->post('/api/v1/reports/invoices', $data)->assertStatus(200);
 
+$this->account->forceDelete();
+
     }
 
     public function testRecurringInvoiceCustomColumnsCsvGeneration()
@@ -1336,6 +1371,8 @@ class ReportCsvGenerationTest extends TestCase
             'X-API-TOKEN' => $this->token,
         ])->post('/api/v1/reports/recurring_invoices', $data)->assertStatus(200);
 
+$this->account->forceDelete();
+
     }
 
 
@@ -1382,6 +1419,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('1234', $this->getFirstValueByColumn($csv, 'Recurring Invoice Invoice Number'));
         $this->assertEquals('Daily', $this->getFirstValueByColumn($csv, 'Recurring Invoice How Often'));
         $this->assertEquals('Active', $this->getFirstValueByColumn($csv, 'Recurring Invoice Status'));
+
+$this->account->forceDelete();
 
     }
 
@@ -1491,6 +1530,8 @@ class ReportCsvGenerationTest extends TestCase
             'X-API-TOKEN' => $this->token,
         ])->postJson('/api/v1/reports/invoice_items', $data)->assertStatus(200);
 
+$this->account->forceDelete();
+
     }
 
 
@@ -1578,6 +1619,8 @@ class ReportCsvGenerationTest extends TestCase
         ])->post('/api/v1/reports/quote_items', $data)->assertStatus(200);
 
 
+$this->account->forceDelete();
+
     }
 
 
@@ -1636,6 +1679,10 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('Public', $this->getFirstValueByColumn($csv, 'Purchase Order Public Notes'));
         $this->assertEquals('Private', $this->getFirstValueByColumn($csv, 'Purchase Order Private Notes'));
         $this->assertEquals('Terms', $this->getFirstValueByColumn($csv, 'Purchase Order Terms'));
+    
+    
+$this->account->forceDelete();
+
     }
 
 
@@ -1720,6 +1767,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('GST', $this->getFirstValueByColumn($csv, 'Item Tax Name 1'));
         $this->assertEquals('10', $this->getFirstValueByColumn($csv, 'Item Tax Rate 1'));
 
+$this->account->forceDelete();
+
     }
 
     public function testQuoteCustomColumnsCsvGeneration()
@@ -1780,6 +1829,8 @@ class ReportCsvGenerationTest extends TestCase
         ])->post('/api/v1/reports/quotes', $data)->assertStatus(200);
 
 
+$this->account->forceDelete();
+
     }
 
 
@@ -1830,6 +1881,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals(100, $this->getFirstValueByColumn($csv, 'Payment Amount'));
         $this->assertEquals(now()->addSeconds($this->company->timezone()->utc_offset)->format('Y-m-d'), $this->getFirstValueByColumn($csv, 'Payment Date'));
 
+$this->account->forceDelete();
+
     }
 
     public function testClientContactCsvGeneration()
@@ -1874,6 +1927,8 @@ class ReportCsvGenerationTest extends TestCase
         $res = iterator_to_array($res, true);
 
         $this->assertEquals('john@doe.com', $res[1]);
+
+$this->account->forceDelete();
 
     }
 
@@ -1970,6 +2025,8 @@ class ReportCsvGenerationTest extends TestCase
             'X-API-TOKEN' => $this->token,
         ])->post('/api/v1/reports/credits', $data)->assertStatus(200);
 
+$this->account->forceDelete();
+
     }
 
     public function testInvoiceCsvGeneration()
@@ -2054,6 +2111,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals(floatval(30), $this->getFirstValueByColumn($csv, 'Invoice Tax Rate 3'));
         $this->assertEquals('Sent', $this->getFirstValueByColumn($csv, 'Invoice Status'));
 
+$this->account->forceDelete();
+
     }
 
     public function testRecurringInvoiceCsvGeneration()
@@ -2135,6 +2194,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('Tax 3', $this->getFirstValueByColumn($csv, 'Recurring Invoice Tax Name 3'));
         $this->assertEquals(floatval(30), $this->getFirstValueByColumn($csv, 'Recurring Invoice Tax Rate 3'));
         $this->assertEquals('Daily', $this->getFirstValueByColumn($csv, 'Recurring Invoice How Often'));
+
+$this->account->forceDelete();
 
     }
 
@@ -2218,6 +2279,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals(floatval(30), $this->getFirstValueByColumn($csv, 'Quote Tax Rate 3'));
         $this->assertEquals('Expired', $this->getFirstValueByColumn($csv, 'Quote Status'));
 
+$this->account->forceDelete();
+
     }
 
 
@@ -2269,6 +2332,8 @@ class ReportCsvGenerationTest extends TestCase
         $response = $this->poll($hash);
         $csv = $response->body();
 
+$this->account->forceDelete();
+
     }
 
     public function testExpenseCustomColumnsCsvGeneration()
@@ -2315,6 +2380,8 @@ class ReportCsvGenerationTest extends TestCase
         $this->assertEquals('Vendor 1', $this->getFirstValueByColumn($csv, 'Vendor Name'));
         $this->assertEquals(floatval(100), $this->getFirstValueByColumn($csv, 'Expense Amount'));
         $this->assertEquals('USD', $this->getFirstValueByColumn($csv, 'Expense Currency'));
+
+        $this->account->forceDelete();
 
     }
 

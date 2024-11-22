@@ -145,6 +145,10 @@ class StorePaymentRequest extends Request
             $input['idempotency_key'] = substr(time()."{$input['date']}{$input['amount']}{$credits_total}{$this->client_id}{$user->company()->company_key}", 0, 64);
         }
 
+        if (array_key_exists('exchange_rate', $input) && $input['exchange_rate'] === null) {
+            unset($input['exchange_rate']);
+        }
+
         $this->replace($input);
     }
 

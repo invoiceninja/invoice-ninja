@@ -82,7 +82,7 @@ class TaskRepository extends BaseRepository
         if (! empty($data['time_details'])) {
             $timeLog = [];
             foreach ($data['time_details'] as $detail) {
-                $startTime = strtotime($detail['start_datetime']);
+                $startTime = strtotime($detail['start_datetime'] ?? now()->format('Y-m-d'));
                 $endTime = false;
                 if (! empty($detail['end_datetime'])) {
                     $endTime = strtotime($detail['end_datetime']);

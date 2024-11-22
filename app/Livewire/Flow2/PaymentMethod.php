@@ -61,7 +61,9 @@ class PaymentMethod extends Component
 
         MultiDB::setDb($this->getContext()['db']);
 
-        $this->methods = $this->getContext()['invitation']->contact->client->service()->getPaymentMethods($this->amount);
+        $contact = $this->getContext()['contact'] ?? auth()->guard('contact')->user();
+
+        $this->methods = $contact->client->service()->getPaymentMethods($this->amount);
 
         if (count($this->methods) == 1) {
             $this->dispatch('singlePaymentMethodFound', company_gateway_id: $this->methods[0]['company_gateway_id'], gateway_type_id: $this->methods[0]['gateway_type_id'], amount: $this->amount);

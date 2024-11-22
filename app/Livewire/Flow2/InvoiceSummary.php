@@ -12,6 +12,7 @@
 
 namespace App\Livewire\Flow2;
 
+use App\Models\InvoiceInvitation;
 use App\Utils\Number;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -61,15 +62,15 @@ class InvoiceSummary extends Component
     public function downloadDocument($invoice_hashed_id)
     {
 
-        $contact = $this->getContext()['contact'] ?? auth()->guard('contact')->user();
-        $_invoices = $this->getContext()['invoices'];
-        $i = $_invoices->first(function ($i) use ($invoice_hashed_id) {
-            return $i->hashed_id == $invoice_hashed_id;
-        });
+        $invitation_id = $this->getContext()['invitation_id'];
 
-        $file_name = $i->numberFormatter().'.pdf';
+        $db = $this->getContext()['db'];
+        
+        $invite = \App\Models\InvoiceInvitation::on($db)->withTrashed()->find($invitation_id);
 
-        $file = (new \App\Jobs\Entity\CreateRawPdf($i->invitations()->where('client_contact_id', $contact->id)->first()))->handle();
+        $file_name = $invite->invoice->numberFormatter().'.pdf';
+
+        $file = (new \App\Jobs\Entity\CreateRawPdf($invite))->handle();
 
         $headers = ['Content-Type' => 'application/pdf'];
 

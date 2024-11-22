@@ -224,7 +224,10 @@ class Peppol extends AbstractService
             $this->p_invoice->LegalMonetaryTotal = $this->getLegalMonetaryTotal();
             $this->p_invoice->Delivery = $this->getDelivery();
 
-            $this->setOrderReference()->setTaxBreakdown();
+            $this->setOrderReference()
+                 ->setTaxBreakdown()
+                 ->setPaymentTerms()
+                 ->standardPeppolRules();
 
             //isolate this class to only peppol changes
             $this->p_invoice = $this->gateway
@@ -1079,12 +1082,17 @@ class Peppol extends AbstractService
         $party_name->Name = $this->invoice->client->present()->name();
 
         //@todo if we have an exact GLN/routing number we should update this, otherwise Storecove will proxy and update on transit
-        if (strlen($this->invoice->client->routing_id ?? '') > 1) {
-            $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\EndpointID();
-            $id->value = $this->invoice->client->routing_id;
-            $id->schemeID = $this->resolveScheme(true);
-            $party->EndpointID = $id;
-        }
+
+        $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\EndpointID();
+        $id->value = $this->invoice->client->routing_id 
+        ?? $this->invoice->client->vat_number 
+        ?? $this->invoice->client->id_number
+        ?? 'fallback1234';
+        
+        $id->schemeID = $this->resolveScheme(true);
+        $party->EndpointID = $id;
+        
+
 
         $party->PartyName[] = $party_name;
 
@@ -1260,6 +1268,51 @@ class Peppol extends AbstractService
             if ($prop_value = $this->gateway->mutator->getSetting($prop)) {
                 $this->p_invoice->{$prop} = $prop_value;
             }
+
+        }
+
+        return $this;
+    }
+    
+    /**
+     * standardPeppolRules
+     *
+     * Transform UBL => Peppol rules
+     * 
+     * 1. FinancialInstitutionBranch - remove
+     * 2. FinancialInstituion - remove
+     * 
+     * @return self
+     */
+    private function standardPeppolRules(): self
+    {
+        foreach($this->p_invoice->PaymentMeans as &$pm)
+        {
+            unset($pm->PayeeFinancialAccount->FinancialInstitutionBranch);
+        }
+        unset($pm);
+
+        return $this;
+    }
+        
+    /**
+     * setPaymentTerms
+     *
+     * If payment terms are defined, we should include these
+     * on the invoice.
+     * 
+     * @return self
+     */
+    private function setPaymentTerms(): self
+    {
+        $terms_string = $this->invoice->client->getSetting('payment_terms');
+
+        if(strlen($terms_string) > 1)
+        {
+            $terms = new \InvoiceNinja\EInvoice\Models\Peppol\PaymentTermsType\PaymentTerms();
+            $terms->Note = trans('texts.count_days', ['count' => $terms_string]);
+
+            $this->p_invoice->PaymentTerms[] = $terms;
 
         }
 

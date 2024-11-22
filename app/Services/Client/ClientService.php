@@ -82,7 +82,7 @@ class ClientService
                 $this->client = Client::withTrashed()->where('id', $this->client->id)->lockForUpdate()->first();
                 $this->client->balance += $amount;
                 $this->client->saveQuietly();
-            }, 2);
+            }, 2); 
         } catch (\Throwable $throwable) {
 
             if (DB::connection(config('database.default'))->transactionLevel() > 0) {
@@ -127,6 +127,30 @@ class ClientService
 
         // $paid_to_date = $payments+$credit_payments-$credits_from_reversal;
 
+
+
+
+        
+try {
+    DB::connection(config('database.default'))->transaction(function () use ($balance, $paid_to_date) {
+        Client::withTrashed()
+            ->where('id', $this->client->id)
+            ->lockForUpdate()
+            ->update([
+                'balance' => DB::raw("balance + {$balance}"),
+                'paid_to_date' => DB::raw("paid_to_date + {$paid_to_date}")
+            ]);
+    }, 2);
+} catch (\Throwable $throwable) {
+    nlog("DB ERROR " . $throwable->getMessage());
+
+    if (DB::connection(config('database.default'))->transactionLevel() > 0) {
+        DB::connection(config('database.default'))->rollBack();
+    }
+
+}
+
+        /* switch to increment/decrement
         try {
             DB::connection(config('database.default'))->transaction(function () use ($balance, $paid_to_date) {
                 $this->client = Client::withTrashed()->where('id', $this->client->id)->lockForUpdate()->first();
@@ -142,7 +166,7 @@ class ClientService
             }
 
         }
-
+        */
         return $this;
     }
 

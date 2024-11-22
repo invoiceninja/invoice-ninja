@@ -59,7 +59,7 @@ class EInvoicePeppolController extends BaseController
             ->setup($request->validated());
 
         if (data_get($response, 'status') === 'error') {
-            return response()->json(data_get($response, 'errors', 'message'), status: $response['code']);
+            return response()->json(data_get($response, 'message'), status: $response['code']);
         }
 
         $company->legal_entity_id = $response['legal_entity_id'];
@@ -113,7 +113,7 @@ class EInvoicePeppolController extends BaseController
             ->updateLegalEntity($request->validated());
 
         if (data_get($response, 'status') === 'error') {
-            return response()->json(data_get($response, 'errors', 'message'), status: $response['code']);
+            return response()->json(data_get($response, 'message'), status: $response['code']);
         }
 
         $tax_data = $company->tax_data;
@@ -147,7 +147,7 @@ class EInvoicePeppolController extends BaseController
             ->disconnect();
 
         if (data_get($response, 'status') === 'error') {
-            return response()->json(data_get($response, 'errors', 'message'), status: $response['code']);
+            return response()->json(data_get($response, 'message'), status: $response['code']);
         }
 
         $company->legal_entity_id = null;
@@ -198,7 +198,7 @@ class EInvoicePeppolController extends BaseController
             ->addAdditionalTaxIdentifier($request->validated());
 
         if (data_get($response, 'status') === 'error') {
-            return response()->json(data_get($response, 'errors', 'message'), status: $response['code']);
+            return response()->json(data_get($response, 'message'), status: $response['code']);
         }
 
         if ($country == 'GB') {
@@ -225,7 +225,7 @@ class EInvoicePeppolController extends BaseController
             ->removeAdditionalTaxIdentifier($request->validated());
 
         if (data_get($response, 'status') === 'error') {
-            return response()->json(data_get($response, 'errors', 'message'), status: $response['code']);
+            return response()->json(data_get($response, 'message'), status: $response['code']);
         }
 
         if (is_bool($response)) {

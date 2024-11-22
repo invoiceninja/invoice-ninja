@@ -41,6 +41,6 @@ class EInvoicingToken extends Model
      */
     public function license_relation(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(License::class, 'license_key', 'license_key');
+        return $this->belongsTo(License::class, 'license', 'license_key');
     }
 }

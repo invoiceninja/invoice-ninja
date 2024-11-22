@@ -64,7 +64,13 @@ class EInvoiceController extends BaseController
     {
         $einvoice = new \InvoiceNinja\EInvoice\Models\Peppol\Invoice();
 
-        foreach ($request->input('payment_means', []) as $payment_means) {
+        $payment_means_array = $request->input('payment_means', []);
+
+        nlog($payment_means_array);
+
+        $einvoice->PaymentMeans = [];
+
+        foreach ($payment_means_array as $payment_means) {
             $pm = new PaymentMeans();
 
             $pmc = new PaymentMeansCode();
@@ -102,8 +108,11 @@ class EInvoiceController extends BaseController
                 $pm->InstructionNote = $payment_means['information'];
             }
 
+            nlog($pm);
             $einvoice->PaymentMeans[] = $pm;
         }
+
+        nlog($einvoice);
 
         $stub = new \stdClass();
         $stub->Invoice = $einvoice;

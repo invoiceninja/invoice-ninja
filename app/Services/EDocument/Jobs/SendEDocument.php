@@ -17,6 +17,7 @@ use App\Utils\Ninja;
 use App\Models\Invoice;
 use App\Libraries\MultiDB;
 use App\Models\Activity;
+use App\Models\EInvoicingLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -91,7 +92,7 @@ class SendEDocument implements ShouldQueue
         //Self Hosted Sending Code Path
         if (Ninja::isSelfHost() && ($model instanceof Invoice) && $model->company->peppolSendingEnabled()) {
 
-            $r = Http::withHeaders($this->getHeaders())
+            $r = Http::withHeaders([...$this->getHeaders(), 'X-EInvoice-Token' => $model->company->account->e_invoicing_token])
                 ->post(config('ninja.hosted_ninja_url')."/api/einvoice/submission", $payload);
 
             if ($r->successful()) {
@@ -164,6 +165,14 @@ class SendEDocument implements ShouldQueue
                 $account = $model->company->account;
                 $account->decrement('e_invoice_quota', 1);
                 $account->refresh();
+
+                EInvoicingLog::create([
+                    'tenant_id' => $model->company->company_key,
+                    'direction' => 'sent',
+                    'legal_entity_id' => $model->company->legal_entity_id,
+                    'notes' => $r,
+                    'counter' => -1,
+                ]);
 
                 if ($account->e_invoice_quota == 0 && class_exists(\Modules\Admin\Jobs\Account\SuspendESendReceive::class)) {
                     \Modules\Admin\Jobs\Account\SuspendESendReceive::dispatch($account->key);

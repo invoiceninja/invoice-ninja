@@ -143,7 +143,7 @@ class EntityLevel
 
         try {
             $xml = $p->run()->toXml();
-
+             nlog($xml);
             if (count($p->getErrors()) >= 1) {
 
                 foreach ($p->getErrors() as $error) {
@@ -204,6 +204,11 @@ class EntityLevel
         //If not an individual, you MUST have a VAT number if you are in the EU
         if (!in_array($client->classification, ['government', 'individual']) && in_array($client->country->iso_3166_2, $this->eu_country_codes) && !$this->validString($client->vat_number)) {
             $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
+        }
+nlog($client->present()->email());
+        //Primary contact email is present.
+        if($client->present()->email() == 'No Email Set'){
+            $errors[] = ['field' => 'email', 'label' => ctrans("texts.email")];
         }
 
         return $errors;
