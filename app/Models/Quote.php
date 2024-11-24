@@ -11,17 +11,19 @@
 
 namespace App\Models;
 
-use App\Helpers\Invoice\InvoiceSum;
-use App\Helpers\Invoice\InvoiceSumInclusive;
-use App\Models\Presenters\QuotePresenter;
-use App\Services\Quote\QuoteService;
-use App\Utils\Traits\MakesDates;
-use App\Utils\Traits\MakesHash;
-use App\Utils\Traits\MakesInvoiceValues;
-use App\Utils\Traits\MakesReminders;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Utils\Number;
+use Laravel\Scout\Searchable;
 use Illuminate\Support\Carbon;
+use App\Utils\Traits\MakesHash;
+use App\Helpers\Invoice\InvoiceSum;
+use Illuminate\Support\Facades\App;
+use App\Services\Quote\QuoteService;
+use App\Utils\Traits\MakesReminders;
+use App\Utils\Traits\MakesInvoiceValues;
+use App\Models\Presenters\QuotePresenter;
 use Laracasts\Presenter\PresentableTrait;
+use App\Helpers\Invoice\InvoiceSumInclusive;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * App\Models\Quote
@@ -113,12 +115,12 @@ use Laracasts\Presenter\PresentableTrait;
 class Quote extends BaseModel
 {
     use MakesHash;
-    use MakesDates;
     use Filterable;
     use SoftDeletes;
     use MakesReminders;
     use PresentableTrait;
     use MakesInvoiceValues;
+    use Searchable;
 
     protected $presenter = QuotePresenter::class;
 
@@ -187,6 +189,35 @@ class Quote extends BaseModel
 
     public const STATUS_EXPIRED = -1;
 
+    public function toSearchableArray()
+    {
+        $locale = $this->company->locale();
+        App::setLocale($locale);
+
+        return [
+            'id' => $this->id,
+            'name' => ctrans('texts.quote') . " " . $this->number . " | " . $this->client->present()->name() .  ' | ' . Number::formatMoney($this->amount, $this->company) . ' | ' . $this->translateDate($this->date, $this->company->date_format(), $locale),
+            'hashed_id' => $this->hashed_id,
+            'number' => $this->number,
+            'is_deleted' => $this->is_deleted,
+            'amount' => (float) $this->amount,
+            'balance' => (float) $this->balance,
+            'due_date' => $this->due_date,
+            'date' => $this->date,
+            'custom_value1' => (string)$this->custom_value1,
+            'custom_value2' => (string)$this->custom_value2,
+            'custom_value3' => (string)$this->custom_value3,
+            'custom_value4' => (string)$this->custom_value4,
+            'company_key' => $this->company->company_key,
+            'po_number' => (string)$this->po_number,
+        ];
+    }
+
+    public function getScoutKey()
+    {
+        return $this->hashed_id;
+    }
+
     public function getEntityType()
     {
         return self::class;
@@ -196,16 +227,6 @@ class Quote extends BaseModel
     {
         return $this->dateMutator($value);
     }
-
-    //    public function getDueDateAttribute($value)
-    //    {
-    //        return $value ? $this->dateMutator($value) : null;
-    //    }
-
-    // public function getPartialDueDateAttribute($value)
-    // {
-    //     return $this->dateMutator($value);
-    // }
 
     public function getStatusIdAttribute($value)
     {

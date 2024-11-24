@@ -216,6 +216,18 @@ class StorecoveProxy
             ->post($uri, $payload);
 
         if ($response->successful()) {
+            if ($response->hasHeader('X-EINVOICE-QUOTA')) {
+                // @dave is there any case this will run when user is not logged in? (async)
+
+                /**
+                 * @var \App\Models\Account $account
+                 */
+                $account = auth()->user()->company->account;
+
+                $account->e_invoice_quota = (int) $response->header('X-EINVOICE-QUOTA');
+                $account->save();
+            }
+
             return $response->json();
         }
 

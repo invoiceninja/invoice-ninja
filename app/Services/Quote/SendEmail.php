@@ -31,10 +31,10 @@ class SendEmail
     public function run()
     {
 
-        $this->reminder_template = $this->reminder_template ? "email_template_{$this->reminder_template}" : "email_template_".$this->quote->calculateTemplate('quote');
-        // if (! $this->reminder_template) {
-        //     $this->reminder_template = $this->quote->calculateTemplate('quote');
-        // }
+        if(in_array($this->reminder_template, ["email_quote_template_reminder1","reminder1"]))
+            $this->reminder_template = "email_quote_template_reminder1";
+        else    
+            $this->reminder_template = "email_template_".$this->quote->calculateTemplate('quote');
 
         $this->quote->service()->markSent()->save();
 

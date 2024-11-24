@@ -364,7 +364,7 @@ class ProcessMailgunWebhook implements ShouldQueue
 
         $bounce = new EmailBounce(
             $this->request['event-data']['tags'][0],
-            $this->request['event-data']['envelope']['sender'] ?? $this->request['event-data']['envelope']['from'],
+            $this->request['event-data']['message']['headers']['from'] ?? $this->request['event-data']['message']['headers']['to'],
             $this->message_id
         );
 
@@ -374,11 +374,11 @@ class ProcessMailgunWebhook implements ShouldQueue
 
         $event = [
             'bounce_id' => $this->request['event-data']['id'],
-            'recipient' => $this->request['event-data']['recipient'] ?? '',
+            'recipient' => $this->request['event-data']['message']['headers']['to'] ?? '',
             'status' => $this->request['event-data']['event'] ?? '',
-            'delivery_message' => $this->request['event-data']['delivery-status']['description'] ?? $this->request['event-data']['delivery-status']['message'] ?? '',
-            'server' => $this->request['event-data']['delivery-status']['mx-host'] ??  '',
-            'server_ip' => $this->request['event-data']['envelope']['sending-ip'] ?? '',
+            'delivery_message' => $this->request['event-data']['delivery-status']['message'] ?? $this->request['event-data']['delivery-status']['bounce-code'] ?? '',
+            'server' => $this->request['event-data']['delivery-status']['message'] ??  '',
+            'server_ip' => '',
             'date' => \Carbon\Carbon::parse($this->request['event-data']['timestamp'])->format('Y-m-d H:i:s') ?? '',
         ];
 

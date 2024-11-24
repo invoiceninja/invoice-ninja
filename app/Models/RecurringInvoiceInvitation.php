@@ -12,7 +12,6 @@
 namespace App\Models;
 
 use App\Utils\Traits\Inviteable;
-use App\Utils\Traits\MakesDates;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -73,7 +72,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class RecurringInvoiceInvitation extends BaseModel
 {
-    use MakesDates;
     use SoftDeletes;
     use Inviteable;
 

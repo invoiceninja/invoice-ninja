@@ -12,6 +12,7 @@
 namespace App\Services\EDocument\Standards;
 
 use App\DataMapper\InvoiceItem;
+use App\Models\Company;
 use App\Models\Credit;
 use App\Models\Invoice;
 use App\Models\Product;
@@ -43,7 +44,6 @@ class ZugferdEDokument extends AbstractService
 
         /** @var \App\Models\Company $company */
         $company = $this->document->company;
-
 
         /** @var \App\Models\Client $client */
         $client = $this->document->client;
@@ -122,14 +122,8 @@ class ZugferdEDokument extends AbstractService
         if (isset($client->shipping_address1) && $client->shipping_country) {
             $this->xdocument->setDocumentShipToAddress($client->shipping_address1, $client->shipping_address2, "", $client->shipping_postal_code, $client->shipping_city, $client->shipping_country->iso_3166_2, $client->shipping_state);
         }
-        $custom_value1 = $company->settings->custom_value1;
-        //BR-DE-23 - If „Payment means type code“ (BT-81) contains a code for credit transfer (30, 58), „CREDIT TRANSFER“ (BG-17) shall be provided.
-        //Payment Means - Switcher
-        if (isset($custom_value1) && !empty($custom_value1) && ($custom_value1 == '30' || $custom_value1 == '58')) {
-            $this->xdocument->addDocumentPaymentMean(typecode: $company->settings->custom_value1, payeeIban: $company->settings->custom_value2, payeeAccountName: $company->settings->custom_value4, payeeBic: $company->settings->custom_value3);
-        } else {
-            $this->xdocument->addDocumentPaymentMean('68', ctrans("texts.xinvoice_online_payment"));
-        }
+       
+        $this->injectPaymentMeans($company);
 
         if (str_contains($company->getSetting('vat_number'), "/")) {
             $this->xdocument->addDocumentSellerTaxRegistration("FC", $company->getSetting('vat_number'));
@@ -265,7 +259,50 @@ class ZugferdEDokument extends AbstractService
         return $this;
 
     }
+    
+    /**
+     * 
+     * Expanded functionality to allow injecting UBL Payment Means
+     * into the document
+     * 
+     * @return self
+     */
+    private function injectPaymentMeans(Company $company): self
+    {
 
+        /**Check if the e_invoice object is populated */
+        if(isset($company->e_invoice->Invoice->PaymentMeans) && ($pm = $company->e_invoice->Invoice->PaymentMeans[0] ?? false)){
+
+            switch ($pm->PaymentMeansCode->value ?? false) {
+                case '30':
+                case '58':
+                    $iban = $pm->PayeeFinancialAccount->ID->value;
+                    $name = $pm->PayeeFinancialAccount->Name ?? '';
+                    $bic = $pm->PayeeFinancialAccount->FinancialInstitutionBranch->FinancialInstitution->ID->value ?? '';
+                    $typecode = $pm->PaymentMeansCode->value;
+
+                    $this->xdocument->addDocumentPaymentMean(typecode: $typecode, payeeIban: $iban, payeeAccountName: $name, payeeBic: $bic);
+
+                    return $this;
+                
+                default:
+                    # code...
+                    break;
+            }
+
+        }
+
+        $custom_value1 = $company->settings->custom_value1;
+        //BR-DE-23 - If „Payment means type code“ (BT-81) contains a code for credit transfer (30, 58), „CREDIT TRANSFER“ (BG-17) shall be provided.
+        //Payment Means - Switcher
+        if (isset($custom_value1) && !empty($custom_value1) && ($custom_value1 == '30' || $custom_value1 == '58')) {
+            $this->xdocument->addDocumentPaymentMean(typecode: $company->settings->custom_value1, payeeIban: $company->settings->custom_value2, payeeAccountName: $company->settings->custom_value4, payeeBic: $company->settings->custom_value3);
+        } else {
+            $this->xdocument->addDocumentPaymentMean('68', ctrans("texts.xinvoice_online_payment"));
+        }
+
+        return $this;
+    }
     /**
      * Returns the XML document
      * in string format

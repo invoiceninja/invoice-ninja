@@ -66,8 +66,6 @@ class EInvoiceController extends BaseController
 
         $payment_means_array = $request->input('payment_means', []);
 
-        nlog($payment_means_array);
-
         $einvoice->PaymentMeans = [];
 
         foreach ($payment_means_array as $payment_means) {
@@ -146,7 +144,6 @@ class EInvoiceController extends BaseController
                 'account_key' => $company->account->key,
             ]);
 
-
         if ($response->status() == 422) {
             return response()->json(['message' => $response->json('message')], 422);
         }
@@ -155,8 +152,13 @@ class EInvoiceController extends BaseController
             return response()->json(['message' => $response->json('message')], 400);
         }
 
+        $account = $company->account;
+
+        $account->e_invoice_quota = (int) $response->body();
+        $account->save();
+
         return response()->json([
-            'quota' => $response->body(),
+            'quota' => $account->e_invoice_quota,
         ]);
     }
 }

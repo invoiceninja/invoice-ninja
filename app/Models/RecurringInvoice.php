@@ -11,16 +11,18 @@
 
 namespace App\Models;
 
-use App\Helpers\Invoice\InvoiceSum;
-use App\Helpers\Invoice\InvoiceSumInclusive;
-use App\Models\Presenters\RecurringInvoicePresenter;
-use App\Services\Recurring\RecurringService;
-use App\Utils\Traits\MakesDates;
+use App\Utils\Number;
+use Laravel\Scout\Searchable;
+use Illuminate\Support\Carbon;
 use App\Utils\Traits\MakesHash;
+use App\Helpers\Invoice\InvoiceSum;
+use Illuminate\Support\Facades\App;
+use Laracasts\Presenter\PresentableTrait;
+use App\Helpers\Invoice\InvoiceSumInclusive;
+use App\Services\Recurring\RecurringService;
 use App\Utils\Traits\Recurring\HasRecurrence;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Carbon;
-use Laracasts\Presenter\PresentableTrait;
+use App\Models\Presenters\RecurringInvoicePresenter;
 
 /**
  * Class for Recurring Invoices.
@@ -129,10 +131,10 @@ class RecurringInvoice extends BaseModel
     use MakesHash;
     use SoftDeletes;
     use Filterable;
-    use MakesDates;
     use HasRecurrence;
     use PresentableTrait;
-
+    use Searchable;
+    
     protected $presenter = RecurringInvoicePresenter::class;
 
     /**
@@ -261,6 +263,35 @@ class RecurringInvoice extends BaseModel
         'footer',
     ];
 
+    public function toSearchableArray()
+    {
+        $locale = $this->company->locale();
+        App::setLocale($locale);
+
+        return [
+            'id' => $this->id,
+            'name' => ctrans('texts.recurring_invoice') . " " . $this->number . " | " . $this->client->present()->name() .  ' | ' . Number::formatMoney($this->amount, $this->company) . ' | ' . $this->translateDate($this->date, $this->company->date_format(), $locale),
+            'hashed_id' => $this->hashed_id,
+            'number' => $this->number,
+            'is_deleted' => $this->is_deleted,
+            'amount' => (float) $this->amount,
+            'balance' => (float) $this->balance,
+            'due_date' => $this->due_date,
+            'date' => $this->date,
+            'custom_value1' => (string)$this->custom_value1,
+            'custom_value2' => (string)$this->custom_value2,
+            'custom_value3' => (string)$this->custom_value3,
+            'custom_value4' => (string)$this->custom_value4,
+            'company_key' => $this->company->company_key,
+            'po_number' => (string)$this->po_number,
+        ];
+    }
+
+    public function getScoutKey()
+    {
+        return $this->hashed_id;
+    }
+    
     public function getEntityType()
     {
         return self::class;

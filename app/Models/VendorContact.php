@@ -11,17 +11,18 @@
 
 namespace App\Models;
 
+use Laravel\Scout\Searchable;
+use App\Utils\Traits\MakesHash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Laracasts\Presenter\PresentableTrait;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Presenters\VendorContactPresenter;
 use App\Notifications\ClientContactResetPassword;
-use App\Utils\Traits\MakesHash;
-use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Cache;
-use Laracasts\Presenter\PresentableTrait;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 
 /**
  * App\Models\VendorContact
@@ -85,7 +86,8 @@ class VendorContact extends Authenticatable implements HasLocalePreference
     use PresentableTrait;
     use SoftDeletes;
     use HasFactory;
-
+    use Searchable;
+    
     /* Used to authenticate a vendor */
     protected $guard = 'vendor';
 
@@ -122,6 +124,29 @@ class VendorContact extends Authenticatable implements HasLocalePreference
         'vendor_id',
         'send_email',
     ];
+
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->present()->search_display(),
+            'hashed_id' => $this->vendor ->hashed_id,
+            'email' => $this->email,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'phone' => $this->phone,
+            'custom_value1' => $this->custom_value1,
+            'custom_value2' => $this->custom_value2,
+            'custom_value3' => $this->custom_value3,
+            'custom_value4' => $this->custom_value4,
+            'company_key' => $this->company->company_key,
+        ];
+    }
+
+    public function getScoutKey()
+    {
+        return $this->hashed_id;
+    }
 
     public function avatar()
     {

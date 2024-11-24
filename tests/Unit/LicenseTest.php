@@ -63,12 +63,12 @@ class LicenseTest extends TestCase
     {
         $tes = [
             [
-                'legal_entity_id' => rand(1,100),
+                'legal_entity_id' => 22,
                 'company_key' => \Illuminate\Support\Str::random(32),
                 'received_documents' => []
             ],
             [
-                'legal_entity_id' => rand(1,100),
+                'legal_entity_id' => 33,
                 'company_key' => \Illuminate\Support\Str::random(32),
                 'received_documents' => []
             ],

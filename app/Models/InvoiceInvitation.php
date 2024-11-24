@@ -12,7 +12,6 @@
 namespace App\Models;
 
 use App\Utils\Traits\Inviteable;
-use App\Utils\Traits\MakesDates;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -77,7 +76,6 @@ use Illuminate\Support\Carbon;
  */
 class InvoiceInvitation extends BaseModel
 {
-    use MakesDates;
     use SoftDeletes;
     use Inviteable;
 

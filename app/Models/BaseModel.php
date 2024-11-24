@@ -14,13 +14,14 @@ namespace App\Models;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use App\Utils\Traits\MakesHash;
+use App\Utils\Traits\MakesDates;
 use App\Jobs\Entity\CreateRawPdf;
 use App\Jobs\Util\WebhookHandler;
 use App\Models\Traits\Excludable;
-use App\Services\EDocument\Jobes\SendEDocument;
 use App\Services\PdfMaker\PdfMerge;
 use Illuminate\Database\Eloquent\Model;
 use App\Utils\Traits\UserSessionAttributes;
+use App\Services\EDocument\Jobes\SendEDocument;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\ModelNotFoundException as ModelNotFoundException;
 
@@ -80,6 +81,7 @@ class BaseModel extends Model
     use UserSessionAttributes;
     use HasFactory;
     use Excludable;
+    use MakesDates;
 
     public int $max_attachment_size = 3000000;
 

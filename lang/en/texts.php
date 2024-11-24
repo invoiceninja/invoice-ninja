@@ -5474,6 +5474,7 @@ $lang = array(
     'delete_identifier' => 'Delete identifier',
     'delete_identifier_description' => 'Deleting this identifier will remove it from the system. Make sure this is the desired action before proceeding.',
     'einvoice_something_went_wrong' => 'Oops! Something went wrong. Contact us at contact@invoiceninja.com for more information.',
+    'download_ready' => 'Your Download is now ready! [ :message ]',
 );
 
 return $lang;

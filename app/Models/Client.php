@@ -15,7 +15,6 @@ use Laravel\Scout\Searchable;
 use App\DataMapper\ClientSync;
 use App\Utils\Traits\AppSetup;
 use App\Utils\Traits\MakesHash;
-use App\Utils\Traits\MakesDates;
 use App\DataMapper\FeesAndLimits;
 use App\Models\Traits\Excludable;
 use App\DataMapper\ClientSettings;
@@ -120,7 +119,6 @@ class Client extends BaseModel implements HasLocalePreference
 {
     use PresentableTrait;
     use MakesHash;
-    use MakesDates;
     use SoftDeletes;
     use Filterable;
     use GeneratesCounter;
@@ -251,6 +249,7 @@ class Client extends BaseModel implements HasLocalePreference
         }
 
         return [
+            'id' => $this->id,
             'name' => $name,
             'is_deleted' => $this->is_deleted,
             'hashed_id' => $this->hashed_id,
@@ -286,10 +285,10 @@ class Client extends BaseModel implements HasLocalePreference
         return $this->hashed_id;
     }
 
-    public function getScoutKeyName()
-    {
-        return 'hashed_id';
-    }
+    // public function getScoutKeyName()
+    // {
+    //     return 'hashed_id';
+    // }
 
     public function getEntityType()
     {

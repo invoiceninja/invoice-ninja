@@ -14,7 +14,7 @@ export default defineConfig({
       output: {
         // This will output a single bundle file
         entryFileNames: 'bundle.[hash].js',
-        chunkFileNames: 'bundle.[hash].js'
+        manualChunks: undefined
       }
     },
   },

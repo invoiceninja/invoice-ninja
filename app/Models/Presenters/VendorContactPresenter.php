@@ -39,4 +39,9 @@ class VendorContactPresenter extends EntityPresenter
     {
         return $this->entity->last_name ?: '';
     }
+    
+    public function search_display()
+    {
+        return strlen($this->entity->email ?? '') > 2 ? $this->name().' <'.$this->entity->email.'>' : $this->name();
+    }
 }

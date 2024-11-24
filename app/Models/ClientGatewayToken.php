@@ -11,7 +11,6 @@
 
 namespace App\Models;
 
-use App\Utils\Traits\MakesDates;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -42,7 +41,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class ClientGatewayToken extends BaseModel
 {
-    use MakesDates;
     use SoftDeletes;
 
     protected $casts = [

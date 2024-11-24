@@ -3064,7 +3064,23 @@ paths:
                 template:
                   description: "The template required"
                   type: string
-                  example: invoice,quote,credit,purchase_order,payment,payment_partial,reminder1,reminder2,reminder3,reminder_endless
+                  enum:
+                    - invoice
+                    - quote
+                    - credit
+                    - payment
+                    - payment_partial
+                    - statement
+                    - reminder1
+                    - reminder2
+                    - reminder3
+                    - reminder_endless
+                    - custom1
+                    - custom2
+                    - custom3
+                    - purchase_order
+                    - email_quote_template_reminder1
+                  example: invoice
               type: object
       responses:
         200:

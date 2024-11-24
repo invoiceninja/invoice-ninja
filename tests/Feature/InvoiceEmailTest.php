@@ -11,16 +11,18 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\Entity\EmailEntity;
+use Tests\TestCase;
 use App\Models\SystemLog;
+use Tests\MockAccountData;
+use App\Jobs\Entity\EmailEntity;
+use Illuminate\Support\Facades\Bus;
 use App\Utils\Traits\GeneratesCounter;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Email\SendEmailRequest;
 use Illuminate\Validation\ValidationException;
-use Tests\MockAccountData;
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
  * 
@@ -46,7 +48,35 @@ class InvoiceEmailTest extends TestCase
 
         $this->makeTestData();
 
-        // $this->withoutExceptionHandling();
+    }
+
+    public function testEmailTemplateValidation()
+    {
+        $this->user->setCompany($this->company);
+        $this->actingAs($this->user);
+    
+        $request = new SendEmailRequest();
+
+        collect($request->templates)->filter(function ($template){
+            return stripos($template, 'quote') === false;
+        })->each(function ($template) use($request){
+
+        
+            $data = [
+                "body" => "hey what's up",
+                "entity" => 'App\Models\Invoice',
+                "entity_id" => $this->invoice->id,
+                "subject" => 'Reminder $number',
+                "template" => $template
+            ];
+
+            $request->initialize($data);
+            $validator = Validator::make($data, $request->rules());
+    
+            $this->assertTrue($validator->passes());
+        
+        });
+
 
     }
 

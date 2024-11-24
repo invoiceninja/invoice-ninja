@@ -11,14 +11,16 @@
 
 namespace App\Models;
 
-use App\DataMapper\CompanySettings;
-use App\Models\Presenters\VendorPresenter;
-use App\Services\Vendor\VendorService;
+use Laravel\Scout\Searchable;
 use App\Utils\Traits\AppSetup;
-use App\Utils\Traits\GeneratesCounter;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\DataMapper\CompanySettings;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
+use App\Services\Vendor\VendorService;
+use App\Utils\Traits\GeneratesCounter;
 use Laracasts\Presenter\PresentableTrait;
+use App\Models\Presenters\VendorPresenter;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * App\Models\Vendor
@@ -92,7 +94,8 @@ class Vendor extends BaseModel
     use GeneratesCounter;
     use PresentableTrait;
     use AppSetup;
-
+    use Searchable;
+    
     protected $fillable = [
         'name',
         'assigned_user_id',
@@ -136,6 +139,49 @@ class Vendor extends BaseModel
     protected $with = [
         'contacts.company',
     ];
+
+
+    public function toSearchableArray()
+    {
+
+        $locale = $this->locale();
+        App::setLocale($locale);
+
+        $name = ctrans('texts.vendor') . " | " . $this->present()->name();
+
+        if (strlen($this->vat_number ?? '') > 1) {
+            $name .= " | ". $this->vat_number;
+        }
+
+        return [
+            'id' => $this->id,
+            'name' => $name,
+            'is_deleted' => $this->is_deleted,
+            'hashed_id' => $this->hashed_id,
+            'number' => $this->number,
+            'id_number' => $this->id_number,
+            'vat_number' => $this->vat_number,
+            'phone' => $this->phone,
+            'address1' => $this->address1,
+            'address2' => $this->address2,
+            'city' => $this->city,
+            'state' => $this->state,
+            'postal_code' => $this->postal_code,
+            'website' => $this->website,
+            'private_notes' => $this->private_notes,
+            'public_notes' => $this->public_notes,
+            'custom_value1' => $this->custom_value1,
+            'custom_value2' => $this->custom_value2,
+            'custom_value3' => $this->custom_value3,
+            'custom_value4' => $this->custom_value4,
+            'company_key' => $this->company->company_key,
+        ];
+    }
+
+    public function getScoutKey()
+    {
+        return $this->hashed_id;
+    }
 
     protected $presenter = VendorPresenter::class;
 
