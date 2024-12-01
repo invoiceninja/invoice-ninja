@@ -7,7 +7,7 @@
         "production": "vite build"
     },
     "devDependencies": {
-        "@babel/compat-data": "7.15.0",
+        "@babel/compat-data": "7.26.2",
         "@babel/plugin-proposal-class-properties": "^7.14.5",
         "@tailwindcss/aspect-ratio": "^0.4.2",
         "@tailwindcss/forms": "^0.5.7",
