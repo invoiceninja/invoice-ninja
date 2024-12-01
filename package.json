@@ -34,7 +34,7 @@
         "laravel-mix": "^6.0.34",
         "linkify-urls": "^4.0.0",
         "lodash": "^4.17.21",
-        "resolve-url-loader": "^4.0.0",
+        "resolve-url-loader": "^5.0.0",
         "sass": "^1.43.4",
         "sass-loader": "^12.3.0",
         "signature_pad": "^5.0.2"
