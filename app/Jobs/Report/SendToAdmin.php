@@ -20,6 +20,9 @@ use App\Jobs\Mail\NinjaMailerJob;
 use App\Jobs\Mail\NinjaMailerObject;
 use App\Services\Report\ARDetailReport;
 use App\Services\Report\ARSummaryReport;
+use App\Services\Report\ClientBalanceReport;
+use App\Services\Report\ClientSalesReport;
+use App\Services\Report\TaxSummaryReport;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -61,14 +64,14 @@ class SendToAdmin implements ShouldQueue
         $files = [];
         $files[] = ['file' => $csv, 'file_name' => "{$this->file_name}", 'mime' => 'text/csv'];
 
-        if(in_array(get_class($export), [ARDetailReport::class, ARSummaryReport::class])) {
+        if(in_array(get_class($export), [ARDetailReport::class, ARSummaryReport::class, ClientBalanceReport::class, ClientSalesReport::class, TaxSummaryReport::class])) {
             $pdf = base64_encode($export->getPdf());
             $files[] = ['file' => $pdf, 'file_name' => str_replace(".csv", ".pdf", $this->file_name), 'mime' => 'application/pdf'];
         }
 
         $user = $this->company->owner();
 
-        if(isset($this->request['user_id'])) {
+        if (isset($this->request['user_id'])) {
             $user = User::find($this->request['user_id']) ?? $this->company->owner();
         }
 
@@ -77,7 +80,7 @@ class SendToAdmin implements ShouldQueue
         $nmo->company = $this->company;
         $nmo->settings = $this->company->settings;
         $nmo->to_user = $user;
-    
+
         try {
             (new NinjaMailerJob($nmo))->handle();
         } catch (\Throwable $th) {

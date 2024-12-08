@@ -23,9 +23,10 @@ class ValidSubdomain implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
 
-        if(empty($value))
+        if (empty($value)) {
             return;
-        
+        }
+
         if (!MultiDB::checkDomainAvailable($value)) {
             $fail(ctrans('texts.subdomain_taken'));
         }

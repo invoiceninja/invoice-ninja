@@ -363,7 +363,7 @@ class EInvoiceValidationTest extends TestCase
             'company_id' => $company->id,
             'classification' => 'individual',
             'vat_number' => '',
-            'country_id' => 1,
+            'country_id' => 276,
             'address1' => '10 Wallaby Way',
             'address2' => '',
             'city' => 'Sydney',
@@ -371,8 +371,20 @@ class EInvoiceValidationTest extends TestCase
             'postal_code' => '2113',
         ]);
 
+        $cc = ClientContact::factory()->create([
+            'client_id' => $client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $company->id,
+            'first_name' => 'Bob',
+            'last_name' => 'Doe',
+            'email' => 'wasa@b.com',
+        ]);
+
         $el = new EntityLevel();
         $validation = $el->checkClient($client);
+
+        if(!$validation['passes'])
+            nlog($validation);
 
         $this->assertTrue($validation['passes']);
 
@@ -397,6 +409,17 @@ class EInvoiceValidationTest extends TestCase
             'state' => 'NSW',
             'postal_code' => '2113',
         ]);
+
+        
+        $cc = ClientContact::factory()->create([
+            'client_id' => $client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $company->id,
+            'first_name' => 'Bob',
+            'last_name' => 'Doe',
+            'email' => 'wasa@b.com',
+        ]);
+
 
         $el = new EntityLevel();
         $validation = $el->checkClient($client);
@@ -423,6 +446,16 @@ class EInvoiceValidationTest extends TestCase
             'city' => 'Sydney',
             'state' => 'NSW',
             'postal_code' => '2113',
+        ]);
+
+        
+        $cc = ClientContact::factory()->create([
+            'client_id' => $client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $company->id,
+            'first_name' => 'Bob',
+            'last_name' => 'Doe',
+            'email' => 'wasa@b.com',
         ]);
 
         $el = new EntityLevel();

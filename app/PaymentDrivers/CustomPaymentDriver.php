@@ -106,7 +106,7 @@ class CustomPaymentDriver extends BaseDriver
 
     public function processPaymentViewData(array $data): array
     {
-        return $this->paymentData($data); 
+        return $this->paymentData($data);
     }
 
     /**

@@ -62,7 +62,7 @@ class TaskScheduler implements ShouldQueue
                     try {
                         //@var \App\Models\Schedule $scheduler
                         $scheduler->service()->runTask();
-                    } catch(\Exception $e) {
+                    } catch (\Throwable $e) {
                         nlog("Exception:: TaskScheduler:: Doing job :: {$scheduler->id} :: {$scheduler->name}" . $e->getMessage());
                     }
 
@@ -88,7 +88,7 @@ class TaskScheduler implements ShouldQueue
                     try {
                         /** @var \App\Models\Scheduler $scheduler */
                         $scheduler->service()->runTask();
-                    } catch(\Exception $e) {
+                    } catch (\Throwable $e) {
                         nlog("Exception:: TaskScheduler:: #{$scheduler->id}::" . $e->getMessage());
                         nlog($e->getMessage());
                     }

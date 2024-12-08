@@ -7,53 +7,53 @@ use Symfony\Component\Serializer\Attribute\SerializedPath;
 
 class AccountingCustomerParty
 {
-	/** @var Party */
-	#[SerializedName('cac:Party')]
-	public $party;
-    
-	/** @var PublicIdentifiers[] */
-	public ?array $public_identifiers;
+    /** @var Party */
+    #[SerializedName('cac:Party')]
+    public $party;
 
-	/**
-	 * @param PublicIdentifiers[] $public_identifiers
-	 */
-	public function __construct(?Party $party, ?array $public_identifiers)
-	{
-		$this->party = $party;
-		$this->public_identifiers = $public_identifiers;
-	}
+    /** @var PublicIdentifiers[] */
+    public ?array $public_identifiers;
 
-	public function getParty(): ?Party
-	{
-		return $this->party;
-	}
+    /**
+     * @param PublicIdentifiers[] $public_identifiers
+     */
+    public function __construct(?Party $party, ?array $public_identifiers)
+    {
+        $this->party = $party;
+        $this->public_identifiers = $public_identifiers;
+    }
 
-	/**
-	 * @return PublicIdentifiers[]
-	 */
-	public function getPublicIdentifiers(): ?array
-	{
-		return $this->public_identifiers;
-	}
+    public function getParty(): ?Party
+    {
+        return $this->party;
+    }
 
-	public function setParty(?Party $party): self
-	{
-		$this->party = $party;
-		return $this;
-	}
+    /**
+     * @return PublicIdentifiers[]
+     */
+    public function getPublicIdentifiers(): ?array
+    {
+        return $this->public_identifiers;
+    }
 
-	/**
-	 * @param PublicIdentifiers[] $public_identifiers
-	 */
-	public function setPublicIdentifiers(?array $public_identifiers): self
-	{
-		$this->public_identifiers = $public_identifiers;
-		return $this;
-	}
+    public function setParty(?Party $party): self
+    {
+        $this->party = $party;
+        return $this;
+    }
 
-	public function addPublicIdentifiers($public_identifier): self
-	{
-		$this->public_identifiers[] = $public_identifier;
-		return $this;
-	}
+    /**
+     * @param PublicIdentifiers[] $public_identifiers
+     */
+    public function setPublicIdentifiers(?array $public_identifiers): self
+    {
+        $this->public_identifiers = $public_identifiers;
+        return $this;
+    }
+
+    public function addPublicIdentifiers($public_identifier): self
+    {
+        $this->public_identifiers[] = $public_identifier;
+        return $this;
+    }
 }

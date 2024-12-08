@@ -61,11 +61,11 @@ class QuickbooksService
             'auth_mode' => 'oauth2',
             'scope' => "com.intuit.quickbooks.accounting",
             'RedirectURI' => $this->testMode ? 'https://grok.romulus.com.au/quickbooks/authorized' : 'https://invoicing.co/quickbooks/authorized',
-            'baseUrl' => $this->testMode ?  CoreConstants::SANDBOX_DEVELOPMENT : CoreConstants::QBO_BASEURL,
+            'baseUrl' => $this->testMode ? CoreConstants::SANDBOX_DEVELOPMENT : CoreConstants::QBO_BASEURL,
         ];
 
         $merged = array_merge($config, $this->ninjaAccessToken());
-        
+
         $this->sdk = DataService::Configure($merged);
 
         // $this->sdk->setLogLocation(storage_path("logs/quickbooks.log"));
@@ -77,13 +77,13 @@ class QuickbooksService
         $this->checkToken();
 
         $this->invoice = new QbInvoice($this);
-        
+
         $this->product = new QbProduct($this);
 
         $this->client = new QbClient($this);
 
         $this->settings = $this->company->quickbooks->settings;
-        
+
         $this->checkDefaultAccounts();
 
         return $this;
@@ -94,7 +94,7 @@ class QuickbooksService
 
         $accountQuery = "SELECT * FROM Account WHERE AccountType IN ('Income', 'Cost of Goods Sold')";
 
-        if(strlen($this->settings->default_income_account) == 0 || strlen($this->settings->default_expense_account) == 0){
+        if (strlen($this->settings->default_income_account) == 0 || strlen($this->settings->default_expense_account) == 0) {
 
             nlog("Checking default accounts for company {$this->company->company_key}");
             $accounts = $this->sdk->Query($accountQuery);
@@ -103,7 +103,7 @@ class QuickbooksService
 
             $find_income_account = true;
             $find_expense_account = true;
-            
+
             foreach ($accounts as $account) {
                 if ($account->AccountType->value == 'Income' && $find_income_account) {
                     $this->settings->default_income_account = $account->Id->value;
@@ -119,7 +119,7 @@ class QuickbooksService
             $this->company->quickbooks->settings = $this->settings;
             $this->company->save();
         }
-        
+
 
         return $this;
     }
@@ -127,10 +127,11 @@ class QuickbooksService
     private function checkToken(): self
     {
 
-        if($this->company->quickbooks->accessTokenExpiresAt == 0 || $this->company->quickbooks->accessTokenExpiresAt > time())
+        if ($this->company->quickbooks->accessTokenExpiresAt == 0 || $this->company->quickbooks->accessTokenExpiresAt > time()) {
             return $this;
+        }
 
-        if($this->company->quickbooks->accessTokenExpiresAt && $this->company->quickbooks->accessTokenExpiresAt < time() && $this->try_refresh){
+        if ($this->company->quickbooks->accessTokenExpiresAt && $this->company->quickbooks->accessTokenExpiresAt < time() && $this->try_refresh) {
             $this->sdk()->refreshToken($this->company->quickbooks->refresh_token);
             $this->company = $this->company->fresh();
             $this->try_refresh = false;
@@ -157,9 +158,9 @@ class QuickbooksService
     {
         return new SdkWrapper($this->sdk, $this->company);
     }
-        
+
     /**
-     * 
+     *
      *
      * @return void
      */
@@ -177,7 +178,7 @@ class QuickbooksService
     {
         return $this->sdk->Query($query);
     }
-        
+
     /**
      * Flag to determine if a sync is allowed in either direction
      *

@@ -26,7 +26,7 @@ class InboundMail
     public ?string $subject = null;
 
     public ?string $body = null;
-    
+
     public ?UploadedFile $body_document = null;
 
     public string $text_body;

@@ -67,7 +67,7 @@ class VerifyPhone implements ShouldQueue
         try {
             $phone_number = $twilio->lookups->v1->phoneNumbers($this->user->phone)
                                                 ->fetch(["countryCode" => $countryCode]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->user->verified_phone_number = false;
             $this->user->save();
             return;

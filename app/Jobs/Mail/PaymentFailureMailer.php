@@ -90,7 +90,7 @@ class PaymentFailureMailer implements ShouldQueue
 
                 $use_react_link = false;
 
-                if(isset($company_user->react_settings->react_notification_link) && $company_user->react_settings->react_notification_link) {
+                if (isset($company_user->react_settings->react_notification_link) && $company_user->react_settings->react_notification_link) {
                     $use_react_link = true;
                 }
 

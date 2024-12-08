@@ -58,7 +58,7 @@ class PreviewPurchaseOrderRequest extends Request
         $input['balance'] = 0;
         $input['number'] = isset($input['number']) ? $input['number'] : ctrans('texts.live_preview').' #'.rand(0, 1000); //30-06-2023
 
-        if($input['entity_id'] ?? false) {
+        if ($input['entity_id'] ?? false) {
             $input['entity_id'] = $this->decodePrimaryKey($input['entity_id'], true);
         }
 
@@ -71,13 +71,13 @@ class PreviewPurchaseOrderRequest extends Request
     {
         $invitation = false;
 
-        if(! isset($this->entity_id)) {
+        if (! isset($this->entity_id)) {
             return $this->stubInvitation();
         }
 
         $invitation = PurchaseOrderInvitation::withTrashed()->where('purchase_order_id', $this->entity_id)->first();
 
-        if($invitation) {
+        if ($invitation) {
             return $invitation;
         }
 
@@ -88,7 +88,7 @@ class PreviewPurchaseOrderRequest extends Request
 
     public function getVendor(): ?Vendor
     {
-        if(!$this->vendor) {
+        if (!$this->vendor) {
             $this->vendor = Vendor::query()->with('contacts', 'company', 'user')->withTrashed()->find($this->vendor_id);
         }
 

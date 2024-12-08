@@ -363,7 +363,7 @@ class ProcessPostmarkWebhook implements ShouldQueue
 
         try {
             $messageDetail = $postmark->getOutboundMessageDetails($message_id);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
             $postmark_secret = config('services.postmark-outlook.token');
             $postmark = new PostmarkClient($postmark_secret);
@@ -406,7 +406,7 @@ class ProcessPostmarkWebhook implements ShouldQueue
 
             try {
                 $messageDetail = $postmark->getOutboundMessageDetails($this->request['MessageID']);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
 
                 $postmark_secret = config('services.postmark-outlook.token');
                 $postmark = new PostmarkClient($postmark_secret);

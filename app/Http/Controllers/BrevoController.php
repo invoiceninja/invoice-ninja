@@ -185,8 +185,9 @@ class BrevoController extends BaseController
     {
         $input = $request->all();
 
-        if (!($request->has('token') && $request->get('token') == config('ninja.inbound_mailbox.inbound_webhook_token')))
+        if (!($request->has('token') && $request->get('token') == config('ninja.inbound_mailbox.inbound_webhook_token'))) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         if (!array_key_exists('items', $input)) {
             nlog('Failed: Message could not be parsed, because required parameters are missing.');

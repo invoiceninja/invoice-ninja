@@ -131,7 +131,7 @@ class InvoiceEmailEngine extends BaseEmailEngine
         if ($this->client->getSetting('pdf_email_attachment') !== false && $this->invoice->company->account->hasFeature(Account::FEATURE_PDF_ATTACHMENT)) {
             $pdf = ((new CreateRawPdf($this->invitation))->handle());
 
-            if($this->client->getSetting('embed_documents') && ($this->invoice->documents()->where('is_public', true)->count() > 0 || $this->invoice->company->documents()->where('is_public', true)->count() > 0)) {
+            if ($this->client->getSetting('embed_documents') && ($this->invoice->documents()->where('is_public', true)->count() > 0 || $this->invoice->company->documents()->where('is_public', true)->count() > 0)) {
                 $pdf = $this->invoice->documentMerge($pdf);
             }
 

@@ -21,7 +21,6 @@ use App\Services\EDocument\Imports\UblEDocument;
 
 class ParseEDocument extends AbstractService
 {
-
     /**
      * @throws Exception
      */
@@ -64,28 +63,28 @@ class ParseEDocument extends AbstractService
             case ($extension == 'xml' || $mimetype == 'application/xml') && stristr($this->file->get(), "<Invoice"):
                 try {
                     return (new UblEDocument($this->file, $this->company))->run();
-                }
-                catch(\Throwable $e){
+                } catch (\Throwable $e) {
                     nlog("UBL Import Exception: " . $e->getMessage());
                     break;
                 }
         }
 
         // MINDEE OCR - try to parse via mindee external service
-        if (config('services.mindee.api_key') && !(Ninja::isHosted() && !($account->isPaid() && $account->plan == 'enterprise')))
+        if (config('services.mindee.api_key') && !(Ninja::isHosted() && !($account->isPaid() && $account->plan == 'enterprise'))) {
             switch (true) {
                 case ($extension == 'pdf' || $mimetype == 'application/pdf'):
                 case ($extension == 'heic' || $extension == 'heic' || $extension == 'png' || $extension == 'jpg' || $extension == 'jpeg' || $extension == 'webp' || str_starts_with($mimetype, 'image/')):
                     try {
                         return (new MindeeEDocument($this->file, $this->company))->run();
                     } catch (Exception $e) {
-                        if (!($e->getMessage() == 'Unsupported document type'))
+                        if (!($e->getMessage() == 'Unsupported document type')) {
                             nlog("Mindee Exception: " . $e->getMessage());
+                        }
                     }
             }
+        }
 
         // NO PARSER OR ERROR
         throw new Exception("File type not supported or issue while parsing", 409);
     }
 }
-

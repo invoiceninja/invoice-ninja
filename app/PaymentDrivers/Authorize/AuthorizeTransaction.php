@@ -92,7 +92,7 @@ class AuthorizeTransaction
 
         $contact = $this->authorize->client->primary_contact()->first() ?: $this->authorize->client->contacts()->first();
 
-        if($contact) {
+        if ($contact) {
             $billto = new \net\authorize\api\contract\v1\CustomerAddressType();
             $billto->setFirstName(substr($contact->present()->first_name(), 0, 50));
             $billto->setLastName(substr($contact->present()->last_name(), 0, 50));
@@ -122,7 +122,7 @@ class AuthorizeTransaction
         $transactionRequestType->setPayment($paymentOne);
         $transactionRequestType->setCurrencyCode($this->authorize->client->currency()->code);
 
-        if($billto) {
+        if ($billto) {
             $transactionRequestType->setBillTo($billto);
         }
 
@@ -145,7 +145,7 @@ class AuthorizeTransaction
                 nlog(' Description : '.$tresponse->getMessages()[0]->getDescription());
                 nlog(print_r($tresponse->getMessages()[0], 1));
 
-                if($tresponse->getResponseCode() == "4") {
+                if ($tresponse->getResponseCode() == "4") {
                     //notify user that this transaction is being held under FDS review:
                     FDSReview::dispatch((string)$tresponse->getTransId(), $this->authorize->payment_hash, $this->authorize->company_gateway->company->db);
                 }

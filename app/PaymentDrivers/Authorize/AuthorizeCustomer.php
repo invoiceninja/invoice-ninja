@@ -161,7 +161,7 @@ class AuthorizeCustomer
 
     private function getCountryCode($country_code)
     {
-        
+
         /** @var \Illuminate\Support\Collection<\App\Models\Country> */
         $countries = app('countries');
 

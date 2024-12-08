@@ -95,7 +95,7 @@ class StoreRecurringInvoiceRequest extends Request
             $input['due_date_days'] = 'terms';
         }
 
-        if(!isset($input['next_send_date']) || $input['next_send_date'] == '') {
+        if (!isset($input['next_send_date']) || $input['next_send_date'] == '') {
             $input['next_send_date'] = now()->format('Y-m-d');
         }
 

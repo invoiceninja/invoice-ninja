@@ -38,7 +38,7 @@ class UpgradePrice extends AbstractService
                        ->subscription
                        ->status($this->recurring_invoice);
 
-        if($this->status->is_in_good_standing) {
+        if ($this->status->is_in_good_standing) {
             $this->calculateUpgrade();
         } else {
             $this->upgrade_price = $this->subscription->price;
@@ -84,7 +84,7 @@ class UpgradePrice extends AbstractService
 
         $use_credit_setting = $this->recurring_invoice->client->getSetting('use_credits_payment');
 
-        if($use_credit_setting) {
+        if ($use_credit_setting) {
 
             $outstanding_credits = Credit::query()
                                ->where('client_id', $this->recurring_invoice->client_id)

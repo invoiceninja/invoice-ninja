@@ -78,7 +78,7 @@ class CreateRawPdf
 
     private function resolveType(): string
     {
-        if($this->type) {
+        if ($this->type) {
             return $this->type;
         }
 
@@ -121,7 +121,7 @@ class CreateRawPdf
 
         $merge_docs = isset($this->entity->client) ? $this->entity->client->getSetting('embed_documents') : $this->company->getSetting('embed_documents');
 
-        if($merge_docs && ($this->entity->documents()->where('is_public', true)->count() > 0 || $this->company->documents()->where('is_public', true)->count() > 0)) {
+        if ($merge_docs && ($this->entity->documents()->where('is_public', true)->count() > 0 || $this->company->documents()->where('is_public', true)->count() > 0)) {
             $pdf = $this->entity->documentMerge($pdf);
         }
 

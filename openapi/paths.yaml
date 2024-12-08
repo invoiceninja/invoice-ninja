@@ -86,16 +86,24 @@ paths:
 
   /api/v1/login:
     post:
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("your_token");
+          
+      - lang: curl
+        label: curl
+        source: |
+          curl --request POST \
+            --url 'https://demo.invoiceninja.com/api/v1/login?include=company,token' \
+            --header 'X-API-TOKEN: YOUR_API_TOKEN_HERE' \
+            --header 'X-Requested-With: XMLHttpRequest' \
+            --header 'Accept: application/json'
       tags:
-        - login
-      summary: "Attempts authentication"
+        - auth
+      summary: "Login"
       description: |
-        After authenticating with the API, the returned object is a CompanyUser object which is a bridge linking the user to the company. 
-
-        The company user object itself contains the users permissions (admin/owner or fine grained permissions) You will most likely want to 
-        also include in the response of this object both the company and the user object, this can be done by using the include parameter.
-
-        /api/v1/login?include=company,user
 
       operationId: postLogin
       parameters:
@@ -106,7 +114,16 @@ paths:
         - $ref: "#/components/parameters/include_static"
         - $ref: "#/components/parameters/clear_cache"
       requestBody:
-        description: "User credentials"
+        description: |
+          User credentials
+
+          ```json
+          {
+            "email" : "fred@flintstonze.com",
+            "password" : "magicpassword123",
+            "one_time_password" : "12345",
+          }
+          ```
         required: true
         content:
           application/json:
@@ -3047,7 +3064,23 @@ paths:
                 template:
                   description: "The template required"
                   type: string
-                  example: invoice,quote,credit,purchase_order,payment,payment_partial,reminder1,reminder2,reminder3,reminder_endless
+                  enum:
+                    - invoice
+                    - quote
+                    - credit
+                    - payment
+                    - payment_partial
+                    - statement
+                    - reminder1
+                    - reminder2
+                    - reminder3
+                    - reminder_endless
+                    - custom1
+                    - custom2
+                    - custom3
+                    - purchase_order
+                    - email_quote_template_reminder1
+                  example: invoice
               type: object
       responses:
         200:

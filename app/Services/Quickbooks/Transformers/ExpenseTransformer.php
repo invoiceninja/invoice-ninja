@@ -35,7 +35,7 @@ class ExpenseTransformer extends BaseTransformer
 
         $expense = [
             'amount' => data_get($data, 'TotalAmt'),
-            'date' => Carbon::parse(data_get($data, 'TxnDate',''))->format('Y-m-d'),
+            'date' => Carbon::parse(data_get($data, 'TxnDate', ''))->format('Y-m-d'),
             'currency_id' => $this->resolveCurrency(data_get($data, 'CurrencyRef.value', '')),
             'private_notes' => data_get($data, 'PrivateNote', null),
             'public_notes' => null,
@@ -45,7 +45,7 @@ class ExpenseTransformer extends BaseTransformer
             'invoice_documents' => false,
             'uses_inclusive_taxes' => false,
             'calculate_tax_by_amount' => false,
-            'category_id' => $this->getCategoryId(data_get($data, 'AccountRef.name','')),
+            'category_id' => $this->getCategoryId(data_get($data, 'AccountRef.name', '')),
         ];
 
 
@@ -65,10 +65,10 @@ class ExpenseTransformer extends BaseTransformer
         $related = data_get($entity, 'EntityRef.type');
         $entity_id = data_get($entity, 'EntityRef.value');
 
-        switch($related) {
+        switch ($related) {
             case 'Vendor':
                 return ['vendor_id' => $this->getVendorId($entity_id)];
-            case 'Client': 
+            case 'Client':
                 return ['client_id' => $this->getClientId($entity_id)];
             default:
                 return [];
@@ -77,16 +77,17 @@ class ExpenseTransformer extends BaseTransformer
     }
 
     private function getCategoryId($name): ?int
-    { 
+    {
 
-        if(strlen($name) == 0) 
+        if (strlen($name) == 0) {
             return null;
+        }
 
         $category = ExpenseCategory::where('company_id', $this->company->id)
                                     ->where('name', $name)
                                     ->first();
 
-        if(!$category){
+        if (!$category) {
             $category = ExpenseCategoryFactory::create($this->company->id, $this->company->owner()->id);
             $category->name = $name;
             $category->save();

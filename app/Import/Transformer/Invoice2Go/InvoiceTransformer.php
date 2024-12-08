@@ -72,8 +72,8 @@ class InvoiceTransformer extends BaseTransformer
 
         if ($client_id) {
             $transformed['client_id'] = $client_id;
-        } 
-        
+        }
+
         $settings = new \stdClass();
         $settings->currency_id = $this->getCurrencyByCode($invoice_data, 'Currency');
 
@@ -102,14 +102,14 @@ class InvoiceTransformer extends BaseTransformer
                     'amount' => $this->getFloat($invoice_data, 'Payments'),
                 ],
             ];
-        } elseif(isset($invoice_data['AmountPaidAmount']) && isset($invoice_data['DatePaid'])) {
+        } elseif (isset($invoice_data['AmountPaidAmount']) && isset($invoice_data['DatePaid'])) {
             $transformed['payments'] = [
                 [
                     'date'   => $this->parseDate($invoice_data['DatePaid']),
                     'amount' => $this->getFloat($invoice_data, 'AmountPaidAmount'),
                 ]
             ];
-        } elseif(isset($invoice_data['DocumentStatus']) && $invoice_data['DocumentStatus'] == 'fully_paid') {
+        } elseif (isset($invoice_data['DocumentStatus']) && $invoice_data['DocumentStatus'] == 'fully_paid') {
 
             $transformed['payments'] = [
                 [
@@ -130,12 +130,12 @@ class InvoiceTransformer extends BaseTransformer
         $lines = explode("\n", $address);
 
         $billing_address = [];
-        if(count($lines) == 2) {
+        if (count($lines) == 2) {
             $billing_address['address1'] = $lines[0];
 
             $parts = explode(",", $lines[1]);
 
-            if(count($parts) == 3) {
+            if (count($parts) == 3) {
                 $billing_address['city'] = $parts[0];
                 $billing_address['state'] = $parts[1];
                 $billing_address['postal_code'] = $parts[2];
@@ -148,12 +148,12 @@ class InvoiceTransformer extends BaseTransformer
 
         $lines = explode("\n", $shipaddress);
 
-        if(count($lines) == 2) {
+        if (count($lines) == 2) {
             $shipping_address['address1'] = $lines[0];
 
             $parts = explode(",", $lines[1]);
 
-            if(count($parts) == 3) {
+            if (count($parts) == 3) {
                 $shipping_address['shipping_city'] = $parts[0];
                 $shipping_address['shipping_state'] = $parts[1];
                 $shipping_address['shipping_postal_code'] = $parts[2];
@@ -198,7 +198,7 @@ class InvoiceTransformer extends BaseTransformer
                 ],
             ];
 
-        if(!isset($invoice_data['Items'])) {
+        if (!isset($invoice_data['Items'])) {
             return $default_data;
         }
 
@@ -207,7 +207,7 @@ class InvoiceTransformer extends BaseTransformer
 
         $line_items = [];
 
-        foreach($processed as $item) {
+        foreach ($processed as $item) {
             $_item['cost'] = $item['unit_price'];
             $_item['quantity'] = $item['qty'] ?? 1;
             $_item['discount'] = $item['discount_percentage'] > $item['discount_amount'] ? $item['discount_percentage'] : $item['discount_amount'];
@@ -228,7 +228,7 @@ class InvoiceTransformer extends BaseTransformer
 
     private function parseTaxes($ninja_item, $i2g_item): array
     {
-        if(is_string($i2g_item['applied_taxes'])) {
+        if (is_string($i2g_item['applied_taxes'])) {
             return $ninja_item;
         }
 
@@ -272,19 +272,19 @@ class InvoiceTransformer extends BaseTransformer
         }
 
 
-        foreach($parsedRows as $key => &$row) {
+        foreach ($parsedRows as $key => &$row) {
 
-            if($key == 0) {
+            if ($key == 0) {
                 continue;
             }
             /** @var array $row */
-            if(is_array($row[5])) {
+            if (is_array($row[5])) {
                 $csv = str_getcsv($row[5][0], ";");
                 $row[5] = array_combine(explode(",", $csv[0]), explode(",", $csv[1]));
 
             }
 
-            if(is_array($row[1])) {
+            if (is_array($row[1])) {
                 $row[1] = $row[1][0];
             }
 

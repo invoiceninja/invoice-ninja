@@ -26,7 +26,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class InvoiceWasPaid implements ShouldBroadcast
 {
-    use SerializesModels, DefaultResourceBroadcast, InteractsWithSockets;
+    use SerializesModels;
+    use DefaultResourceBroadcast;
+    use InteractsWithSockets;
 
     /**
      * Create a new event instance.

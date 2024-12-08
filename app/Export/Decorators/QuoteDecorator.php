@@ -19,15 +19,15 @@ class QuoteDecorator extends Decorator implements DecoratorInterface
     {
         $quote = false;
 
-        if($entity instanceof Quote) {
+        if ($entity instanceof Quote) {
             $quote = $entity;
-        } elseif($entity->quote) {
+        } elseif ($entity->quote) {
             $quote = $entity->quote;
         }
 
-        if($quote && method_exists($this, $key)) {
+        if ($quote && method_exists($this, $key)) {
             return $this->{$key}($quote);
-        } elseif($quote->{$key} ?? false) {
+        } elseif ($quote->{$key} ?? false) {
             return $quote->{$key} ?? '';
         }
 

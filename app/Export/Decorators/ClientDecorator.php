@@ -21,15 +21,15 @@ class ClientDecorator extends Decorator implements DecoratorInterface
     {
         $client = false;
 
-        if($entity instanceof Client) {
+        if ($entity instanceof Client) {
             $client = $entity;
-        } elseif($entity->client) {
+        } elseif ($entity->client) {
             $client = $entity->client;
         }
 
-        if($client && method_exists($this, $key)) {
+        if ($client && method_exists($this, $key)) {
             return $this->{$key}($client);
-        } elseif($client && ($client->{$key} ?? false)) {
+        } elseif ($client && ($client->{$key} ?? false)) {
             return $client->{$key};
         }
 

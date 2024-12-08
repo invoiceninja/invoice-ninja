@@ -128,7 +128,7 @@ class RFFService
         $contact = [];
 
         MultiDB::setDb($this->database);
- 
+
         foreach ($data as $field => $value) {
             if (Str::startsWith($field, 'client_')) {
                 $client[$this->mappings[$field]] = $value;

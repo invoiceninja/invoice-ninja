@@ -127,7 +127,7 @@ class CompanyUserController extends BaseController
             $company_user->settings = $request->input('company_user')['settings'];
             $company_user->notifications = $request->input('company_user')['notifications'];
 
-            if(isset($request->input('company_user')['react_settings'])) {
+            if (isset($request->input('company_user')['react_settings'])) {
                 $company_user->react_settings = $request->input('company_user')['react_settings'];
             }
 

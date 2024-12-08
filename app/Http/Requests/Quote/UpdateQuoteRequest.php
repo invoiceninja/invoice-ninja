@@ -72,6 +72,11 @@ class UpdateQuoteRequest extends Request
         $rules['due_date'] = ['bail', 'sometimes', 'nullable', 'after:partial_due_date', 'after_or_equal:date', Rule::requiredIf(fn () => strlen($this->partial_due_date) > 1), 'date'];
         $rules['amount'] = ['sometimes', 'bail', 'numeric', 'max:99999999999999'];
 
+        $rules['custom_surcharge1'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
+        $rules['custom_surcharge2'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
+        $rules['custom_surcharge3'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
+        $rules['custom_surcharge4'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
+
         return $rules;
     }
 
@@ -96,10 +101,10 @@ class UpdateQuoteRequest extends Request
             $input['exchange_rate'] = 1;
         }
 
-        if(isset($input['partial']) && $input['partial'] == 0) {
+        if (isset($input['partial']) && $input['partial'] == 0) {
             $input['partial_due_date'] = null;
         }
-        
+
         if (isset($input['footer']) && $this->hasHeader('X-REACT')) {
             $input['footer'] = str_replace("\n", "", $input['footer']);
         }

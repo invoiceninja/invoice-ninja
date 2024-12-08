@@ -15,7 +15,6 @@ use App\Helpers\Invoice\InvoiceSum;
 use App\Helpers\Invoice\InvoiceSumInclusive;
 use App\Models\Presenters\RecurringQuotePresenter;
 use App\Services\Recurring\RecurringService;
-use App\Utils\Traits\MakesDates;
 use App\Utils\Traits\MakesHash;
 use App\Utils\Traits\Recurring\HasRecurrence;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -125,7 +124,6 @@ class RecurringQuote extends BaseModel
     use MakesHash;
     use SoftDeletes;
     use Filterable;
-    use MakesDates;
     use HasRecurrence;
     use PresentableTrait;
 

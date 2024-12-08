@@ -33,7 +33,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
     {
         $data = $this->processPaymentViewData($data);
 
-        if($this->gateway_type_id == 29) {
+        if ($this->gateway_type_id == 29) {
             return render('gateways.paypal.ppcp.card', $data);
         } else {
             return render('gateways.paypal.pay', $data);
@@ -54,7 +54,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
         $request['gateway_response'] = str_replace("Error: ", "", $request['gateway_response']);
         $response = json_decode($request['gateway_response'], true);
 
-        if($request->has('token') && strlen($request->input('token')) > 2) {
+        if ($request->has('token') && strlen($request->input('token')) > 2) {
             return $this->processTokenPayment($request, $response);
         }
 
@@ -62,7 +62,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
         $orderID = $response['orderID'] ?? $this->payment_hash->data->orderID;
 
-        if($this->company_gateway->require_shipping_address) {
+        if ($this->company_gateway->require_shipping_address) {
 
             $shipping_data =
             [[
@@ -86,7 +86,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
             $r = $this->gatewayRequest("/v2/checkout/orders/{$orderID}/capture", 'post', ['body' => '']);
 
-            if($r->status() == 422) {
+            if ($r->status() == 422) {
                 //handle conditions where the client may need to try again.
 
                 $r = $this->handleDuplicateInvoiceId($orderID);
@@ -94,10 +94,10 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
             //Rescue for duplicate invoice_id
-            if(stripos($e->getMessage(), 'DUPLICATE_INVOICE_ID') !== false) {
+            if (stripos($e->getMessage(), 'DUPLICATE_INVOICE_ID') !== false) {
 
 
                 $r = $this->handleDuplicateInvoiceId($orderID);
@@ -111,13 +111,13 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
         nlog("Process response =>");
         nlog($response->json());
 
-        if(isset($response['status']) && $response['status'] == 'COMPLETED' && isset($response['purchase_units'])) {
+        if (isset($response['status']) && $response['status'] == 'COMPLETED' && isset($response['purchase_units'])) {
 
             return $this->createNinjaPayment($request, $response);
 
         } else {
 
-            if(isset($response['headers']) ?? false) {
+            if (isset($response['headers']) ?? false) {
                 unset($response['headers']);
             }
 
@@ -182,15 +182,15 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
                 ]
             ];
 
-        if($shipping = $this->getShippingAddress()) {
+        if ($shipping = $this->getShippingAddress()) {
             $order['purchase_units'][0]["shipping"] = $shipping;
         }
 
-        if(isset($data['payment_source'])) {
+        if (isset($data['payment_source'])) {
             $order['payment_source'] = $data['payment_source'];
         }
 
-        if(isset($data["payer"])){
+        if (isset($data["payer"])) {
             $order['payer'] = $data["payer"];
         }
 
@@ -200,7 +200,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
         $response = $r->json();
 
 
-        if($r->status() == 422) {
+        if ($r->status() == 422) {
             //handle conditions where the client may need to try again.
 
             $_invoice = collect($this->payment_hash->data->invoices)->first();
@@ -216,7 +216,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
         }
 
-        if(!isset($response['id'])) {
+        if (!isset($response['id'])) {
             $this->handleProcessingFailure($response);
         }
 
@@ -280,7 +280,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
             $r = $this->gatewayRequest("/v2/checkout/orders/{$orderId}", 'get', ['body' => '']);
 
-            if($r->status() == 422) {
+            if ($r->status() == 422) {
                 //handle conditions where the client may need to try again.
                 nlog("hit 422");
                 $r = $this->handleDuplicateInvoiceId($orderId);
@@ -288,10 +288,10 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
             //Rescue for duplicate invoice_id
-            if(stripos($e->getMessage(), 'DUPLICATE_INVOICE_ID') !== false) {
+            if (stripos($e->getMessage(), 'DUPLICATE_INVOICE_ID') !== false) {
 
 
                 nlog("hit 422 in exception");
@@ -304,8 +304,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
         $response = $r->json();
 
-        if(isset($response['purchase_units'][0]['payments']['captures'][0]['status']) && $response['purchase_units'][0]['payments']['captures'][0]['status'] == 'COMPLETED')
-        {
+        if (isset($response['purchase_units'][0]['payments']['captures'][0]['status']) && $response['purchase_units'][0]['payments']['captures'][0]['status'] == 'COMPLETED') {
             $data = [
                 'payment_type' => $this->getPaymentMethod($request->gateway_type_id),
                 'amount' => $response['purchase_units'][0]['payments']['captures'][0]['amount']['value'],
@@ -365,17 +364,17 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
             $r = $this->gatewayRequest("/v2/checkout/orders/{$orderId}", 'get', ['body' => '']);
 
-            if($r->status() == 422) {
+            if ($r->status() == 422) {
                 //handle conditions where the client may need to try again.
 
                 $r = $this->handleDuplicateInvoiceId($orderId);
 
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
             //Rescue for duplicate invoice_id
-            if(stripos($e->getMessage(), 'DUPLICATE_INVOICE_ID') !== false) {
+            if (stripos($e->getMessage(), 'DUPLICATE_INVOICE_ID') !== false) {
 
                 $r = $this->handleDuplicateInvoiceId($orderId);
 
@@ -385,8 +384,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
 
         $response = $r->json();
 
-        if(isset($response['purchase_units'][0]['payments']['captures'][0]['status']) && $response['purchase_units'][0]['payments']['captures'][0]['status'] == 'COMPLETED')
-        {
+        if (isset($response['purchase_units'][0]['payments']['captures'][0]['status']) && $response['purchase_units'][0]['payments']['captures'][0]['status'] == 'COMPLETED') {
 
             $data = [
                 'payment_type' => $this->getPaymentMethod((string)$cgt->gateway_type_id),
@@ -406,6 +404,7 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
                 $this->client->company,
             );
 
+            return $payment;
         }
 
         $this->processInternallyFailedPayment($this, new \Exception('Auto billing failed.', 400));
@@ -433,11 +432,11 @@ class PayPalRestPaymentDriver extends PayPalBasePaymentDriver
         $data['identifier'] = "s:INN_ACDC_CHCK";
         $data['pp_client_reference'] = $this->getClientHash();
         $data['invoice_hash'] = $this->payment_hash->fee_invoice->hashed_id;
-        
+
         return $data;
     }
 
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         if ($this->gateway_type_id == 29) {
             return 'gateways.paypal.ppcp.card_livewire';

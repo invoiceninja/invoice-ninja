@@ -346,18 +346,19 @@ class CompanyImport implements ShouldQueue
                 $nmo->settings = $_company->settings;
                 $nmo->to_user = $_company->owner();
                 NinjaMailerJob::dispatch($nmo);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 info($e->getMessage());
             }
         }
 
-        if(file_exists($tmp_file)) {
+        if (file_exists($tmp_file)) {
             unlink($tmp_file);
         }
 
-        if(Storage::exists($this->file_location)) 
+        if (Storage::exists($this->file_location)) {
             Storage::delete($this->file_location);
-        
+        }
+
     }
 
     private function miscTransformations()
@@ -365,43 +366,41 @@ class CompanyImport implements ShouldQueue
         Invoice::withTrashed()
                 ->where('company_id', $this->company->id)
                 ->cursor()
-                ->each(function ($invoice){
+                ->each(function ($invoice) {
 
-                $items = $invoice->line_items;
+                    $items = $invoice->line_items;
 
-                foreach($items as $key => $value)
-                {
+                    foreach ($items as $key => $value) {
 
-                    if(isset($value->task_id) && strlen($value->task_id) >1) {
+                        if (isset($value->task_id) && strlen($value->task_id) > 1) {
 
-                        $t_id = $this->transformId('tasks',$value->task_id);
+                            $t_id = $this->transformId('tasks', $value->task_id);
 
-                        if($t = Task::withTrashed()->where('company_id', $this->company->id)->where('id',$t_id)->first())
-                        {
-                            $items[$key]->task_id = $t->hashed_id;
-                        }
-                        
-                    }
+                            if ($t = Task::withTrashed()->where('company_id', $this->company->id)->where('id', $t_id)->first()) {
+                                $items[$key]->task_id = $t->hashed_id;
+                            }
 
-                                        
-                    
-                    if (isset($value->expense_id) && strlen($value->expense_id) > 1) {
-                        
-                        $e_id = $this->transformId('expenses', $value->expense_id);
-
-                        if ($e = Expense::withTrashed()->where('company_id', $this->company->id)->where('id', $e_id)->first()) {
-                            $items[$key]->expense_id = $e->hashed_id;
                         }
 
+
+
+                        if (isset($value->expense_id) && strlen($value->expense_id) > 1) {
+
+                            $e_id = $this->transformId('expenses', $value->expense_id);
+
+                            if ($e = Expense::withTrashed()->where('company_id', $this->company->id)->where('id', $e_id)->first()) {
+                                $items[$key]->expense_id = $e->hashed_id;
+                            }
+
+                        }
+
                     }
 
-                }
-
-                $invoice->line_items = array_values($items);
-                $invoice->saveQuietly();
+                    $invoice->line_items = array_values($items);
+                    $invoice->saveQuietly();
 
 
-        });
+                });
 
         return $this;
     }
@@ -562,7 +561,7 @@ class CompanyImport implements ShouldQueue
         $settings->email_style_custom = str_replace(['{!!','!!}','{{','}}','@dd', '@dump', '@if', '@if(','@endif','@isset','@unless','@auth','@empty','@guest','@env','@section','@switch', '@foreach', '@while', '@include', '@each', '@once', '@push', '@use', '@forelse', '@verbatim', '<?php', '@php', '@for','@class','</s','<s','html;base64'], '', $settings->email_style_custom);
         $settings->company_logo = (strlen($settings->company_logo) > 2 && stripos($settings->company_logo, 'http') !== false) ? $settings->company_logo : "https://{$settings->company_logo}";
 
-        foreach($this->protected_input as $protected_var) {
+        foreach ($this->protected_input as $protected_var) {
             $settings->{$protected_var} = str_replace("script", "", $settings->{$protected_var});
         }
 
@@ -1266,7 +1265,7 @@ class CompanyImport implements ShouldQueue
                         Storage::disk(config('filesystems.default'))->put($document->url, $file);
 
 
-                    } catch(\Exception $e) {
+                    } catch (\Exception $e) {
                         nlog($e->getMessage());
                         nlog("I could not upload {$document->url}");
 
@@ -1469,7 +1468,7 @@ class CompanyImport implements ShouldQueue
     private function filterVersionProps($class, array $obj_array): array
     {
 
-        if($this->current_app_version == $this->import_version) {
+        if ($this->current_app_version == $this->import_version) {
             return $obj_array;
         }
 
@@ -1478,7 +1477,7 @@ class CompanyImport implements ShouldQueue
 
         $filters = collect($this->version_keys)
             ->map(function ($value, $key) use (&$version_index, &$index) {
-                if($this->import_version == $key) {
+                if ($this->import_version == $key) {
                     $version_index = $index;
                 }
 
@@ -1518,7 +1517,7 @@ class CompanyImport implements ShouldQueue
                     $obj_array['gateway_key'] = 'd14dd26a37cecc30fdd65700bfb55b23';
                 }
 
-                if(!isset($obj_array['fees_and_limits'])) {
+                if (!isset($obj_array['fees_and_limits'])) {
                     $obj_array['fees_and_limits'] = \json_encode([]);
                 }
             }
@@ -1565,12 +1564,12 @@ class CompanyImport implements ShouldQueue
              *  @property string $entity_id
             */
 
-            if($class == 'App\Models\Scheduler') {
+            if ($class == 'App\Models\Scheduler') {
 
                 /** @var \stdClass $parameters */
                 $parameters = $obj_array['parameters'];
 
-                if(isset($parameters->clients)) {
+                if (isset($parameters->clients)) {
 
                     $parameters->clients =
                     collect($parameters->clients)->map(function ($client_hash) {
@@ -1579,7 +1578,7 @@ class CompanyImport implements ShouldQueue
 
                 }
 
-                if(isset($parameters->entity_id)) {
+                if (isset($parameters->entity_id)) {
                     $parameters->entity_id = $this->encodePrimaryKey($this->transformId($parameters->entity."s", $parameters->entity_id));
                 }
 

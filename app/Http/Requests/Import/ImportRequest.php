@@ -45,7 +45,7 @@ class ImportRequest extends Request
     {
         $input = $this->all();
 
-        if(!isset($input['column_map']['bank_transaction']) && array_key_exists('bank_integration_id', $input)) {
+        if (!isset($input['column_map']['bank_transaction']) && array_key_exists('bank_integration_id', $input)) {
             unset($input['bank_integration_id']);
         }
 

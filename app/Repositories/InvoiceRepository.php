@@ -100,7 +100,7 @@ class InvoiceRepository extends BaseRepository
         $invoice = $invoice->service()->handleRestore()->save();
 
         /* If the reverse did not succeed due to rules, then do not restore / unarchive */
-        if($invoice->is_deleted) {
+        if ($invoice->is_deleted) {
             return $invoice;
         }
 

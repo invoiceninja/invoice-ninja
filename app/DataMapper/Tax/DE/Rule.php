@@ -237,7 +237,7 @@ class Rule extends BaseRule implements RuleInterface
      */
     public function calculateRates(): self
     {
-            
+
         // Tax exempt clients always get zero tax
         if ($this->client->is_tax_exempt) {
             $this->tax_rate = 0;

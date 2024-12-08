@@ -11,6 +11,7 @@
 
 namespace App\Models;
 
+use App\Utils\Ninja;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -53,7 +54,15 @@ class Backup extends BaseModel
     {
         return $this->belongsTo(Activity::class);
     }
-
+    
+    /**
+     * storeRemotely
+     *
+     * @param  string $html
+     * @param  Client | Vendor $client_or_vendor
+     * 
+     * @return void
+     */
     public function storeRemotely(?string $html, Client | Vendor $client_or_vendor)
     {
         if (empty($html)) {
@@ -64,12 +73,40 @@ class Backup extends BaseModel
         $filename = now()->format('Y_m_d').'_'.md5(time()).'.html'; //@phpstan-ignore-line
         $file_path = $path.$filename;
 
-        Storage::disk(config('filesystems.default'))->put($file_path, $html);
+        $disk = Ninja::isHosted() ? config('filesystems.backup') : config('filesystems.default');
+
+        Storage::disk($disk)->put($file_path, $html);
 
         $this->filename = $file_path;
+        $this->disk = $disk;
         $this->save();
     }
+    
+    /**
+     * getFile
+     *
+     * pulls backup file from storage
+     * 
+     * @return mixed
+     */
+    public function getFile()
+    {
+        if(!$this->filename)
+            return null;
 
+        $disk = Ninja::isHosted() ? $this->disk : config('filesystems.default');
+
+        return Storage::disk($disk)->get($this->filename);
+
+    }
+    
+    /**
+     * deleteFile
+     *
+     * removes backup file from storage
+     * 
+     * @return void
+     */
     public function deleteFile()
     {
         nlog('deleting => '.$this->filename);
@@ -78,8 +115,10 @@ class Backup extends BaseModel
             return;
         }
 
+        $disk = Ninja::isHosted() ? $this->disk : config('filesystems.default');
+
         try {
-            Storage::disk(config('filesystems.default'))->delete($this->filename);
+            Storage::disk($disk)->delete($this->filename);
         } catch (\Exception $e) {
             nlog('BACKUPEXCEPTION deleting backup file with error '.$e->getMessage());
         }

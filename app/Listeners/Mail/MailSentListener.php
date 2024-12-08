@@ -23,7 +23,7 @@ use App\Models\RecurringInvoiceInvitation;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Symfony\Component\Mime\MessageConverter;
 
-class MailSentListener implements ShouldQueue
+class MailSentListener
 {
     /**
      * Create the event listener.

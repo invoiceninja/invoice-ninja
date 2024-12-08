@@ -52,7 +52,7 @@ class InvoiceAutoBillFailedActivity implements ShouldQueue
         $fields->activity_type_id = Activity::AUTOBILL_FAILURE;
         $fields->invoice_id = $event->invoice->id;
         $fields->notes = $event->notes ?? '';
-        
+
         $this->activity_repo->save($fields, $event->invoice, $event->event_vars);
 
     }

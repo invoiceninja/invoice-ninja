@@ -33,7 +33,7 @@ class Register extends Component
 
     public ?int $otp;
 
-    public array $formData = []; 
+    public array $formData = [];
 
     public array $state = [
         'initial_completed' => false,
@@ -50,7 +50,7 @@ class Register extends Component
     {
         return Subscription::find($this->decodePrimaryKey($this->subscription_id))->withoutRelations()->makeHidden(['webhook_configuration','steps']);
     }
-    
+
     public function initial(): void
     {
         $this->validateOnly('email', ['email' => 'required|bail|email:rfc']);
@@ -84,7 +84,7 @@ class Register extends Component
         );
 
         $rules = $service->rules();
-        
+
         $data = Validator::make($data, $rules)->validate();
 
         $client = $service->createClient($data);

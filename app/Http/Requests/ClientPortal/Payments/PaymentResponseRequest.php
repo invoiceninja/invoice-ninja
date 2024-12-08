@@ -56,7 +56,7 @@ class PaymentResponseRequest extends FormRequest
             ]);
         }
 
-        if($this->has('payment_method_id')) {
+        if ($this->has('payment_method_id')) {
 
             $this->merge([
                 'payment_method_id' => preg_replace('~\D~', '', $this->payment_method_id),

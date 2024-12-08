@@ -13,12 +13,16 @@
 namespace App\Livewire\BillingPortal;
 
 use App\Models\CompanyGateway;
+use App\Models\Subscription;
+use App\Utils\Traits\MakesHash;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class RFF extends Component
 {
+    use MakesHash;
+
     public array $context;
 
     public string $contact_first_name;
@@ -69,6 +73,7 @@ class RFF extends Component
         /** @var \App\Models\CompanyGateway $gateway */
         $gateway = CompanyGateway::find($this->context['form']['company_gateway_id']);
         $countries = Cache::get('countries');
+
 
         if ($gateway === null) {
             return view('billing-portal.v3.rff-basic');

@@ -115,7 +115,7 @@ class InvitationController extends Controller
                         ]);
             }
 
-            if(!auth()->guard('contact')->check()) {
+            if (!auth()->guard('contact')->check()) {
                 $this->middleware('auth:contact');
                 /** @var \App\Models\InvoiceInvitation | \App\Models\QuoteInvitation | \App\Models\CreditInvitation | \App\Models\RecurringInvoiceInvitation $invitation */
                 return redirect()->route('client.login', ['intended' => route('client.'.$entity.'.show', [$entity => $this->encodePrimaryKey($invitation->{$key}), 'silent' => $is_silent])]);

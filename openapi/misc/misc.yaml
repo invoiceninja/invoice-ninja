@@ -1,16 +1,49 @@
 tags:
-  - name: login
-    # description: |
-    #   Attempts to authenticate with the API using a email/password combination.
+  - name: auth
+    x-displayName: Authentication
+    description: |
+      Attempts to authenticate with the API using a email/password combination.
     
+      After authenticating with the API, the returned object is a CompanyUser object which is a bridge linking the user to the company. 
+
+      The company user object contains the users permissions (admin/owner or fine grained permissions) You will most likely want to 
+        also include in the response of this object both the company and the user object, this can be done by using the include parameter.
+
+      ```html
+      /api/v1/login?include=company,user
+      ```
+
   - name: clients
-    x-tag-expanded: false
-    # description: |
-    #   Endpoint definitions for interacting with clients.
+    x-displayName: Clients
+    description: |
+      The Clients API provides endpoints for managing client records within your company. A client represents a customer 
+      or business entity that you provide services or products to.
+
+      ## Key Features
+      - Create, read, update, and delete client records
+      - Manage client contact information and billing details
+      - View client-specific transaction history
+      - Handle multiple contacts per client
+      - Track client-specific settings and preferences
+
+      ## Client Statuses
+      - Active: Client is currently active and can be billed
+      - Archived: Client is archived and hidden from active lists
+      - Deleted: Client is marked for deletion but retained in the database
+
+      ## Best Practices
+      - Always validate client email addresses
+      - Use unique client numbers for easy reference
+      - Keep contact information up to date
+      - Set appropriate client-specific currency and tax settings
+
   - name: products
+    x-displayName: Products
     description: |
       Endpoint definitions for interacting with products.
   - name: invoices
+    x-displayName: Invoices
+    
     description: |
 
       ## Invoice Statuses
@@ -33,43 +66,76 @@ tags:
         - An invoice which is not yet due, but also, not paid
         
   - name: Recurring Invoices
+    x-displayName: Recurring Invoices
     description: |
       Endpoint definitions for interacting with recurring_invoices.
+
   - name: payments
+    x-displayName: Payments
     description: |
       Endpoint definitions for interacting with payments.
+  
   - name: quotes
+    x-displayName: Quotes
     description: |
       Endpoint definitions for interacting with quotes.
+
   - name: credits
+    x-displayName: Credits
     description: |
       Endpoint definitions for interacting with credits.
+
   - name: projects
+    x-displayName: Projects
     description: |
       Endpoint definitions for interacting with projects.
+
   - name: tasks
+    x-displayName: Tasks
     description: |
       Endpoint definitions for interacting with tasks.
+
   - name: vendors
+    x-displayName: Vendors
     description: |
       Endpoint definitions for interacting with vendors.
+
   - name: Purchase Orders
+    x-displayName: Purchase Orders
     description: |
       Endpoint definitions for interacting with purchase orders.
+
   - name: expenses
+    x-displayName: Expenses
     description: |
       Endpoint definitions for interacting with expenses.
+
   - name: recurring_expenses
+    x-displayName: Recurring Expenses
     description: |
       Endpoint definitions for interacting with recurring_expenses.
+
   - name: bank_transactions
+    x-displayName: Bank Transactions
     description: |
       Endpoint definitions for interacting with bank transactions.
+
   - name: reports
+    x-displayName: Reports
     description: |
       Endpoint definitions for interacting with reports.
+
 externalDocs:
-  description: "https://invoiceninja.github.io"
-  url: "https://invoiceninja.github.io"
+  description: "Client Libraries"
+  x-libraries:
+    - name: PHP SDK
+      description: Official PHP client library
+      url: https://github.com/invoiceninja/sdk-php
+      packageUrl: https://packagist.org/packages/invoiceninja/sdk-php
+      language: PHP
+    - name: User Guide
+      description: Official user guide
+      url: https://invoiceninja.github.io
+
 security:
   - ApiKeyAuth: []

@@ -75,41 +75,33 @@ class PaymentRepository extends BaseRepository
 
             $is_existing_payment = false;
 
-            \DB::connection(config('database.default'))->transaction(function () use ($data) {
-                $client = Client::query()->where('id', $data['client_id'])->withTrashed()->lockForUpdate()->first();
+                $client = Client::query()->where('id', $data['client_id'])->withTrashed()->first();
 
-                /*We only update the paid to date ONCE per payment*/
-                if (array_key_exists('invoices', $data) && is_array($data['invoices']) && count($data['invoices']) > 0) {
-                    if ($data['amount'] == '') {
-                        $data['amount'] = array_sum(array_column($data['invoices'], 'amount'));
-                    }
-
-                    $client->service()->updatePaidToDate($data['amount'])->save();
-                    $client->saveQuietly();
-                } else {
-                    //this fixes an edge case with unapplied payments
-                    $client->service()->updatePaidToDate($data['amount'])->save();
-                    // $client->paid_to_date += $data['amount'];
-                    $client->saveQuietly();
+            /*We only update the paid to date ONCE per payment*/
+            if (array_key_exists('invoices', $data) && is_array($data['invoices']) && count($data['invoices']) > 0) {
+                if ($data['amount'] == '') {
+                    $data['amount'] = array_sum(array_column($data['invoices'], 'amount'));
                 }
 
-                if (array_key_exists('credits', $data) && is_array($data['credits']) && count($data['credits']) > 0) {
-                    $_credit_totals = array_sum(array_column($data['credits'], 'amount'));
+                $client->service()->updatePaidToDate($data['amount'])->save();
+            } else {
+                //this fixes an edge case with unapplied payments
+                $client->service()->updatePaidToDate($data['amount'])->save();
+            }
 
-                    $client->service()->updatePaidToDate($_credit_totals)->save();
-                    // $client->paid_to_date += $_credit_totals;
-                    $client->saveQuietly();
-                }
-            }, 1);
-
-            $client = Client::query()->where('id', $data['client_id'])->withTrashed()->first();
+            if (array_key_exists('credits', $data) && is_array($data['credits']) && count($data['credits']) > 0) {
+                $_credit_totals = array_sum(array_column($data['credits'], 'amount'));
+                $client->service()->updatePaidToDate($_credit_totals)->save();
+            }
+            
+            $client->refresh();
 
         }
 
         /*Fill the payment*/
         $fill_data = $data;
 
-        if($this->import_mode && isset($fill_data['invoices'])) {
+        if ($this->import_mode && isset($fill_data['invoices'])) {
             unset($fill_data['invoices']);
         }
 
@@ -153,7 +145,6 @@ class PaymentRepository extends BaseRepository
 
                 if ($invoice) {
 
-                    //25-06-2023
                     $paymentable = new Paymentable();
                     $paymentable->payment_id = $payment->id;
                     $paymentable->paymentable_id = $invoice->id;
@@ -207,7 +198,7 @@ class PaymentRepository extends BaseRepository
             event(new PaymentWasCreated($payment, $payment->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null)));
         }
 
-        $payment->applied += ($invoice_totals - $credit_totals); //wont work because - check tests
+        $payment->applied += ($invoice_totals - $credit_totals); 
 
         $payment->saveQuietly();
 

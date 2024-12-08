@@ -18,15 +18,14 @@ use App\Services\EDocument\Gateway\Storecove\StorecoveRouter;
 
 class Mutator implements MutatorInterface
 {
-    
     private \InvoiceNinja\EInvoice\Models\Peppol\Invoice $p_invoice;
-    
+
     private ?\InvoiceNinja\EInvoice\Models\Peppol\Invoice $_client_settings;
 
     private ?\InvoiceNinja\EInvoice\Models\Peppol\Invoice $_company_settings;
 
     private $invoice;
-    
+
     private array $storecove_meta = [];
 
     private MutatorUtil $mutator_util;
@@ -84,7 +83,7 @@ class Mutator implements MutatorInterface
 
     /**
      * setCompanySettings
-     *  
+     *
      * @param  \InvoiceNinja\EInvoice\Models\Peppol\Invoice $company_settings
      * @return self
      */
@@ -93,7 +92,7 @@ class Mutator implements MutatorInterface
         $this->_company_settings = $company_settings;
         return $this;
     }
-    
+
     /**
      * getClientSettings
      *
@@ -103,7 +102,7 @@ class Mutator implements MutatorInterface
     {
         return $this->_client_settings;
     }
-    
+
     /**
      * getCompanySettings
      *
@@ -113,7 +112,7 @@ class Mutator implements MutatorInterface
     {
         return $this->_company_settings;
     }
-    
+
     /**
      * getInvoice
      *
@@ -123,7 +122,7 @@ class Mutator implements MutatorInterface
     {
         return $this->invoice;
     }
-    
+
     /**
      * getSetting
      *
@@ -146,7 +145,7 @@ class Mutator implements MutatorInterface
     public function senderSpecificLevelMutators(): self
     {
 
-        if(method_exists($this, $this->invoice->company->country()->iso_3166_2)) {
+        if (method_exists($this, $this->invoice->company->country()->iso_3166_2)) {
             $this->{$this->invoice->company->country()->iso_3166_2}();
         }
 
@@ -164,7 +163,7 @@ class Mutator implements MutatorInterface
     public function receiverSpecificLevelMutators(): self
     {
 
-        if(method_exists($this, "client_{$this->invoice->company->country()->iso_3166_2}")) {
+        if (method_exists($this, "client_{$this->invoice->company->country()->iso_3166_2}")) {
             $this->{"client_{$this->invoice->company->country()->iso_3166_2}"}();
         }
 
@@ -216,7 +215,7 @@ class Mutator implements MutatorInterface
     {
         //special fields for sending to AT:GOV
 
-        if($this->invoice->client->classification == 'government') {
+        if ($this->invoice->client->classification == 'government') {
             //routing "b" for production "test" for test environment
             $this->setStorecoveMeta($this->buildRouting(["scheme" => 'AT:GOV', "id" => 'b']));
 
@@ -248,11 +247,11 @@ class Mutator implements MutatorInterface
     public function ES(): self
     {
 
-        if(!isset($this->invoice->due_date)) {
+        if (!isset($this->invoice->due_date)) {
             $this->p_invoice->DueDate = new \DateTime($this->invoice->date);
         }
 
-        if($this->invoice->client->classification == 'business' && $this->invoice->company->getSetting('classification') == 'business') {
+        if ($this->invoice->client->classification == 'business' && $this->invoice->company->getSetting('classification') == 'business') {
             //must have a paymentmeans as credit_transfer
             $this->mutator_util->setPaymentMeans(true);
         }
@@ -282,7 +281,7 @@ class Mutator implements MutatorInterface
 
         return $this;
     }
-    
+
     /**
      * FI
      *
@@ -311,7 +310,7 @@ class Mutator implements MutatorInterface
         // All invoices have to be routed to SIRET 0009:11000201100044. There is no test environment for sending to public entities.
         // The SIRET / 0009 identifier of the final recipient is to be included in the invoice.accountingCustomerParty.publicIdentifiers array.
 
-        if($this->invoice->client->classification == 'government') {
+        if ($this->invoice->client->classification == 'government') {
             //route to SIRET 0009:11000201100044
             $this->setStorecoveMeta($this->buildRouting([
                 ["scheme" => 'FR:SIRET', "id" => '11000201100044']
@@ -324,7 +323,7 @@ class Mutator implements MutatorInterface
 
         }
 
-        if(strlen($this->invoice->client->id_number ?? '') == 9) {
+        if (strlen($this->invoice->client->id_number ?? '') == 9) {
             //SIREN
             $this->setStorecoveMeta($this->buildRouting([
                 ["scheme" => 'FR:SIRET', "id" => "{$this->invoice->client->id_number}"]
@@ -342,7 +341,7 @@ class Mutator implements MutatorInterface
 
         return $this;
     }
-    
+
     /**
      * IT
      *
@@ -353,7 +352,7 @@ class Mutator implements MutatorInterface
 
         // IT Sender, IT Receiver, B2B/B2G
         // Provide the receiver IT:VAT and the receiver IT:CUUO (codice destinatario)
-        if(in_array($this->invoice->client->classification, ['business','government']) && $this->invoice->company->country()->iso_3166_2 == 'IT') {
+        if (in_array($this->invoice->client->classification, ['business','government']) && $this->invoice->company->country()->iso_3166_2 == 'IT') {
 
             $this->setStorecoveMeta($this->buildRouting([
                 ["scheme" => 'IT:IVA', "id" => $this->invoice->client->vat_number],
@@ -365,7 +364,7 @@ class Mutator implements MutatorInterface
 
         // IT Sender, IT Receiver, B2C
         // Provide the receiver IT:CF and the receiver IT:CUUO (codice destinatario)
-        if($this->invoice->client->classification == 'individual' && $this->invoice->company->country()->iso_3166_2 == 'IT') {
+        if ($this->invoice->client->classification == 'individual' && $this->invoice->company->country()->iso_3166_2 == 'IT') {
 
             $this->setStorecoveMeta($this->buildRouting([
                 ["scheme" => 'IT:CF', "id" => $this->invoice->client->vat_number],
@@ -379,7 +378,7 @@ class Mutator implements MutatorInterface
 
         // IT Sender, non-IT Receiver
         // Provide the receiver tax identifier and any routing identifier applicable to the receiving country (see Receiver Identifiers).
-        if($this->invoice->client->country->iso_3166_2 != 'IT' && $this->invoice->company->country()->iso_3166_2 == 'IT') {
+        if ($this->invoice->client->country->iso_3166_2 != 'IT' && $this->invoice->company->country()->iso_3166_2 == 'IT') {
 
             $code = $this->getClientRoutingCode();
 
@@ -393,7 +392,7 @@ class Mutator implements MutatorInterface
 
         return $this;
     }
-    
+
     /**
      * client_IT
      *
@@ -404,7 +403,7 @@ class Mutator implements MutatorInterface
 
         // non-IT Sender, IT Receiver, B2C
         // Provide the receiver IT:CF and an optional email. The invoice will be eReported and sent via email. Note that this cannot be a PEC email address.
-        if(in_array($this->invoice->client->classification, ['individual']) && $this->invoice->company->country()->iso_3166_2 != 'IT') {
+        if (in_array($this->invoice->client->classification, ['individual']) && $this->invoice->company->country()->iso_3166_2 != 'IT') {
 
             return $this;
         }
@@ -415,7 +414,7 @@ class Mutator implements MutatorInterface
         return $this;
 
     }
-    
+
     /**
      * MY
      *
@@ -426,7 +425,7 @@ class Mutator implements MutatorInterface
         //way too much to digest here, delayed.
         return $this;
     }
-    
+
     /**
      * NL
      *
@@ -441,7 +440,7 @@ class Mutator implements MutatorInterface
 
         return $this;
     }
-    
+
     /**
      * NZ
      *
@@ -452,7 +451,7 @@ class Mutator implements MutatorInterface
         // New Zealand uses a GLN to identify businesses. In addition, when sending invoices to a New Zealand customer, make sure you include the pseudo identifier NZ:GST as their tax identifier.
         return $this;
     }
-    
+
     /**
      * PL
      *
@@ -483,7 +482,7 @@ class Mutator implements MutatorInterface
 
         return $this;
     }
-    
+
     /**
      * RO
      *
@@ -517,10 +516,10 @@ class Mutator implements MutatorInterface
 
         $this->p_invoice->AccountingCustomerParty->Party->PostalAddress->CountrySubentity = $resolved_state;
         $this->p_invoice->AccountingCustomerParty->Party->PostalAddress->CityName = $resolved_city;
-        
+
         return $this;
     }
-    
+
     /**
      * SG
      *
@@ -576,20 +575,20 @@ class Mutator implements MutatorInterface
     {
         return $this->invoice->client->present()->email();
     }
-    
+
     private function getClientPublicIdentifier(string $code): string
     {
-        if($this->invoice->client->classification == 'individual' && strlen($this->invoice->client->id_number ?? '') > 2)
+        if ($this->invoice->client->classification == 'individual' && strlen($this->invoice->client->id_number ?? '') > 2) {
             return $this->invoice->client->id_number;
+        }
 
-        // elseif($this->invoice->client->classification == 'business')
-        return $this->invoice->client->vat_number;
+        return $this->invoice->client->vat_number ?? '';
     }
 
     public function setClientRoutingCode(): self
     {
 
-        if($this->invoice->client->classification == 'individual' || (strlen($this->invoice->client->vat_number ?? '') < 2 && strlen($this->invoice->client->id_number ?? '') < 2)){ 
+        if ($this->invoice->client->classification == 'individual' || (strlen($this->invoice->client->vat_number ?? '') < 2 && strlen($this->invoice->client->id_number ?? '') < 2)) {
             return $this->setEmailRouting($this->getIndividualEmailRoute());
         }
 
@@ -599,16 +598,19 @@ class Mutator implements MutatorInterface
         $code = $this->getClientRoutingCode();
         $identifier = false;
 
-        if($this->invoice->client->country->iso_3166_2 == 'FR')
+        if ($this->invoice->client->country->iso_3166_2 == 'FR') {
             $identifier = $this->invoice->client->id_number;
-        else
+        } else {
             $identifier = $this->invoice->client->vat_number;
+        }
 
-        if($this->invoice->client->country->iso_3166_2 == 'DE' && $this->invoice->client->classification == 'government')
+        if ($this->invoice->client->country->iso_3166_2 == 'DE' && $this->invoice->client->classification == 'government') {
             $identifier = $this->invoice->client->routing_id;
-        
-        if(!$identifier)
+        }
+
+        if (!$identifier) {
             $identifier = $this->getClientPublicIdentifier($code);
+        }
 
 
         $this->setStorecoveMeta($this->buildRouting([
@@ -646,7 +648,7 @@ class Mutator implements MutatorInterface
             ]
         ];
     }
-    
+
 
     /**
      * setEmailRouting
@@ -658,7 +660,7 @@ class Mutator implements MutatorInterface
     {
         $meta = $this->getStorecoveMeta();
 
-        if(isset($meta['routing']['emails'])) {
+        if (isset($meta['routing']['emails'])) {
             $emails = $meta['routing']['emails'];
             array_push($emails, $email);
             $meta['routing']['emails'] = $emails;
@@ -688,7 +690,7 @@ class Mutator implements MutatorInterface
 
         return $this;
     }
-    
+
     /**
      * getStorecoveMeta
      *

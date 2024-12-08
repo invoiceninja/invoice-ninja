@@ -78,9 +78,9 @@ trait CleanLineItems
 
             if (! array_key_exists('tax_id', $item)) {
                 $item['tax_id'] = '1';
-            } elseif(array_key_exists('tax_id', $item) && $item['tax_id'] == '') {
+            } elseif (array_key_exists('tax_id', $item) && $item['tax_id'] == '') {
 
-                if($item['type_id'] == '2') {
+                if ($item['type_id'] == '2') {
                     $item['tax_id'] = '2';
                 } else {
                     $item['tax_id'] = '1';
@@ -88,22 +88,22 @@ trait CleanLineItems
 
             }
 
-            if(isset($item['notes'])) {
+            if (isset($item['notes'])) {
                 $item['notes'] = str_replace(["</sc","onerror","prompt(","alert(",], "<-", $item['notes']);
             }
-            if(isset($item['product_key'])) {
+            if (isset($item['product_key'])) {
                 $item['product_key'] = str_replace(["</sc","onerror","prompt(","alert(",], "<-", $item['product_key']);
             }
-            if(isset($item['custom_value1'])) {
+            if (isset($item['custom_value1'])) {
                 $item['custom_value1'] = str_replace(["</sc","onerror","prompt(","alert(",], "<-", $item['custom_value1']);
             }
-            if(isset($item['custom_value2'])) {
+            if (isset($item['custom_value2'])) {
                 $item['custom_value2'] = str_replace(["</sc","onerror","prompt(","alert(",], "<-", $item['custom_value2']);
             }
-            if(isset($item['custom_value3'])) {
+            if (isset($item['custom_value3'])) {
                 $item['custom_value3'] = str_replace(["</sc","onerror","prompt(","alert(",], "<-", $item['custom_value3']);
             }
-            if(isset($item['custom_value4'])) {
+            if (isset($item['custom_value4'])) {
                 $item['custom_value4'] = str_replace(["</sc","onerror","prompt(","alert(",], "<-", $item['custom_value4']);
             }
 
@@ -120,7 +120,7 @@ trait CleanLineItems
     {
         $total = 0;
 
-        foreach($items as $item) {
+        foreach ($items as $item) {
             $total += ($item['cost'] * $item['quantity']);
         }
 

@@ -21,7 +21,6 @@ use App\Models\Company;
  */
 class BaseTransformer
 {
-
     public function __construct(public Company $company)
     {
     }
@@ -29,25 +28,25 @@ class BaseTransformer
     public function resolveCountry(string $iso_3_code): string
     {
         /** @var \App\Models\Country $country */
-        $country = app('countries')->first(function ($c) use ($iso_3_code){
-            
+        $country = app('countries')->first(function ($c) use ($iso_3_code) {
+
             /** @var \App\Models\Country $c */
             return $c->iso_3166_3 == $iso_3_code || $c->name == $iso_3_code;
         });
-        
+
         return $country ? (string) $country->id : $this->company->settings->country_id;
     }
 
     public function resolveCurrency(string $currency_code): string
     {
-        
+
         /** @var \App\Models\Currency $currency */
-        $currency = app('currencies')->first(function($c) use ($currency_code){
-            
+        $currency = app('currencies')->first(function ($c) use ($currency_code) {
+
             /** @var \App\Models\Currency $c */
             return $c->code == $currency_code;
         });
-        
+
         return $currency ? (string) $currency->id : $this->company->settings->currency_id;
     }
 
@@ -80,7 +79,7 @@ class BaseTransformer
                     ->where('company_id', $this->company->id)
                     ->where('number', $customer_reference_id)
                     ->first();
-        
+
         return $vendor ? $vendor->id : null;
     }
 }

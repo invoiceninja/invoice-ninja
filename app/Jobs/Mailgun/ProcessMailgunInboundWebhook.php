@@ -25,7 +25,10 @@ use App\Services\InboundMail\InboundMailEngine;
 
 class ProcessMailgunInboundWebhook implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public $tries = 1;
 
@@ -191,8 +194,9 @@ class ProcessMailgunInboundWebhook implements ShouldQueue
             // fetch message from mailgun-api
             $company_mailgun_domain = $this->company->getSetting('email_sending_method') == 'client_mailgun' && strlen($this->company->getSetting('mailgun_domain') ?? '') > 2 ? $this->company->getSetting('mailgun_domain') : null;
             $company_mailgun_secret = $this->company->getSetting('email_sending_method') == 'client_mailgun' && strlen($this->company->getSetting('mailgun_secret') ?? '') > 2 ? $this->company->getSetting('mailgun_secret') : null;
-            if (!($company_mailgun_domain && $company_mailgun_secret) && !(config('services.mailgun.domain') && config('services.mailgun.secret')))
+            if (!($company_mailgun_domain && $company_mailgun_secret) && !(config('services.mailgun.domain') && config('services.mailgun.secret'))) {
                 throw new \Error("[ProcessMailgunInboundWebhook] no mailgun credentials found, we cannot get the attachements and files");
+            }
 
             $mail = null;
             if ($company_mailgun_domain && $company_mailgun_secret) {
@@ -214,8 +218,9 @@ class ProcessMailgunInboundWebhook implements ShouldQueue
                         $messageUrl = str_replace("https://", "https://" . $credentials, $messageUrl);
                         $mail = json_decode(file_get_contents($messageUrl));
 
-                    } else
+                    } else {
                         throw $e;
+                    }
                 }
 
             } else {
@@ -262,8 +267,9 @@ class ProcessMailgunInboundWebhook implements ShouldQueue
                             $url = str_replace("https://", "https://" . $credentials, $url);
                             $inboundMail->documents[] = TempFile::UploadedFileFromUrl($url, $attachment->name, $attachment->{"content-type"});
 
-                        } else
+                        } else {
                             throw $e;
+                        }
                     }
 
                 } else {

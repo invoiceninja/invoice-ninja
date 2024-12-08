@@ -19,15 +19,15 @@ class ProductDecorator implements DecoratorInterface
     {
         $product = false;
 
-        if($entity instanceof Product) {
+        if ($entity instanceof Product) {
             $product = $entity;
-        } elseif($entity->product) {
+        } elseif ($entity->product) {
             $product = $entity->product;
         }
 
-        if($product && method_exists($this, $key)) {
+        if ($product && method_exists($this, $key)) {
             return $this->{$key}($product);
-        } elseif($product->{$key} ?? false) {
+        } elseif ($product->{$key} ?? false) {
             return $product->{$key} ?? '';
         }
 

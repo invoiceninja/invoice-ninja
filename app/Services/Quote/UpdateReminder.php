@@ -46,7 +46,7 @@ class UpdateReminder extends AbstractService
 
         if (is_null($this->quote->reminder1_sent) &&
             $this->settings->quote_schedule_reminder1 == 'after_quote_date') {
-            $reminder_date = Carbon::parse($this->quote->date)->startOfDay()->addDays((int)$this->settings->quote_num_days_reminder1);
+            $reminder_date = Carbon::parse($this->quote->date)->startOfDay()->addDays((int)$this->settings->quote_num_days_reminder1)->addSeconds($offset);
 
             if ($reminder_date->gt(now())) {
                 $date_collection->push($reminder_date);
@@ -57,7 +57,7 @@ class UpdateReminder extends AbstractService
             ($this->quote->partial_due_date || $this->quote->due_date) &&
             $this->settings->quote_schedule_reminder1 == 'before_valid_until_date') {
             $partial_or_due_date = ($this->quote->partial > 0 && isset($this->quote->partial_due_date)) ? $this->quote->partial_due_date : $this->quote->due_date;
-            $reminder_date = Carbon::parse($partial_or_due_date)->startOfDay()->subDays((int)$this->settings->quote_num_days_reminder1);
+            $reminder_date = Carbon::parse($partial_or_due_date)->startOfDay()->subDays((int)$this->settings->quote_num_days_reminder1)->addSeconds($offset);
             // nlog("1. {$reminder_date->format('Y-m-d')}");
 
             if ($reminder_date->gt(now())) {
@@ -70,7 +70,7 @@ class UpdateReminder extends AbstractService
             $this->settings->quote_schedule_reminder1 == 'after_valid_until_date') {
 
             $partial_or_due_date = ($this->quote->partial > 0 && isset($this->quote->partial_due_date)) ? $this->quote->partial_due_date : $this->quote->due_date;
-            $reminder_date = Carbon::parse($partial_or_due_date)->startOfDay()->addDays((int)$this->settings->quote_num_days_reminder1);
+            $reminder_date = Carbon::parse($partial_or_due_date)->startOfDay()->addDays((int)$this->settings->quote_num_days_reminder1)->addSeconds($offset);
             // nlog("2. {$reminder_date->format('Y-m-d')}");
 
             if ($reminder_date->gt(now())) {

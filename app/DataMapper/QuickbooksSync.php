@@ -19,19 +19,19 @@ class QuickbooksSync
     public QuickbooksSyncMap $client;
 
     public QuickbooksSyncMap $vendor;
-    
+
     public QuickbooksSyncMap $invoice;
-    
+
     public QuickbooksSyncMap $sales;
-    
+
     public QuickbooksSyncMap $quote;
-    
+
     public QuickbooksSyncMap $purchase_order;
 
     public QuickbooksSyncMap $product;
-    
+
     public QuickbooksSyncMap $payment;
-    
+
     public QuickbooksSyncMap $expense;
 
     public string $default_income_account = '';

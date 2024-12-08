@@ -25,20 +25,28 @@ trait WithSecureContext
     public function getContext(): mixed
     {
 
-        return \Illuminate\Support\Facades\Cache::get(session()->getId()) ?? [];
-        // return session()->get('secureContext.invoice-pay');
+        $context = \Illuminate\Support\Facades\Cache::get(session()->getId()) ?? false;
+
+        if(!$context){
+
+            usleep(300000); //@monitor - inject delay to catch delays in cache updating
+
+            $context = \Illuminate\Support\Facades\Cache::get(session()->getId()) ?? [];
+
+        }
+        
+        return $context;
+
     }
 
     public function setContext(string $property, $value): array
     {
         $clone = $this->getContext();
-        // $clone = session()->pull('secureContext.invoice-pay', default: []);
 
         data_set($clone, $property, $value);
 
-        // session()->put('secureContext.invoice-pay', $clone);
-
         \Illuminate\Support\Facades\Cache::put(session()->getId(), $clone, now()->addHour());
+
         $this->dispatch(self::CONTEXT_UPDATE);
 
         return $clone;
@@ -47,6 +55,5 @@ trait WithSecureContext
     public function resetContext(): void
     {
         \Illuminate\Support\Facades\Cache::forget(session()->getId());
-        session()->forget('secureContext.invoice-pay');
     }
 }

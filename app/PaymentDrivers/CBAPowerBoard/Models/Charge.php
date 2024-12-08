@@ -42,7 +42,7 @@ class Charge
     /** @var ?bool */
     public ?bool $capture;
     /** @var ?string */
-    public? string $status;
+    public ?string $status;
     /** @var ?array */
     public ?array $items;
 

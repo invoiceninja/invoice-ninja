@@ -77,13 +77,13 @@ class ProductExport extends BaseExport
                         ->withTrashed()
                         ->where('company_id', $this->company->id);
 
-        if(!$this->input['include_deleted'] ?? false) { //@phpstan-ignore-line
+        if (!$this->input['include_deleted'] ?? false) { //@phpstan-ignore-line
             $query->where('is_deleted', 0);
         }
 
         $query = $this->addDateRange($query, 'products');
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 

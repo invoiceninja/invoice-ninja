@@ -13,12 +13,11 @@ namespace App\Services\EDocument\Gateway\Qvalia;
 
 class Invoice
 {
-
     public function __construct(public Qvalia $qvalia)
     {
     }
 
-    // Methods    
+    // Methods
     /**
      * status
      *
@@ -58,7 +57,7 @@ class Invoice
         $uri = "/account/{$legal_entity_id}/action/invoice/outgoing/status/{$integration_id}";
 
         $r = $this->qvalia->httpClient($uri, (\App\Enum\HttpVerb::GET)->value, []);
-        
+
         return $r->object();
     }
 
@@ -71,7 +70,7 @@ class Invoice
      */
     public function send(string $legal_entity_id, string $document)
     {
-        // Set Headers 
+        // Set Headers
         // Either "application/json" (default) or "application/xml"
 
         $headers = [
@@ -87,7 +86,7 @@ class Invoice
         $uri = "/transaction/{$legal_entity_id}/invoices/outgoing";
 
         $r = $this->qvalia->httpClient($uri, (\App\Enum\HttpVerb::POST)->value, $data, $headers);
-        
+
         return $r->object();
 
     }

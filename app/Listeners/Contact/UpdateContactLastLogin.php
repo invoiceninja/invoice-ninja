@@ -38,6 +38,6 @@ class UpdateContactLastLogin implements ShouldQueue
         $client_contact = $event->client_contact;
         $client_contact->last_login = now();
         $client_contact->save();
-        
+
     }
 }

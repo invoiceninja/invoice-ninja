@@ -86,7 +86,7 @@ trait ClientGroupSettingsSaver
             unset($settings->translations);
         }
 
-        foreach(['translations','pdf_variables'] as $key) {
+        foreach (['translations','pdf_variables'] as $key) {
             if (property_exists($settings, $key)) {
                 unset($settings->{$key});
             }
@@ -115,8 +115,7 @@ trait ClientGroupSettingsSaver
 
                 continue;
             }
-            /*Separate loop if it is a _id field which is an integer cast as a string*/
-            elseif (substr($key, -3) == '_id' ||
+            /*Separate loop if it is a _id field which is an integer cast as a string*/ elseif (substr($key, -3) == '_id' ||
                 substr($key, -14) == 'number_counter' ||
                 ($key == 'payment_terms' && property_exists($settings, 'payment_terms') && strlen($settings->{$key}) >= 1) ||
                 ($key == 'valid_until' && property_exists($settings, 'valid_until') && strlen($settings->{$key}) >= 1)) {

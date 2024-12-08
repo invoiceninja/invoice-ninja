@@ -38,7 +38,7 @@ class ProcessBankTransactionsNordigen implements ShouldQueue
     public Company $company;
     public Nordigen $nordigen;
     public $nordigen_account;
-    
+
     /**
      * Create a new job instance.
      */
@@ -113,7 +113,7 @@ class ProcessBankTransactionsNordigen implements ShouldQueue
         // Perform Matching
         BankMatchingService::dispatch($this->company->id, $this->company->db);
     }
-    
+
     // const DISCOVERED = 'DISCOVERED';   // Account was discovered but not yet processed
     // const PROCESSING = 'PROCESSING';   // Initial processing of account
     // const READY = 'READY';            // Account ready to be accessed
@@ -125,9 +125,9 @@ class ProcessBankTransactionsNordigen implements ShouldQueue
     private function updateAccount()
     {
         $account_status = $this->nordigen->isAccountActive($this->bank_integration->nordigen_account_id);
-        
+
         //Return early if the account status is not in a good state
-        if(isset($account_status['status']) && in_array($account_status['status'], ['EXPIRED','DELETED'])) {
+        if (isset($account_status['status']) && in_array($account_status['status'], ['EXPIRED','DELETED'])) {
 
             $this->bank_integration->disabled_upstream = true;
             $this->bank_integration->bank_account_status = $account_status['status'];
@@ -136,30 +136,30 @@ class ProcessBankTransactionsNordigen implements ShouldQueue
             nlog("Nordigen: account inactive: " . $this->bank_integration->nordigen_account_id);
 
             //Need requisition refresh!
-            if($account_status['status'] == 'EXPIRED')
+            if ($account_status['status'] == 'EXPIRED') {
                 $this->nordigen->disabledAccountEmail($this->bank_integration);
+            }
 
             return;
 
-        }
-        elseif(isset($account_status['status']) && $account_status['status'] != 'READY') {
+        } elseif (isset($account_status['status']) && $account_status['status'] != 'READY') {
             //There may be other issues, return and await retry
             nlog($account_status['id']. " Nordigen account status == ". $account_status['status']);
             return;
 
         }
-        
+
         $account = $this->nordigen->getAccount($this->bank_integration->nordigen_account_id);
 
-        if(isset($account['error'])){
-            
+        if (isset($account['error'])) {
+
             $this->bank_integration->bank_account_status = "Error:: " . $account['error'];
             $this->bank_integration->save();
             return;
 
         }
 
-        if(!$account){
+        if (!$account) {
 
             $this->bank_integration->bank_account_status = "Error:: Failed to update account.";
             $this->bank_integration->save();

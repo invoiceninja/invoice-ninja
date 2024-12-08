@@ -70,7 +70,7 @@ class Klarna implements LivewireMethodInterface
 
         //catch duplicate submissions.
         if ($pay_exists = Payment::query()->where('transaction_reference', $payment_intent)->first()) {
-            
+
             return redirect()->route('client.payments.show', ['payment' => $pay_exists->hashed_id]);
 
         }

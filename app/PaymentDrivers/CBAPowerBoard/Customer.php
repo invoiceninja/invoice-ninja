@@ -24,7 +24,7 @@ class Customer
     {
     }
 
-    public function findOrCreateCustomer(array $customer_data): mixed 
+    public function findOrCreateCustomer(array $customer_data): mixed
     {
         $token = $this->powerboard
                         ->client
@@ -33,12 +33,13 @@ class Customer
                         ->where('company_gateway_id', $this->powerboard->company_gateway->id)
                         ->first();
 
-        if($token && $customer = $this->getCustomer($token->gateway_customer_reference)){
+        if ($token && $customer = $this->getCustomer($token->gateway_customer_reference)) {
             return (new \App\PaymentDrivers\CBAPowerBoard\Models\Parse())->encode(ModelsCustomer::class, $customer->resource->data);
         }
 
-        if($customer = $this->findCustomer())
+        if ($customer = $this->findCustomer()) {
             return (new \App\PaymentDrivers\CBAPowerBoard\Models\Parse())->encode(ModelsCustomer::class, $customer);
+        }
 
 
         return $this->createCustomer($customer_data);
@@ -53,8 +54,9 @@ class Customer
 
         nlog($r->json());
 
-        if($r->successful())
+        if ($r->successful()) {
             return $r->object();
+        }
 
         return false;
     }
@@ -81,7 +83,7 @@ class Customer
 
     public function createCustomer(array $data = []): object
     {
-       
+
         $payload = [
             'company_name' => $this->powerboard->client->present()->name(),
             'first_name' => $this->powerboard->client->present()->first_name(),
@@ -91,9 +93,9 @@ class Customer
             // 'phone' => $this->powerboard->client->present()->phone(),
         ];
 
-        
+
         $payload = array_merge($payload, $data);
-        
+
         $payload = Sanitizer::removeBlanks($payload);
 
         nlog($payload);
@@ -102,8 +104,9 @@ class Customer
 
         $r = $this->powerboard->gatewayRequest($uri, (\App\Enum\HttpVerb::POST)->value, $payload, []);
 
-        if($r->failed())
+        if ($r->failed()) {
             $r->throw();
+        }
 
         return (new \App\PaymentDrivers\CBAPowerBoard\Models\Parse())->encode(ModelsCustomer::class, $r->object()->resource->data) ?? $r->throw();
 
@@ -132,7 +135,7 @@ class Customer
         $cgt = $this->powerboard->storeGatewayToken($data, ['gateway_customer_reference' => $source->gateway_id]);
 
         return $cgt;
-            
+
     }
 
 
@@ -141,7 +144,7 @@ class Customer
         nlog("add token to customer");
 
         $uri = "/v1/customers/{$customer->_id}";
-    
+
         $payload = [
             'payment_source' => [
                 'vault_token' => $token,
@@ -150,16 +153,16 @@ class Customer
 
         $r = $this->powerboard->gatewayRequest($uri, (\App\Enum\HttpVerb::POST)->value, $payload, []);
 
-        if($r->failed()){
+        if ($r->failed()) {
             nlog($r->body());
-            return $r->throw(); 
+            return $r->throw();
         }
 
         nlog($r->object());
 
         $customer = (new \App\PaymentDrivers\CBAPowerBoard\Models\Parse())->encode(ModelsCustomer::class, $r->object()->resource->data);
-        
-        $source = collect($customer->payment_sources)->first(function (PaymentSource $source) use ($token){
+
+        $source = collect($customer->payment_sources)->first(function (PaymentSource $source) use ($token) {
             return $token == $source->vault_token;
         });
 
@@ -183,4 +186,3 @@ class Customer
     }
 
 }
-

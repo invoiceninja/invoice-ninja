@@ -91,11 +91,10 @@ class ClientPaymentFailureObject
 
     private function getSubject()
     {
-    
-        if(strlen($this->client->getSetting('email_subject_payment_failed') ?? '') > 2){
+
+        if (strlen($this->client->getSetting('email_subject_payment_failed') ?? '') > 2) {
             return $this->client->getSetting('email_subject_payment_failed');
-        }
-        else {
+        } else {
             return EmailTemplateDefaults::getDefaultTemplate('email_subject_payment_failed', $this->client->locale());
         }
 
@@ -103,8 +102,8 @@ class ClientPaymentFailureObject
 
     private function getBody()
     {
-                
-        if(strlen($this->client->getSetting('email_template_payment_failed') ?? '') > 2) {
+
+        if (strlen($this->client->getSetting('email_template_payment_failed') ?? '') > 2) {
             return $this->client->getSetting('email_template_payment_failed');
         } else {
             return EmailTemplateDefaults::getDefaultTemplate('email_template_payment_failed', $this->client->locale());
@@ -122,7 +121,7 @@ class ClientPaymentFailureObject
 
         $signature = $this->client->getSetting('email_signature');
         $html_variables = (new HtmlEngine($invitation))->makeValues();
-        
+
         $html_variables['$payment_error'] = $this->error ?? '';
         $html_variables['$total'] = $this->getAmount();
 

@@ -175,19 +175,19 @@ class BTCPay implements MethodInterface, LivewireMethodInterface
             throw new PaymentFailed('Error during BTCPay refund : ' . $e->getMessage());
         }
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.btcpay.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $data['gateway'] = $this->driver_class;
         $data['amount'] = $data['total']['amount_with_fee'];

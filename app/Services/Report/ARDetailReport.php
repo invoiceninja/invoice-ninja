@@ -28,7 +28,7 @@ use App\Services\Template\TemplateService;
 class ARDetailReport extends BaseExport
 {
     use MakesDates;
-    
+
     public Writer $csv;
 
     public string $date_key = 'created_at';
@@ -121,7 +121,7 @@ class ARDetailReport extends BaseExport
             'invoices' => $this->invoices,
             'company_logo' => $this->company->present()->logo(),
             'company_name' => $this->company->present()->name(),
-            'created_on' => $this->translateDate(now()->format('Y-m-d'),$this->company->date_format(), $this->company->locale()),
+            'created_on' => $this->translateDate(now()->format('Y-m-d'), $this->company->date_format(), $this->company->locale()),
             'created_by' => $user_name,
         ];
 

@@ -21,7 +21,7 @@ class TaxService
 
     public function validateVat(): self
     {
-        if(!extension_loaded('soap')) {
+        if (!extension_loaded('soap')) {
             nlog("Install the PHP SOAP extension if you wish to check VAT Numbers. See https://www.php.net/manual/en/soap.installation.php for more information on installing the PHP");
             return $this;
         }
@@ -32,15 +32,15 @@ class TaxService
 
         nlog($vat_check);
 
-        if($vat_check->isValid()) {
+        if ($vat_check->isValid()) {
 
             $this->client->has_valid_vat_number = true;
 
-            if(!$this->client->name && strlen($vat_check->getName()) > 2) {
+            if (!$this->client->name && strlen($vat_check->getName()) > 2) {
                 $this->client->name = $vat_check->getName();
             }
 
-            if(empty($this->client->private_notes) && strlen($vat_check->getAddress()) > 2) {
+            if (empty($this->client->private_notes) && strlen($vat_check->getAddress()) > 2) {
                 $this->client->private_notes = $vat_check->getAddress();
             }
 

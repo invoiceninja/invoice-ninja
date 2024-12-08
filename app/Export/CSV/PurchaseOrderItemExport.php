@@ -67,7 +67,7 @@ class PurchaseOrderItemExport extends BaseExport
                         })
                         ->with('vendor')->where('company_id', $this->company->id);
 
-        if(!$this->input['include_deleted'] ?? false) {
+        if (!$this->input['include_deleted'] ?? false) {
             $query->where('is_deleted', 0);
         }
 
@@ -75,13 +75,13 @@ class PurchaseOrderItemExport extends BaseExport
 
         $clients = &$this->input['client_id'];
 
-        if($clients) {
+        if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
 
         $query = $this->addPurchaseOrderStatusFilter($query, $this->input['status'] ?? '');
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 
@@ -105,7 +105,7 @@ class PurchaseOrderItemExport extends BaseExport
                   /** @var \App\Models\PurchaseOrder $resource */
                   $this->iterateItems($resource);
 
-                  foreach($this->storage_array as $row) {
+                  foreach ($this->storage_array as $row) {
                       $this->storage_item_array[] = $this->processItemMetaData($row, $resource);
                   }
 
@@ -155,11 +155,11 @@ class PurchaseOrderItemExport extends BaseExport
 
                     $tmp_key = str_replace("item.", "", $key);
 
-                    if($tmp_key == 'type_id') {
+                    if ($tmp_key == 'type_id') {
                         $tmp_key = 'type';
                     }
 
-                    if($tmp_key == 'tax_id') {
+                    if ($tmp_key == 'tax_id') {
                         $tmp_key = 'tax_category';
                     }
 
@@ -174,10 +174,10 @@ class PurchaseOrderItemExport extends BaseExport
             $transformed_items = array_merge($transformed_purchase_order, $item_array);
             $entity = $this->decorateAdvancedFields($purchase_order, $transformed_items);
             $entity = array_merge(array_flip(array_values($this->input['report_keys'])), $entity);
- 
+
             $this->storage_array[] = $this->convertFloats($entity);
         }
-        
+
     }
 
     private function buildRow(PurchaseOrder $purchase_order): array
@@ -189,7 +189,7 @@ class PurchaseOrderItemExport extends BaseExport
         foreach (array_values($this->input['report_keys']) as $key) {
             $parts = explode('.', $key);
 
-            if(is_array($parts) && $parts[0] == 'item') {
+            if (is_array($parts) && $parts[0] == 'item') {
                 continue;
             }
 
@@ -210,7 +210,7 @@ class PurchaseOrderItemExport extends BaseExport
 
     private function decorateAdvancedFields(PurchaseOrder $purchase_order, array $entity): array
     {
-      
+
         if (in_array('purchase_order.currency_id', $this->input['report_keys'])) {
             $entity['purchase_order.currency_id'] = $purchase_order->vendor->currency() ? $purchase_order->vendor->currency()->code : $purchase_order->company->currency()->code;
         }

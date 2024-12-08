@@ -82,20 +82,20 @@ class UpdateSchedulerRequest extends Request
             $input['next_run_client'] = $input['next_run'];
         }
 
-        if($input['template'] == 'email_record') {
+        if ($input['template'] == 'email_record') {
             $input['frequency_id'] = 0;
         }
 
-        if(isset($input['parameters']) && !isset($input['parameters']['clients'])) {
+        if (isset($input['parameters']) && !isset($input['parameters']['clients'])) {
             $input['parameters']['clients'] = [];
         }
 
-        if(isset($input['parameters']['status'])) {
+        if (isset($input['parameters']['status'])) {
 
 
             $task_statuses = [];
 
-            if(isset($input['parameters']['report_name']) && $input['parameters']['report_name'] == 'task') {
+            if (isset($input['parameters']['report_name']) && $input['parameters']['report_name'] == 'task') {
                 $task_statuses = array_diff(explode(",", $input['parameters']['status']), $this->client_statuses);
             }
 

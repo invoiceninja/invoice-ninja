@@ -95,15 +95,15 @@ class UpdateInvoicePayment
                 if (property_exists($this->payment_hash->data, 'pre_payment') && $this->payment_hash->data->pre_payment == "1") {
                     $invoice->payments()->each(function ($p) {
                         $p->pivot->forceDelete();
-                        $p->invoices()->each(function ($i){
+                        $p->invoices()->each(function ($i) {
                             $i->pivot->forceDelete();
                         });
                     });
 
-                    
+
                     $invoice
                     ->ledger()
-                    ->updateInvoiceBalance($paid_amount*-1, "Prepayment Balance Adjustment");
+                    ->updateInvoiceBalance($paid_amount * -1, "Prepayment Balance Adjustment");
 
                     $invoice->is_deleted = true;
                     $invoice->deleted_at = now();

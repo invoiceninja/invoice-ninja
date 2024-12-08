@@ -60,7 +60,7 @@ class CreateEDocument implements ShouldQueue
         App::setLocale($settings_entity->locale());
 
         /* Set customized translations _NOW_ */
-        if($this->document->client ?? false) {
+        if ($this->document->client ?? false) {
             $t->replace(Ninja::transformTranslations($this->document->client->getMergedSettings()));
         }
 

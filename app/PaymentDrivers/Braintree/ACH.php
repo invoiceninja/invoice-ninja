@@ -46,7 +46,7 @@ class ACH implements MethodInterface, LivewireMethodInterface
         try {
             $data['gateway'] = $this->braintree;
             $data['client_token'] = $this->braintree->gateway->clientToken()->generate();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
             throw new PaymentFailed("Unable to generate client token, check your Braintree credentials. Error: " . $e->getMessage(), 500);
 
@@ -56,7 +56,7 @@ class ACH implements MethodInterface, LivewireMethodInterface
     }
 
     public function authorizeResponse(Request $request)
-    {   
+    {
         $request->validate([
             'nonce' => ['required'],
             'gateway_type_id' => ['required'],
@@ -206,7 +206,7 @@ class ACH implements MethodInterface, LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         if (array_key_exists('authorize_then_redirect', $data)) {
             return 'gateways.braintree.ach.authorize_livewire';
@@ -214,11 +214,11 @@ class ACH implements MethodInterface, LivewireMethodInterface
 
         return 'gateways.braintree.ach.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $data['gateway'] = $this->braintree;
         $data['currency'] = $this->braintree->client->getCurrencyCode();

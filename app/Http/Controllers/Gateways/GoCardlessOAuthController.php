@@ -10,7 +10,6 @@
  * @license https://www.elastic.co/licensing/elastic-license
  */
 
-
 namespace App\Http\Controllers\Gateways;
 
 use App\DataMapper\FeesAndLimits;
@@ -77,7 +76,7 @@ class GoCardlessOAuthController extends Controller
         if ($response->failed()) {
             return view('auth.gocardless_connect.access_denied');
         }
-        
+
         $response = $response->json();
 
         $company_gateway = CompanyGateway::query()

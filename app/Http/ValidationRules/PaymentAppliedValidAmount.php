@@ -87,7 +87,7 @@ class PaymentAppliedValidAmount implements Rule
 
                 $inv = $inv_collection->firstWhere('id', $invoice['invoice_id']);
 
-                if($inv->status_id == Invoice::STATUS_DRAFT && $inv->amount >= $invoice['amount']) {
+                if ($inv->status_id == Invoice::STATUS_DRAFT && $inv->amount >= $invoice['amount']) {
 
                 } elseif ($inv->balance < $invoice['amount']) {
                     $this->message = 'Amount cannot be greater than invoice balance';
@@ -96,7 +96,7 @@ class PaymentAppliedValidAmount implements Rule
                 }
             }
 
-            if(count($this->input['invoices']) >= 1 && $payment->status_id == Payment::STATUS_PENDING) {
+            if (count($this->input['invoices']) >= 1 && $payment->status_id == Payment::STATUS_PENDING) {
                 $this->message = 'Cannot apply a payment until the status is completed.';
                 return false;
             }

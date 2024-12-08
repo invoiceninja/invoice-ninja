@@ -38,6 +38,10 @@ class CreditCard implements LivewireMethodInterface
     {
         $intent['intent'] = $this->stripe->getSetupIntent();
 
+        if ($this->stripe->headless) {
+            return array_merge($data, $intent);
+        }
+
         return render('gateways.stripe.credit_card.authorize', array_merge($data, $intent));
     }
 
@@ -54,6 +58,10 @@ class CreditCard implements LivewireMethodInterface
         $stripe_method = $this->stripe->getStripePaymentMethod($stripe_response->payment_method);
 
         $this->storePaymentMethod($stripe_method, $request->payment_method_id, $customer);
+
+        if ($this->stripe->headless) {
+            return true;
+        }
 
         return redirect()->route('client.payment_methods.index');
     }

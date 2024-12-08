@@ -436,7 +436,7 @@ class CompanyController extends BaseController
             $this->saveDocuments($request->input('documents'), $company, $request->input('is_public', true));
         }
 
-        if($request->has('e_invoice_certificate') && !is_null($request->file("e_invoice_certificate"))) {
+        if ($request->has('e_invoice_certificate') && !is_null($request->file("e_invoice_certificate"))) {
 
             $company->e_invoice_certificate = base64_encode($request->file("e_invoice_certificate")->get());
 
@@ -519,7 +519,7 @@ class CompanyController extends BaseController
 
             try {
                 Storage::disk(config('filesystems.default'))->deleteDirectory($company->company_key);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
             }
 
             $account->delete();
@@ -549,7 +549,7 @@ class CompanyController extends BaseController
 
             try {
                 Storage::disk(config('filesystems.default'))->deleteDirectory($company->company_key);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
             }
 
 
@@ -693,10 +693,10 @@ class CompanyController extends BaseController
     public function updateOriginTaxData(DefaultCompanyRequest $request, Company $company)
     {
 
-        if($company->settings->country_id == "840" && !$company->account->isFreeHostedClient()) {
+        if ($company->settings->country_id == "840" && !$company->account->isFreeHostedClient()) {
             try {
                 (new CompanyTaxRate($company))->handle();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 return response()->json(['message' => 'There was a problem updating the tax rates. Please try again.'], 400);
             }
         } else {
@@ -729,7 +729,7 @@ class CompanyController extends BaseController
                 $logo = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
             $logo = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
 

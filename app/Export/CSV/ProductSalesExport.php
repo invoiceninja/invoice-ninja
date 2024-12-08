@@ -83,7 +83,7 @@ class ProductSalesExport extends BaseExport
             $keys = explode(",", $product_keys);
             $query->where(function ($q) use ($keys) {
 
-                foreach($keys as $key) {
+                foreach ($keys as $key) {
                     $q->orWhereJsonContains('line_items', ['product_key' => $key]);
                 }
 
@@ -133,7 +133,7 @@ class ProductSalesExport extends BaseExport
 
         $product_keys = &$this->input['product_key'];
 
-        if($product_keys) {
+        if ($product_keys) {
             $product_keys = explode(",", $product_keys);
         }
 
@@ -141,8 +141,8 @@ class ProductSalesExport extends BaseExport
               ->each(function ($invoice) use ($product_keys) {
                   foreach ($invoice->line_items as $item) {
 
-                      if($product_keys) {
-                          if(in_array($item->product_key, $product_keys)) {
+                      if ($product_keys) {
+                          if (in_array($item->product_key, $product_keys)) {
                               $this->csv->insertOne($this->convertFloats($this->buildRow($invoice, $item)));
                           }
                       } else {
@@ -155,7 +155,7 @@ class ProductSalesExport extends BaseExport
 
         $grouped = $this->sales->groupBy('product_key')->map(function ($key, $value) use ($product_keys) {
 
-            if($product_keys && !in_array($value, $product_keys)) {
+            if ($product_keys && !in_array($value, $product_keys)) {
                 return false;
             }
 
@@ -219,15 +219,15 @@ class ProductSalesExport extends BaseExport
 
             if (array_key_exists($key, $transformed_entity)) {
                 $entity[$keyval] = $transformed_entity[$key];
-            } elseif($key == 'currency') {
+            } elseif ($key == 'currency') {
                 $entity['currency'] = $invoice->client->currency()->code;
             } else {
                 $entity[$keyval] = '';
             }
         }
-        
+
         $entity = $this->decorateAdvancedFields($invoice, $entity);
-        
+
         $this->sales->push($entity);
 
         return $entity;

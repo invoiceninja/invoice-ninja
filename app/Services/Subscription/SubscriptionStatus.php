@@ -95,7 +95,7 @@ class SubscriptionStatus extends AbstractService
                                 ->orderBy('id', 'desc')
                                 ->first();
 
-        if(!$primary_invoice) {
+        if (!$primary_invoice) {
             return 0;
         }
 
@@ -143,7 +143,7 @@ class SubscriptionStatus extends AbstractService
     private function checkTrial(): self
     {
 
-        if(!$this->subscription->trial_enabled) {
+        if (!$this->subscription->trial_enabled) {
             return $this->setIsTrial(false);
         }
 
@@ -156,7 +156,7 @@ class SubscriptionStatus extends AbstractService
                             ->orderBy('id', 'asc')
                             ->doesntExist();
 
-        if($primary_invoice && Carbon::parse($this->recurring_invoice->next_send_date_client)->gte(now()->startOfDay()->addSeconds($this->recurring_invoice->client->timezone_offset()))) {
+        if ($primary_invoice && Carbon::parse($this->recurring_invoice->next_send_date_client)->gte(now()->startOfDay()->addSeconds($this->recurring_invoice->client->timezone_offset()))) {
             return $this->setIsTrial(true);
         }
 
@@ -174,7 +174,7 @@ class SubscriptionStatus extends AbstractService
      */
     private function checkRefundable(): self
     {
-        if(!$this->recurring_invoice->subscription->refund_period || (int)$this->recurring_invoice->subscription->refund_period == 0) {//@phpstan-ignore-line
+        if (!$this->recurring_invoice->subscription->refund_period || (int)$this->recurring_invoice->subscription->refund_period == 0) {//@phpstan-ignore-line
             return $this->setRefundable(false);
         }
 
@@ -185,7 +185,7 @@ class SubscriptionStatus extends AbstractService
                                 ->orderBy('id', 'desc')
                                 ->first();
 
-        if($primary_invoice &&
+        if ($primary_invoice &&
         $primary_invoice->status_id == Invoice::STATUS_PAID &&
         Carbon::parse($primary_invoice->date)->addSeconds($this->recurring_invoice->subscription->refund_period)->lte(now()->startOfDay()->addSeconds($primary_invoice->client->timezone_offset()))
         ) {

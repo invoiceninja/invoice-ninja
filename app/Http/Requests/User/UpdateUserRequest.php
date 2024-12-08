@@ -53,9 +53,9 @@ class UpdateUserRequest extends Request
 
         if (isset($input['email']) && is_string($input['email']) && strlen($input['email']) > 2) {
             $input['email'] = trim($input['email']);
-        }
-        elseif(isset($input['email']))
+        } elseif (isset($input['email'])) {
             $input['email'] = false;
+        }
 
         if (array_key_exists('first_name', $input)) {
             $input['first_name'] = strip_tags($input['first_name']);
@@ -77,7 +77,7 @@ class UpdateUserRequest extends Request
             unset($input['oauth_user_token']);
         }
 
-        if(isset($input['password']) && is_string($input['password'])) {
+        if (isset($input['password']) && is_string($input['password'])) {
             $input['password'] = trim($input['password']);
         }
 

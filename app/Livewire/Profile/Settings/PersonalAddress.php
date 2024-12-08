@@ -6,7 +6,6 @@ use Livewire\Component;
 
 class PersonalAddress extends Component
 {
-
     public $address1;
 
     public $address2;

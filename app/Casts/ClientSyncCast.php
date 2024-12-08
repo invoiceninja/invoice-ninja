@@ -18,7 +18,7 @@ class ClientSyncCast implements CastsAttributes
 {
     public function get($model, string $key, $value, array $attributes)
     {
-        
+
         if (is_null($value)) {
             return null; // Return null if the value is null
         }

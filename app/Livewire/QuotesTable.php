@@ -53,7 +53,14 @@ class QuotesTable extends Component
     {
         $query = Quote::query()
             ->with('client.contacts', 'company')
-            ->orderBy($this->sort, $this->sort_asc ? 'asc' : 'desc');
+            // ->orderBy($this->sort, $this->sort_asc ? 'asc' : 'desc');
+            ->when($this->sort == 'number', function ($q){
+                $q->orderByRaw("REGEXP_REPLACE(number,'[^0-9]+','')+0 " . ($this->sort_asc ? 'desc' : 'asc'));
+            })
+            ->when($this->sort != 'number', function ($q){
+                $q->orderBy($this->sort, ($this->sort_asc ? 'desc' : 'asc'));
+            });
+
 
         if (count($this->status) > 0) {
             /* Special filter for expired*/

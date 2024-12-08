@@ -15,6 +15,7 @@ namespace App\Http\Requests\EInvoice\Peppol;
 use App\Models\Country;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class AddTaxIdentifierRequest extends FormRequest
 {
@@ -72,19 +73,23 @@ class AddTaxIdentifierRequest extends FormRequest
         $company = $user->company();
 
         return [
-            'country' => ['required', 'bail', Rule::in(array_keys(self::$vat_regex_patterns))],
+            'country' => ['required', 'bail', Rule::in(array_keys(self::$vat_regex_patterns)), function ($attribute, $value, $fail) use ($company) {
+                if ($this->country_id == $company->country()->id) {
+                    $fail(ctrans('texts.country_not_supported'));
+                }
+            }],
             'vat_number' => [
                'required',
                'string',
                'bail',
-               function ($attribute, $value, $fail) use($company) {
+               function ($attribute, $value, $fail) use ($company) {
                    if ($this->country && isset(self::$vat_regex_patterns[$this->country])) {
                        if (!preg_match(self::$vat_regex_patterns[$this->country], $value)) {
                            $fail(ctrans('texts.invalid_vat_number'));
                        }
                    }
-                   if($company->settings->classification == 'individual'){
-                    $fail("Individuals cannot register additional VAT numbers, only business entities");
+                   if ($company->settings->classification == 'individual') {
+                       $fail("Individuals cannot register additional VAT numbers, only business entities");
                    }
                },
             ]

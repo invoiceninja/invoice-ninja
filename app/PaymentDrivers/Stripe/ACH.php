@@ -114,10 +114,10 @@ class ACH implements LivewireMethodInterface
         //double check here if we need to show the verification view.
         $this->stripe->init();
 
-        if(substr($token->token, 0, 2) == 'pm') {
+        if (substr($token->token, 0, 2) == 'pm') {
             $pm = $this->stripe->getStripePaymentMethod($token->token);
 
-            if(!$pm->customer) {
+            if (!$pm->customer) {
 
                 $meta = $token->meta;
                 $meta->state = 'unauthorized';
@@ -135,7 +135,7 @@ class ACH implements LivewireMethodInterface
                     ->with('message', __('texts.payment_method_verified'));
             }
 
-            if($token->meta->next_action) {
+            if ($token->meta->next_action) {
                 return redirect($token->meta->next_action);
             }
 
@@ -202,7 +202,7 @@ class ACH implements LivewireMethodInterface
     {
         $data = $this->paymentData($data);
 
-        if(!$data['authorized']){
+        if (!$data['authorized']) {
             $token = $data['tokens'][0];
             return redirect()->route('client.payment_methods.show', $token->hashed_id);
         }
@@ -585,7 +585,7 @@ class ACH implements LivewireMethodInterface
                 'company_id' => $this->stripe->client->company_id,
             ])->first();
 
-            if($token) {
+            if ($token) {
                 return $token;
             }
 
@@ -619,7 +619,7 @@ class ACH implements LivewireMethodInterface
 
             $meta = $token->meta;
 
-            if(isset($meta->state) && $meta->state == 'unauthorized') {
+            if (isset($meta->state) && $meta->state == 'unauthorized') {
                 $data['authorized'] = false;
                 // return redirect()->route('client.payment_methods.show', $token->hashed_id);
             }

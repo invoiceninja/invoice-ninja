@@ -228,7 +228,7 @@ use Laracasts\Presenter\PresentableTrait;
  * @method static \Illuminate\Database\Eloquent\Builder|Company find($query)
  * @property-read int|null $webhooks_count
  * @property int $calculate_taxes
- * @property mixed $tax_data
+ * @property \App\DataMapper\Tax\TaxModel $tax_data
  * @method \App\Models\User|null owner()
  * @mixin \Eloquent
  */
@@ -554,8 +554,8 @@ class Company extends BaseModel
     }
 
     public function activities(): HasMany
-    {   
-        return $this->hasMany(Activity::class)->orderBy('id', 'DESC')->take(50);     
+    {
+        return $this->hasMany(Activity::class)->orderBy('id', 'DESC')->take(50);
     }
 
     /**
@@ -985,4 +985,16 @@ class Company extends BaseModel
         return Ninja::isHosted() && $this->account->isPaid() && $this->account->isEnterpriseClient() && $this->account->e_invoice_quota > 0 && $this->settings->e_invoice_type == 'PEPPOL' && $this->tax_data->acts_as_sender;
     }
 
+
+    /**
+     * peppolSendingEnabled
+     *
+     * Determines the sending status of the company
+     *
+     * @return bool
+     */
+    public function peppolSendingEnabled(): bool
+    {
+        return !$this->account->is_flagged && $this->account->e_invoice_quota > 0 && isset($this->legal_entity_id) && isset($this->tax_data->acts_as_sender) && $this->tax_data->acts_as_sender;
+    }
 }

@@ -100,7 +100,7 @@ class ValidRefundableRequest implements Rule
     {
         $record_found = false;
 
-        foreach($paymentables as $paymentable) {
+        foreach ($paymentables as $paymentable) {
             foreach ($request_invoices as $request_invoice) {
 
                 if ($request_invoice['invoice_id'] == $paymentable->pivot->paymentable_id) {

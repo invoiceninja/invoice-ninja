@@ -6,7 +6,6 @@ use Livewire\Component;
 
 class ShippingAddress extends Component
 {
-
     public $shipping_address1;
 
     public $shipping_address2;

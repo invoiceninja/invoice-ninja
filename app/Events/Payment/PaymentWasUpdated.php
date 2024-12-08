@@ -24,7 +24,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class PaymentWasUpdated implements ShouldBroadcast
 {
-    use SerializesModels, InteractsWithSockets, DefaultResourceBroadcast;
+    use SerializesModels;
+    use InteractsWithSockets;
+    use DefaultResourceBroadcast;
 
     /**
      * @var Payment

@@ -49,7 +49,7 @@ class NinjaMailerJob implements ShouldQueue
     use MakesHash;
 
     public $tries = 4; //number of retries
-    
+
     public $deleteWhenMissingModels = true;
 
     /** @var null|\App\Models\Company $company  **/
@@ -155,10 +155,10 @@ class NinjaMailerJob implements ShouldQueue
             LightLogs::create(new EmailSuccess($this->nmo->company->company_key, $this->nmo->mailable->subject))
                 ->send();
 
-        } catch(\Symfony\Component\Mailer\Exception\TransportException $e){
+        } catch (\Symfony\Component\Mailer\Exception\TransportException $e) {
             nlog("Mailer failed with a Transport Exception {$e->getMessage()}");
-            
-            if(Ninja::isHosted() && $this->mailer == 'smtp'){
+
+            if (Ninja::isHosted() && $this->mailer == 'smtp') {
                 $settings = $this->nmo->settings;
                 $settings->email_sending_method = 'default';
                 $this->company->settings = $settings;
@@ -181,7 +181,7 @@ class NinjaMailerJob implements ShouldQueue
             $this->cleanUpMailers();
             $this->logMailError($e->getMessage(), $this->company->clients()->first());
             return;
-        } catch(\Google\Service\Exception $e) {
+        } catch (\Google\Service\Exception $e) {
 
             if ($e->getCode() == '429') {
 
@@ -216,7 +216,7 @@ class NinjaMailerJob implements ShouldQueue
                 return;
             }
 
-            if(stripos($e->getMessage(), 'Dsn') !== false) {
+            if (stripos($e->getMessage(), 'Dsn') !== false) {
 
                 nlog("Incorrectly configured mail server - setting to default mail driver.");
                 $this->nmo->settings->email_sending_method = 'default';
@@ -248,9 +248,9 @@ class NinjaMailerJob implements ShouldQueue
              * this merges a text string with a json object
              * need to harvest the ->Message property using the following
              */
-            
+
             if ($e instanceof PostmarkException) { //postmark specific failure
-                
+
                 $this->fail();
                 $this->entityEmailFailed($e->getMessage());
                 $this->cleanUpMailers();
@@ -283,7 +283,7 @@ class NinjaMailerJob implements ShouldQueue
 
     private function incrementEmailCounter(): void
     {
-        if(in_array($this->nmo->settings->email_sending_method, ['default','mailgun','postmark'])) {
+        if (in_array($this->nmo->settings->email_sending_method, ['default','mailgun','postmark'])) {
             Cache::increment("email_quota".$this->company->account->key);
         }
 
@@ -327,7 +327,7 @@ class NinjaMailerJob implements ShouldQueue
 
         /** Force free/trials onto specific mail driver */
 
-        if($this->nmo->settings->email_sending_method == 'default' && $this->company->account->isNewHostedAccount()) {
+        if ($this->nmo->settings->email_sending_method == 'default' && $this->company->account->isNewHostedAccount()) {
             $this->mailer = 'mailgun';
             $this->setHostedMailgunMailer();
             return $this;
@@ -424,7 +424,7 @@ class NinjaMailerJob implements ShouldQueue
         $smtp_local_domain = strlen($company->smtp_local_domain ?? '') > 2 ? $company->smtp_local_domain : null;
         $smtp_verify_peer = $company->smtp_verify_peer ?? true;
 
-        if(strlen($smtp_host) <= 1 ||
+        if (strlen($smtp_host) <= 1 ||
         strlen($smtp_username) <= 1 ||
         strlen($smtp_password) <= 1
         ) {
@@ -839,7 +839,7 @@ class NinjaMailerJob implements ShouldQueue
                         'refresh_token' => $user->oauth_user_refresh_token
                     ],
                 ])->getBody()->getContents());
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 nlog("Problem getting new Microsoft token for User: {$user->email}");
             }
 

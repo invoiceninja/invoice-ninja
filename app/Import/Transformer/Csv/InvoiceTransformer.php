@@ -14,12 +14,14 @@ namespace App\Import\Transformer\Csv;
 use App\Import\ImportException;
 use App\Import\Transformer\BaseTransformer;
 use App\Models\Invoice;
+use App\Utils\Traits\CleanLineItems;
 
 /**
  * Class InvoiceTransformer.
  */
 class InvoiceTransformer extends BaseTransformer
 {
+    use CleanLineItems;
     /**
      * @param $data
      *
@@ -224,7 +226,7 @@ class InvoiceTransformer extends BaseTransformer
             ];
         }
 
-        $transformed['line_items'] = $line_items;
+        $transformed['line_items'] = $this->cleanItems($line_items);
 
         return $transformed;
     }

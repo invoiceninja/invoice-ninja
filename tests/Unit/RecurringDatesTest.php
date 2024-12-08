@@ -45,11 +45,25 @@ class RecurringDatesTest extends TestCase
 
     public function testDueDateDaysCalculationsTZ2()
     {
+        
+        $settings = CompanySettings::defaults();
+        $settings->timezone_id = '15'; // New York
+
+        $company = Company::factory()->create([
+            'account_id'=>$this->account->id,
+            'settings' => $settings,
+        ]);
+
+        $client = Client::factory()->create([
+            'company_id' =>$company->id,
+            'user_id' => $this->user->id,
+        ]);
+
         $this->travelTo(\Carbon\Carbon::create(2024, 12, 1, 17, 0, 0));
 
-        $recurring_invoice = RecurringInvoiceFactory::create($this->company->id, $this->user->id);
+        $recurring_invoice = RecurringInvoiceFactory::create($company->id, $this->user->id);
         $recurring_invoice->line_items = $this->buildLineItems();
-        $recurring_invoice->client_id = $this->client->id;
+        $recurring_invoice->client_id = $client->id;
         $recurring_invoice->status_id = RecurringInvoice::STATUS_DRAFT;
         $recurring_invoice->frequency_id = RecurringInvoice::FREQUENCY_MONTHLY;
         $recurring_invoice->remaining_cycles = 5;

@@ -17,6 +17,7 @@ use App\Utils\Ninja;
 use App\Models\Invoice;
 use App\Libraries\MultiDB;
 use App\Models\Activity;
+use App\Models\EInvoicingLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -38,7 +39,7 @@ class SendEDocument implements ShouldQueue
     use SerializesModels;
 
     public $tries = 5;
-    
+
     public $deleteWhenMissingModels = true;
 
     public function __construct(private string $entity, private int $id, private string $db)
@@ -53,12 +54,17 @@ class SendEDocument implements ShouldQueue
     public function handle(Storecove $storecove)
     {
         MultiDB::setDB($this->db);
-    
+
         nlog("trying");
 
-        $model = $this->entity::find($this->id);
+        $model = $this->entity::withTrashed()->find($this->id);
 
-        if($model->company->account->is_flagged){
+        if(isset($model->backup->guid) && is_string($model->backup->guid)){
+            nlog("already sent!");
+            return;
+        }
+
+        if ($model->company->account->is_flagged) {
             nlog("Bad Actor");
             return; //Bad Actor present.
         }
@@ -74,7 +80,7 @@ class SendEDocument implements ShouldQueue
             nlog($result);
             return $result['errors'];
         }
-        
+
         $payload = [
             'legal_entity_id' => $model->company->legal_entity_id,
             "idempotencyGuid" => \Illuminate\Support\Str::uuid(),
@@ -86,55 +92,61 @@ class SendEDocument implements ShouldQueue
             'routing' => $identifiers['routing'],
             'account_key' => $model->company->account->key,
             'e_invoicing_token' => $model->company->account->e_invoicing_token,
-            // 'identifiers' => $identifiers,
         ];
-        
-        nlog($payload);
 
-        nlog(json_encode($payload));
+        //Self Hosted Sending Code Path
+        if (Ninja::isSelfHost() && ($model instanceof Invoice) && $model->company->peppolSendingEnabled()) {
 
-        if(Ninja::isSelfHost() && ($model instanceof Invoice) && $model->company->legal_entity_id)
-        {
-            
-            $r = Http::withHeaders($this->getHeaders())
+            $r = Http::withHeaders([...$this->getHeaders(), 'X-EInvoice-Token' => $model->company->account->e_invoicing_token])
                 ->post(config('ninja.hosted_ninja_url')."/api/einvoice/submission", $payload);
 
-            if($r->successful()) {
+            if ($r->hasHeader('X-EINVOICE-QUOTA')) {
+                $account = $model->company->account;
+                $account->e_invoice_quota = (int) $r->header('X-EINVOICE-QUOTA');
+                $account->save();
+            }
+
+            if ($r->successful()) {
                 nlog("Model {$model->number} was successfully sent for third party processing via hosted Invoice Ninja");
-            
                 $data = $r->json();
-                return $this->writeActivity($model, $data['guid']);
-
+                return $this->writeActivity($model, Activity::EINVOICE_DELIVERY_SUCCESS, $data['guid']);
             }
 
-            if($r->failed()) {
+            if ($r->failed()) {
                 nlog("Model {$model->number} failed to be accepted by invoice ninja, error follows:");
-                nlog($r->getBody()->getContents());
-                return response()->json(['message' => "Model {$model->number} failed to be accepted by invoice ninja"], 400);
+                nlog($r->json());
+                $this->writeActivity($model, Activity::EINVOICE_DELIVERY_FAILURE, data_get($r->json(), 'errors.0.details', 'Unhandled error, check logs'));
             }
 
+        } elseif (Ninja::isSelfHost()) {
+            return;
         }
 
-        if(Ninja::isHosted() && ($model instanceof Invoice) && !$model->company->account->is_flagged && $model->company->legal_entity_id)
-        {
-            if ($model->company->account->e_invoice_quota === 0) {
-                $key = "e_invoice_quota_exhausted_{$model->company->account->key}";
+        //Run this check outside of the next loop as it will never send otherwise.
+        if ($model->company->account->e_invoice_quota == 0 && $model->company->legal_entity_id) {
+            $key = "e_invoice_quota_exhausted_{$model->company->account->key}";
 
-                if (! Cache::has($key)) {
-                    $mo = new EmailObject();
-                    $mo->subject = ctrans('texts.notification_no_credits');
-                    $mo->body = ctrans('texts.notification_no_credits_text');
-                    $mo->text_body = ctrans('texts.notification_no_credits_text');
-                    $mo->company_key = $model->company->company_key;
-                    $mo->html_template = 'email.template.generic';
-                    $mo->to = [new Address($model->company->account->owner()->email, $model->company->account->owner()->name())];
-                    $mo->email_template_body = 'notification_no_credits';
-                    $mo->email_template_subject = 'notification_no_credits_text';
+            if (! Cache::has($key)) {
+                $mo = new EmailObject();
+                $mo->subject = ctrans('texts.notification_no_credits');
+                $mo->body = ctrans('texts.notification_no_credits_text');
+                $mo->text_body = ctrans('texts.notification_no_credits_text');
+                $mo->company_key = $model->company->company_key;
+                $mo->html_template = 'email.template.generic';
+                $mo->to = [new Address($model->company->account->owner()->email, $model->company->account->owner()->name())];
+                $mo->email_template_body = 'notification_no_credits';
+                $mo->email_template_subject = 'notification_no_credits_text';
 
-                    Email::dispatch($mo, $model->company);
-                    Cache::put($key, true, now()->addHours(24));
-                }
-            } else if ($model->company->account->e_invoice_quota <= config('ninja.e_invoice_quota_warning')) {
+                Email::dispatch($mo, $model->company);
+                Cache::put($key, true, now()->addHours(24));
+            }
+
+            return;
+        }
+
+        //Hosted Sending Code Path.
+        if (($model instanceof Invoice) && $model->company->peppolSendingEnabled()) {
+            if ($model->company->account->e_invoice_quota <= config('ninja.e_invoice_quota_warning')) {
                 $key = "e_invoice_quota_low_{$model->company->account->key}";
 
                 if (! Cache::has($key)) {
@@ -156,42 +168,67 @@ class SendEDocument implements ShouldQueue
             $sc = new \App\Services\EDocument\Gateway\Storecove\Storecove();
             $r = $sc->sendJsonDocument($payload);
 
-            if(is_string($r))
-                return $this->writeActivity($model, $r);
-                
-            if($r->failed()) {
+            // Successful send - update quota!
+            if (is_string($r)) {
+
+                $account = $model->company->account;
+                $account->decrement('e_invoice_quota', 1);
+                $account->refresh();
+
+                EInvoicingLog::create([
+                    'tenant_id' => $model->company->company_key,
+                    'direction' => 'sent',
+                    'legal_entity_id' => $model->company->legal_entity_id,
+                    'notes' => $r,
+                    'counter' => -1,
+                ]);
+
+                if ($account->e_invoice_quota == 0 && class_exists(\Modules\Admin\Jobs\Account\SuspendESendReceive::class)) {
+                    \Modules\Admin\Jobs\Account\SuspendESendReceive::dispatch($account->key);
+                }
+
+                return $this->writeActivity($model, Activity::EINVOICE_DELIVERY_SUCCESS, $r);
+            }
+
+            if ($r->failed()) {
                 nlog("Model {$model->number} failed to be accepted by invoice ninja, error follows:");
-                nlog($r->getBody()->getContents());
+                $notes = data_get($r->json(), 'errors.0.details', 'Unhandled errors, check logs');
+                return $this->writeActivity($model, Activity::EINVOICE_DELIVERY_FAILURE, $notes);
             }
 
         }
 
     }
 
-    private function writeActivity($model, string $guid)
+    private function writeActivity($model, int $activity_id, string $notes = '')
     {
         $activity = new Activity();
         $activity->user_id = $model->user_id;
         $activity->client_id = $model->client_id ?? $model->vendor_id;
         $activity->company_id = $model->company_id;
         $activity->account_id = $model->company->account_id;
-        $activity->activity_type_id = Activity::EINVOICE_SENT;
+        $activity->activity_type_id = $activity_id;
         $activity->invoice_id = $model->id;
-        $activity->notes = str_replace('"', '', $guid);
+        $activity->notes = str_replace('"', '', $notes);
+        $activity->is_system = true;
 
         $activity->save();
 
-        $std = new \stdClass;
-        $std->guid = str_replace('"', '', $guid);
-        $model->backup = $std;
-        $model->saveQuietly();
+        if($activity_id == Activity::EINVOICE_DELIVERY_SUCCESS){
+
+            $std = new \stdClass();
+            $std->guid = str_replace('"', '', $notes);
+            $model->backup = $std;
+            $model->saveQuietly();
+
+        }
 
     }
-    
+
     /**
      * Self hosted request headers
      *
-     * 
+     *
      **/
     private function getHeaders(): array
     {

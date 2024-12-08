@@ -47,10 +47,10 @@ class ThrottleRequestsWithPredis extends \Illuminate\Routing\Middleware\Throttle
     /** @phpstan-ignore-next-line */
     public function __construct(RateLimiter $limiter, Redis $redis)
     {
-        
+
         /** @phpstan-ignore-next-line */
         parent::__construct($limiter); /** @phpstan-ignore-line */
-        
+
         /** @phpstan-ignore-next-line */
         $this->redis = \Illuminate\Support\Facades\Redis::connection('sentinel-cache'); /** @phpstan-ignore-line */
     }

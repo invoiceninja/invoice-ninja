@@ -31,9 +31,9 @@ class InvoiceProjectRequest extends Request
 
     public function rules()
     {
-       return [];
-       
-       //if we need to restrict a project to only one invoice...
+        return [];
+
+        //if we need to restrict a project to only one invoice...
 
         // $user = auth()->user();
         // $company = $user->company();
@@ -54,7 +54,7 @@ class InvoiceProjectRequest extends Request
     {
         $input = $this->all();
 
-            // $input['project_id'] = $this->project->id;
+        // $input['project_id'] = $this->project->id;
 
         $this->replace($input);
 

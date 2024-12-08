@@ -51,23 +51,26 @@ class AutoBill implements ShouldQueue
         if ($this->db) {
             MultiDB::setDb($this->db);
         }
-
         $invoice = false;
 
+        
         try {
+            
             nlog("autobill {$this->invoice_id}");
-
+            
             $invoice = Invoice::withTrashed()->find($this->invoice_id);
-
-            $invoice->service()->autoBill();
+            
+            if($invoice)
+                $invoice->service()->autoBill();
 
         } catch (\Exception $e) {
             nlog("Failed to capture payment for {$this->invoice_id} ->".$e->getMessage());
 
-            if($this->send_email_on_failure && $invoice) {
+            if ($this->send_email_on_failure && $invoice) {
 
                 $invoice->invitations->each(function ($invitation) use ($invoice) {
-                    if ($invitation->contact && ! $invitation->contact->trashed() && strlen($invitation->contact->email) >= 1 && $invoice->client->getSetting('auto_email_invoice')) {
+
+                    if ($invitation->contact && !$invitation->contact->trashed() && strlen($invitation->contact->email) >= 1 && $invoice->client->getSetting('auto_email_invoice')) {
                         try {
                             EmailEntity::dispatch($invitation->withoutRelations(), $invoice->company->db)->delay(rand(1, 2));
 
@@ -77,7 +80,7 @@ class AutoBill implements ShouldQueue
                             nlog($e->getMessage());
                         }
 
-                        nlog("Firing email for invoice {$invoice->number}");
+                        nlog("Firing email for invoice {$invoice->number} which failed to capture payment");
                     }
                 });
 

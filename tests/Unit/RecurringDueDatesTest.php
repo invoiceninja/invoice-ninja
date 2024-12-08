@@ -15,10 +15,6 @@ use App\Utils\Traits\Recurring\HasRecurrence;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
-/**
- * 
- *  App\Utils\Traits\Recurring\HasRecurrence
- */
 class RecurringDueDatesTest extends TestCase
 {
     use HasRecurrence;

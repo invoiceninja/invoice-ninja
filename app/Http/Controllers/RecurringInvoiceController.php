@@ -423,7 +423,7 @@ class RecurringInvoiceController extends BaseController
         }
 
         $recurring_invoices = RecurringInvoice::withTrashed()->find($request->ids);
-        
+
         if ($request->action == 'bulk_update' && $user->can('edit', $recurring_invoices->first())) {
 
             $recurring_invoices = RecurringInvoice::withTrashed()
@@ -436,10 +436,10 @@ class RecurringInvoiceController extends BaseController
 
         }
 
-        if($request->action == 'set_payment_link' && $request->has('subscription_id')) {
+        if ($request->action == 'set_payment_link' && $request->has('subscription_id')) {
 
             $recurring_invoices->each(function ($invoice) use ($user, $request) {
-                if($user->can('edit', $invoice)) {
+                if ($user->can('edit', $invoice)) {
                     $invoice->service()->setPaymentLink($request->subscription_id)->save();
                 }
             });

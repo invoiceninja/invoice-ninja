@@ -68,7 +68,7 @@ class PdfMock
         $pdf_config->setCountry(Country::find($this->settings->country_id ?: 840));
         $pdf_config->currency_entity = $this->mock->client ?? $this->mock->vendor;
 
-        if(isset($this->request['design_id']) && $design  = Design::withTrashed()->find($this->request['design_id'])) {
+        if (isset($this->request['design_id']) && $design  = Design::withTrashed()->find($this->request['design_id'])) {
             $pdf_config->design = $design;
             $pdf_config->entity_design_id = $design->hashed_id;
         } else {
@@ -77,7 +77,7 @@ class PdfMock
 
         $pdf_service->config = $pdf_config;
 
-        if(isset($this->request['design'])) {
+        if (isset($this->request['design'])) {
             $pdf_designer = (new PdfDesigner($pdf_service))->buildFromPartials($this->request['design']);
         } else {
             $pdf_designer = (new PdfDesigner($pdf_service))->build();

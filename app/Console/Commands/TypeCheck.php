@@ -130,7 +130,7 @@ class TypeCheck extends Command
             $company->saveSettings($company->settings, $company);
         });
 
-        Invoice::query()->cursor()->each(function ($invoice){
+        Invoice::query()->cursor()->each(function ($invoice) {
             $this->logMessage("Checking invoice {$invoice->id}");
             $invoice->line_items = $this->cleanItems($invoice->line_items);
             $invoice->saveQuietly();

@@ -80,7 +80,7 @@ class DocumentExport extends BaseExport
 
         $query = $this->addDateRange($query, 'documents');
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 

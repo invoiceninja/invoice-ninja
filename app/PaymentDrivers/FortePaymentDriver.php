@@ -248,8 +248,9 @@ class FortePaymentDriver extends BaseDriver
 
     private function getClient(?string $email)
     {
-        if(!$email)
+        if (!$email) {
             return false;
+        }
 
         return ClientContact::query()
                      ->where('company_id', $this->company_gateway->company_id)
@@ -263,9 +264,9 @@ class FortePaymentDriver extends BaseDriver
         $amount_with_fee = $payment_hash->data->amount_with_fee;
         $fee_total = $payment_hash->fee_total;
 
-        $data = 
+        $data =
         [
-            "action" => "sale", 
+            "action" => "sale",
             "authorization_amount" => $amount_with_fee,
             "paymethod_token" => $cgt->token,
             "billing_address" => [
@@ -274,16 +275,16 @@ class FortePaymentDriver extends BaseDriver
             ],
         ];
 
-        if($fee_total > 0){
+        if ($fee_total > 0) {
             $data["service_fee_amount"] = $fee_total;
         }
 
         $response = $this->stubRequest()
         ->post("{$this->baseUri()}/organizations/{$this->getOrganisationId()}/locations/{$this->getLocationId()}/transactions", $data);
-        
+
         $forte_response = $response->object();
 
-        if($response->successful()){
+        if ($response->successful()) {
 
             $data = [
                 'payment_method' => $cgt->gateway_type_id,
@@ -339,7 +340,7 @@ class FortePaymentDriver extends BaseDriver
                     ->withQueryParameters(['page_size' => 10000])
                     ->get("{$this->baseUri()}/organizations/{$this->getOrganisationId()}/locations/{$this->getLocationId()}");
 
-        if($response->successful()) {
+        if ($response->successful()) {
             return $response->json();
         }
 
@@ -352,18 +353,18 @@ class FortePaymentDriver extends BaseDriver
     {
         $response = $this->getLocation();
 
-        if($response && $response['services']) {
+        if ($response && $response['services']) {
             $body = $response['services'];
 
             $fees_and_limits = $this->company_gateway->fees_and_limits;
 
-            if((isset($body['card']['service_fee_percentage']) && $body['card']['service_fee_percentage'] > 0) || (isset($body['card']['service_fee_additional_amount']) && $body['card']['service_fee_additional_amount'] > 0)) {
+            if ((isset($body['card']['service_fee_percentage']) && $body['card']['service_fee_percentage'] > 0) || (isset($body['card']['service_fee_additional_amount']) && $body['card']['service_fee_additional_amount'] > 0)) {
 
                 $fees_and_limits->{1}->fee_amount = $body['card']['service_fee_additional_amount'];
                 $fees_and_limits->{1}->fee_percent = $body['card']['service_fee_percentage'];
             }
 
-            if((isset($body['debit']['service_fee_percentage']) && $body['debit']['service_fee_percentage'] > 0) || (isset($body['card']['service_fee_additional_amount']) && $body['card']['service_fee_additional_amount'] > 0)) {
+            if ((isset($body['debit']['service_fee_percentage']) && $body['debit']['service_fee_percentage'] > 0) || (isset($body['card']['service_fee_additional_amount']) && $body['card']['service_fee_additional_amount'] > 0)) {
 
                 $fees_and_limits->{2}->fee_amount = $body['debit']['service_fee_additional_amount'];
                 $fees_and_limits->{2}->fee_percent = $body['debit']['service_fee_percentage'];
@@ -380,17 +381,16 @@ class FortePaymentDriver extends BaseDriver
 
     public function findOrCreateCustomer()
     {
-        
+
         $client_gateway_token = \App\Models\ClientGatewayToken::query()
                                                     ->where('client_id', $this->client->id)
                                                     ->where('company_gateway_id', $this->company_gateway->id)
                                                     ->whereNotLike('token', 'ott_%')
                                                     ->first();
 
-        if($client_gateway_token){
+        if ($client_gateway_token) {
             return $client_gateway_token->gateway_customer_reference;
-        }
-        else {
+        } else {
 
             $factory = new ForteCustomerFactory();
             $data = $factory->convertToForte($this->client);
@@ -400,11 +400,11 @@ class FortePaymentDriver extends BaseDriver
 
 
             //create customer
-            if($response->successful()){
+            if ($response->successful()) {
                 $customer = $response->object();
                 nlog($customer);
                 return $customer->customer_token;
-            } 
+            }
 
             nlog($response->body());
 
@@ -412,7 +412,7 @@ class FortePaymentDriver extends BaseDriver
 
             //@todo add syslog here
         }
-        
+
     }
 
     public function importCustomers()
@@ -422,16 +422,16 @@ class FortePaymentDriver extends BaseDriver
                     ->withQueryParameters(['page_size' => 10000])
                     ->get("{$this->baseUri()}/organizations/{$this->getOrganisationId()}/locations/{$this->getLocationId()}/customers");
 
-        if($response->successful()) {
+        if ($response->successful()) {
 
-            foreach($response->json()['results'] as $customer) {
+            foreach ($response->json()['results'] as $customer) {
 
                 $client_repo = new ClientRepository(new ClientContactRepository());
                 $factory = new ForteCustomerFactory();
 
                 $data = $factory->convertToNinja($customer, $this->company_gateway->company);
 
-                if(strlen($data['email']) == 0 || $this->getClient($data['email'])) {
+                if (strlen($data['email']) == 0 || $this->getClient($data['email'])) {
                     continue;
                 }
 

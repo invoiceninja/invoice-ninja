@@ -46,13 +46,14 @@ class UpdateClientGatewayTokenRequest extends Request
     {
         $input = $this->all();
 
-        if(isset($input['client_id']))
+        if (isset($input['client_id'])) {
             unset($input['client_id']);
+        }
 
         if (isset($input['company_gateway_id'])) {
             unset($input['company_gateway_id']);
         }
-    
+
         $input = $this->decodePrimaryKeys($input);
 
         $this->replace($input);

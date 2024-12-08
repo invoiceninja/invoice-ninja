@@ -147,19 +147,19 @@ class InvoiceSumInclusive
         }
 
         //Handles cases where the surcharge is not taxed
-        if(is_numeric($this->invoice->custom_surcharge1) && $this->invoice->custom_surcharge1 > 0 && $this->invoice->custom_surcharge_tax1) {
+        if (is_numeric($this->invoice->custom_surcharge1) && $this->invoice->custom_surcharge1 > 0 && $this->invoice->custom_surcharge_tax1) {
             $amount += $this->invoice->custom_surcharge1;
         }
 
-        if(is_numeric($this->invoice->custom_surcharge2) && $this->invoice->custom_surcharge2 > 0 && $this->invoice->custom_surcharge_tax2) {
+        if (is_numeric($this->invoice->custom_surcharge2) && $this->invoice->custom_surcharge2 > 0 && $this->invoice->custom_surcharge_tax2) {
             $amount += $this->invoice->custom_surcharge2;
         }
 
-        if(is_numeric($this->invoice->custom_surcharge3) && $this->invoice->custom_surcharge3 > 0 && $this->invoice->custom_surcharge_tax3) {
+        if (is_numeric($this->invoice->custom_surcharge3) && $this->invoice->custom_surcharge3 > 0 && $this->invoice->custom_surcharge_tax3) {
             $amount += $this->invoice->custom_surcharge3;
         }
 
-        if(is_numeric($this->invoice->custom_surcharge4) && $this->invoice->custom_surcharge4 > 0 && $this->invoice->custom_surcharge_tax4) {
+        if (is_numeric($this->invoice->custom_surcharge4) && $this->invoice->custom_surcharge4 > 0 && $this->invoice->custom_surcharge_tax4) {
             $amount += $this->invoice->custom_surcharge4;
         }
 
@@ -289,7 +289,7 @@ class InvoiceSumInclusive
     private function setCalculatedAttributes()
     {
         /* If amount != balance then some money has been paid on the invoice, need to subtract this difference from the total to set the new balance */
-        if($this->invoice->status_id == Invoice::STATUS_CANCELLED) {
+        if ($this->invoice->status_id == Invoice::STATUS_CANCELLED) {
             $this->invoice->balance = 0;
         } elseif ($this->invoice->status_id != Invoice::STATUS_DRAFT) {
             if ($this->invoice->amount != $this->invoice->balance) {
@@ -304,9 +304,9 @@ class InvoiceSumInclusive
 
         $this->invoice->total_taxes = $this->getTotalTaxes();
 
-        if($this->rappen_rounding) {
+        if ($this->rappen_rounding) {
             $this->invoice->amount = $this->roundRappen($this->invoice->amount);
-            $this->invoice->balance = $this->roundRappen($this->invoice->balance);            
+            $this->invoice->balance = $this->roundRappen($this->invoice->balance);
             $this->total = $this->roundRappen($this->total);
             $this->invoice->total_taxes = $this->roundRappen($this->invoice->total_taxes);
         }
@@ -387,17 +387,17 @@ class InvoiceSumInclusive
             $total_line_tax = $values->filter(function ($value, $k) use ($key) {
                 return $value['key'] == $key;
             })->sum('total');
-            
+
             $base_amount = $values->filter(function ($value, $k) use ($key) {
                 return $value['key'] == $key;
             })->sum('base_amount');
 
             $tax_id = $values->first()['tax_id'] ?? '';
 
-            $this->tax_map[] = ['name' => $tax_name, 'total' => $total_line_tax, 'tax_id' => $tax_id, 'tax_rate' => $tax_rate, 'base_amount' => round($base_amount,2)];
+            $this->tax_map[] = ['name' => $tax_name, 'total' => $total_line_tax, 'tax_id' => $tax_id, 'tax_rate' => $tax_rate, 'base_amount' => round($base_amount, 2)];
 
             $this->total_taxes += $total_line_tax;
-            
+
         }
 
         return $this;

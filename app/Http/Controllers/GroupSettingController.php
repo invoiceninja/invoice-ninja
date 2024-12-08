@@ -140,7 +140,7 @@ class GroupSettingController extends BaseController
     public function update(UpdateGroupSettingRequest $request, GroupSetting $group_setting)
     {
         /** Need this to prevent settings from being overwritten */
-        if(!$request->file('company_logo')) {
+        if (!$request->file('company_logo')) {
             $group_setting = $this->group_setting_repo->save($request->all(), $group_setting);
         }
 

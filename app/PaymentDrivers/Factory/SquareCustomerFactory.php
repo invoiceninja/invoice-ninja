@@ -82,7 +82,7 @@ class SquareCustomerFactory
         $cards = [];
 
 
-        foreach($customer->getCards() ?? [] as $card) {
+        foreach ($customer->getCards() ?? [] as $card) {
 
             $meta = new \stdClass();
             $meta->exp_month = $card->getExpMonth();

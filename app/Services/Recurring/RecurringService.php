@@ -170,7 +170,7 @@ class RecurringService
 
         $sub_id = $this->decodePrimaryKey($subscription_id);
 
-        if(Subscription::withTrashed()->where('id', $sub_id)->where('company_id', $this->recurring_entity->company_id)->exists()) {
+        if (Subscription::withTrashed()->where('id', $sub_id)->where('company_id', $this->recurring_entity->company_id)->exists()) {
             $this->recurring_entity->subscription_id = $sub_id;
         }
 

@@ -23,7 +23,6 @@ use App\DataMapper\InvoiceItem;
  */
 class InvoiceTransformer extends BaseTransformer
 {
-
     public function qbToNinja(mixed $qb_data)
     {
         return $this->transform($qb_data);
@@ -60,18 +59,15 @@ class InvoiceTransformer extends BaseTransformer
     private function checkIfDiscountAfterTax($qb_data)
     {
 
-        if($qb_data->ApplyTaxAfterDiscount == 'true'){
+        if ($qb_data->ApplyTaxAfterDiscount == 'true') {
             return 0;
         }
 
-        foreach(data_get($qb_data, 'Line', []) as $line)
-        {
+        foreach (data_get($qb_data, 'Line', []) as $line) {
 
-            if(data_get($line, 'DetailType.value') == 'DiscountLineDetail')
-            {
+            if (data_get($line, 'DetailType.value') == 'DiscountLineDetail') {
 
-                if(!isset($this->company->custom_fields->surcharge1))
-                {
+                if (!isset($this->company->custom_fields->surcharge1)) {
                     $this->company->custom_fields->surcharge1 = ctrans('texts.discount');
                     $this->company->save();
                 }
@@ -86,7 +82,7 @@ class InvoiceTransformer extends BaseTransformer
     private function calculateTotalTax($qb_data)
     {
         $taxLines = data_get($qb_data, 'TxnTaxDetail.TaxLine', []);
-        
+
         if (!is_array($taxLines)) {
             $taxLines = [$taxLines];
         }
@@ -108,19 +104,17 @@ class InvoiceTransformer extends BaseTransformer
 
         $qb_payments = data_get($qb_data, 'LinkedTxn', false);
 
-        if(!$qb_payments) {
+        if (!$qb_payments) {
             return [];
         }
 
-        if(!is_array($qb_payments) && data_get($qb_payments, 'TxnType', false) == 'Payment'){
+        if (!is_array($qb_payments) && data_get($qb_payments, 'TxnType', false) == 'Payment') {
             return [data_get($qb_payments, 'TxnId.value', false)];
         }
 
-        
-        foreach($qb_payments as $payment)
-        {
-            if(data_get($payment, 'TxnType', false) == 'Payment')
-            {
+
+        foreach ($qb_payments as $payment) {
+            if (data_get($payment, 'TxnType', false) == 'Payment') {
                 $payments[] = data_get($payment, 'TxnId.value', false);
             }
         }
@@ -133,18 +127,16 @@ class InvoiceTransformer extends BaseTransformer
     {
         $items = [];
 
-        foreach($qb_items as $qb_item)
-        {
+        foreach ($qb_items as $qb_item) {
 
-            if(data_get($qb_item, 'DetailType.value') == 'SalesItemLineDetail')
-            {
-                $item = new InvoiceItem;
+            if (data_get($qb_item, 'DetailType.value') == 'SalesItemLineDetail') {
+                $item = new InvoiceItem();
                 $item->product_key = data_get($qb_item, 'SalesItemLineDetail.ItemRef.name', '');
-                $item->notes = data_get($qb_item,'Description', '');
-                $item->quantity = (float)data_get($qb_item,'SalesItemLineDetail.Qty', 0);
+                $item->notes = data_get($qb_item, 'Description', '');
+                $item->quantity = (float)data_get($qb_item, 'SalesItemLineDetail.Qty', 0);
                 $item->cost = (float)data_get($qb_item, 'SalesItemLineDetail.UnitPrice', 0);
-                $item->discount = (float)data_get($item,'DiscountRate', data_get($qb_item,'DiscountAmount', 0));
-                $item->is_amount_discount = data_get($qb_item,'DiscountAmount', 0) > 0 ? true : false;
+                $item->discount = (float)data_get($item, 'DiscountRate', data_get($qb_item, 'DiscountAmount', 0));
+                $item->is_amount_discount = data_get($qb_item, 'DiscountAmount', 0) > 0 ? true : false;
                 $item->type_id = stripos(data_get($qb_item, 'ItemAccountRef.name') ?? '', 'Service') !== false ? '2' : '1';
                 $item->tax_id = data_get($qb_item, 'TaxCodeRef.value', '') == 'NON' ? Product::PRODUCT_TYPE_EXEMPT : $item->type_id;
                 $item->tax_rate1 = (float)data_get($qb_item, 'TxnTaxDetail.TaxLine.TaxLineDetail.TaxPercent', 0);
@@ -152,8 +144,7 @@ class InvoiceTransformer extends BaseTransformer
                 $items[] = (object)$item;
             }
 
-            if(data_get($qb_item, 'DetailType.value') == 'DiscountLineDetail' && $include_discount == 'true')
-            {
+            if (data_get($qb_item, 'DetailType.value') == 'DiscountLineDetail' && $include_discount == 'true') {
 
                 $item = new InvoiceItem();
                 $item->product_key = ctrans('texts.discount');

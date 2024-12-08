@@ -76,7 +76,7 @@ class StoreProjectRequest extends Request
             $input['color'] = '';
         }
 
-        if(array_key_exists('budgeted_hours', $input) && empty($input['budgeted_hours'])) {
+        if (array_key_exists('budgeted_hours', $input) && empty($input['budgeted_hours'])) {
             $input['budgeted_hours'] = 0;
         }
 

@@ -22,15 +22,15 @@ class TaskDecorator extends Decorator implements DecoratorInterface
     public function transform(string $key, mixed $entity): mixed
     {
         $task = false;
-        if($entity instanceof Task) {
+        if ($entity instanceof Task) {
             $task = $entity;
-        } elseif($entity->task) {
+        } elseif ($entity->task) {
             $task = $entity->task;
         }
 
-        if($task && method_exists($this, $key)) {
+        if ($task && method_exists($this, $key)) {
             return $this->{$key}($task);
-        } elseif($task && $task->{$key} ?? false) {
+        } elseif ($task && $task->{$key} ?? false) {
             return $task->{$key};
         }
 
@@ -58,7 +58,7 @@ class TaskDecorator extends Decorator implements DecoratorInterface
             $date_format_default = $date_format->format;
         }
 
-        if(is_array($logs)) {
+        if (is_array($logs)) {
             $item = $logs[0];
             return Carbon::createFromTimeStamp((int)$item[0])->setTimezone($timezone_name)->format($date_format_default);
         }
@@ -87,7 +87,7 @@ class TaskDecorator extends Decorator implements DecoratorInterface
             $date_format_default = $date_format->format;
         }
 
-        if(is_array($logs)) {
+        if (is_array($logs)) {
             $item = $logs[1];
             return Carbon::createFromTimeStamp((int)$item[1])->setTimezone($timezone_name)->format($date_format_default);
         }

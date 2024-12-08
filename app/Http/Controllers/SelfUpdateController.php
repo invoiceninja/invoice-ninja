@@ -67,13 +67,13 @@ class SelfUpdateController extends BaseController
 
         nlog("Download URL");
         nlog($this->getDownloadUrl());
-        
-        if(strlen($this->version) == 1){
+
+        if (strlen($this->version) == 1) {
             nlog("version server down, trying github");
             $this->version = trim(file_get_contents('https://raw.githubusercontent.com/invoiceninja/invoiceninja/refs/heads/v5-develop/VERSION.txt'));
         }
 
-        if(!is_array($file_headers)) {
+        if (!is_array($file_headers)) {
             nlog($file_headers);
             return response()->json(['message' => 'There was a problem reaching the update server, please try again in a little while.'], 410);
         }
@@ -87,7 +87,7 @@ class SelfUpdateController extends BaseController
             if (copy($this->getDownloadUrl(), storage_path("app/{$this->filename}"))) {
                 nlog('Copied file from URL');
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog($e->getMessage());
             return response()->json(['message' => 'File exists on the server, however there was a problem downloading and copying to the local filesystem'], 500);
         }
@@ -114,7 +114,7 @@ class SelfUpdateController extends BaseController
             }
         }
 
-        if(Storage::disk('base')->directoryExists('resources/lang')) {
+        if (Storage::disk('base')->directoryExists('resources/lang')) {
             Storage::disk('base')->deleteDirectory('resources/lang');
         }
 
@@ -193,7 +193,7 @@ class SelfUpdateController extends BaseController
 
     public function checkVersion()
     {
-        if(Ninja::isHosted()) {
+        if (Ninja::isHosted()) {
             return '5.10.SaaS';
         }
 

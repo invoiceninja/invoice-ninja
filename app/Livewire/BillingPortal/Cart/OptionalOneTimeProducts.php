@@ -19,7 +19,6 @@ use Livewire\Attributes\Computed;
 
 class OptionalOneTimeProducts extends Component
 {
-    
     use MakesHash;
 
     public array $context;

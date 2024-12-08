@@ -150,6 +150,29 @@ class TaskApiTest extends TestCase
         // nlog($task->description());
     }
 
+    public function testBadRequestCaseOne()
+    {
+        
+        $data = [
+            'client_id' => $this->client->hashed_id,
+            'description' => 'Demo from client',
+            'duration_hours' => '2700000',
+            'time_details' => [
+                [
+                    'duration_hours' => 2700000
+                ]
+            ]
+        ];
+
+        $response = $this->withHeaders([
+                'X-API-SECRET' => config('ninja.api_secret'),
+                'X-API-TOKEN' => $this->token,
+            ])->postJson("/api/v1/tasks", $data);
+
+        $response->assertStatus(200);
+
+    }
+
     public function testCaseOne()
     {
         $time_log = '[[1729552249,1729553149],[1729553415,1729554315],[1729555129,1729556929],[1729557879,1729565079],[1729565184,1729568784]]';

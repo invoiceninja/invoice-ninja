@@ -64,7 +64,7 @@ class CompanySizeCheck implements ShouldQueue
                       $old_credit_balance = $client->credit_balance;
                       $new_credit_balance = $client->service()->getCreditBalance();
 
-                      if(floatval($old_credit_balance) !== floatval($new_credit_balance)) {
+                      if (floatval($old_credit_balance) !== floatval($new_credit_balance)) {
                           $client->credit_balance = $client->service()->getCreditBalance();
                           $client->saveQuietly();
                       }
@@ -106,7 +106,7 @@ class CompanySizeCheck implements ShouldQueue
                           $old_credit_balance = $client->credit_balance;
                           $new_credit_balance = $client->service()->getCreditBalance();
 
-                          if(floatval($old_credit_balance) !== floatval($new_credit_balance)) {
+                          if (floatval($old_credit_balance) !== floatval($new_credit_balance)) {
                               $client->credit_balance = $client->service()->getCreditBalance();
                               $client->saveQuietly();
                           }

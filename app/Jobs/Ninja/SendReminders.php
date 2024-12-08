@@ -219,7 +219,8 @@ class SendReminders implements ShouldQueue
                 nlog('firing email');
 
                 EmailEntity::dispatch($invitation->withoutRelations(), $invitation->company->db, $template)->delay(10);
-                event(new InvoiceWasEmailed($invoice->invitations->first(), $invoice->company, Ninja::eventVars(), $template));
+                // event(new InvoiceWasEmailed($invoice->invitations->first(), $invoice->company, Ninja::eventVars(), $template));
+                $invoice->entityEmailEvent($invoice->invitations->first(), $template);
                 $invoice->sendEvent(Webhook::EVENT_REMIND_INVOICE, "client");
             }
         });

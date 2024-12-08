@@ -122,7 +122,7 @@ class BankTransactionFilters extends QueryFilters
             return $this->builder;
         }
 
-        return $this->builder->whereHas('bank_integration', function ($query){
+        return $this->builder->whereHas('bank_integration', function ($query) {
             $query->where('is_deleted', 0)->whereNull('deleted_at');
         });
     }
@@ -135,7 +135,7 @@ class BankTransactionFilters extends QueryFilters
      */
     public function bank_integration_ids(string $ids = ''): Builder
     {
-        if(strlen($ids) == 0) {
+        if (strlen($ids) == 0) {
             return $this->builder;
         }
 

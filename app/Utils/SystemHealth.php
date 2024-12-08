@@ -104,7 +104,7 @@ class SystemHealth
                 $cs = DB::table('clients')
                       ->select('settings->currency_id as id')
                                 ->get();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 return true; //fresh installs, there may be no DB connection, nor migrations could have run yet.
             }
 

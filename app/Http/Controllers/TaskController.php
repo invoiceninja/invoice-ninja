@@ -281,7 +281,7 @@ class TaskController extends BaseController
         $task = $this->task_repo->triggeredActions($request, $task);
 
         if ($task->status_order != $old_task_status_order) {
-        // if ($task->status_order != $old_task->status_order) {
+            // if ($task->status_order != $old_task->status_order) {
             $this->task_repo->sortStatuses($task);
         }
 
@@ -512,7 +512,7 @@ class TaskController extends BaseController
 
         $tasks = Task::withTrashed()->whereIn('id', $this->transformKeys($ids))->company()->get();
 
-        if($action == 'template' && $user->can('view', $tasks->first())) {
+        if ($action == 'template' && $user->can('view', $tasks->first())) {
 
             $hash_or_response = request()->boolean('send_email') ? 'email sent' : \Illuminate\Support\Str::uuid();
 

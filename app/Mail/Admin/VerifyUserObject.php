@@ -40,7 +40,7 @@ class VerifyUserObject
 
         $react_redirect = '';
 
-        if($this->is_react) {
+        if ($this->is_react) {
             $react_redirect = '?react=true';
         }
 

@@ -70,9 +70,9 @@ trait MakesHash
 
             $decoded_array = $hashids->decode($value);
 
-            if(isset($decoded_array[0]) ?? false) {
+            if (isset($decoded_array[0]) ?? false) {
                 return $decoded_array[0];
-            } elseif($return_string_failure) {
+            } elseif ($return_string_failure) {
                 return "Invalid Primary Key";
             } else {
                 throw new \Exception('Invalid Primary Key');

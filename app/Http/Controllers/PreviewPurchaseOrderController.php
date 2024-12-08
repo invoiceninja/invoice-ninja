@@ -185,7 +185,7 @@ class PreviewPurchaseOrderController extends BaseController
         $entity_obj = $invitation->purchase_order;
         $entity_obj->fill($request->all());
 
-        if(!$entity_obj->id) {
+        if (!$entity_obj->id) {
             $entity_obj->design_id = intval($this->decodePrimaryKey($settings->{"purchase_order_design_id"}));
             $entity_obj->footer = empty($entity_obj->footer) ? $settings->{"purchase_order_footer"} : $entity_obj->footer;
             $entity_obj->terms = empty($entity_obj->terms) ? $settings->{"purchase_order_terms"} : $entity_obj->terms;

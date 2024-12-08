@@ -106,7 +106,7 @@ class RecurringExpensesCron
         $expense = RecurringExpenseToExpenseFactory::create($recurring_expense);
         $expense->saveQuietly();
 
-        if($expense->company->mark_expenses_paid) {
+        if ($expense->company->mark_expenses_paid) {
             $expense->payment_date = now()->format('Y-m-d');
         }
 

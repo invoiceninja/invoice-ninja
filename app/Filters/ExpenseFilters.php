@@ -117,7 +117,7 @@ class ExpenseFilters extends QueryFilters
                 });
             }
 
-            if(in_array('uncategorized', $status_parameters)) {
+            if (in_array('uncategorized', $status_parameters)) {
                 $query->orWhere(function ($query) {
                     $query->whereNull('category_id');
                 });
@@ -168,7 +168,7 @@ class ExpenseFilters extends QueryFilters
     {
         $categories_exploded = explode(",", $categories);
 
-        if(empty($categories) || count(array_filter($categories_exploded)) == 0) {
+        if (empty($categories) || count(array_filter($categories_exploded)) == 0) {
             return $this->builder;
         }
 
@@ -218,6 +218,14 @@ class ExpenseFilters extends QueryFilters
                     ->whereColumn('clients.id', 'expenses.client_id'), $sort_col[1]);
         }
 
+        
+        if ($sort_col[0] == 'project' && in_array($sort_col[1], ['asc', 'desc'])) {
+            return $this->builder
+                    ->orderByRaw('ISNULL(project_id), project_id '. $sort_col[1])
+                    ->orderBy(\App\Models\Project::select('name')
+                    ->whereColumn('projects.id', 'expenses.project_id'), $sort_col[1]);
+        }
+
         if ($sort_col[0] == 'vendor_id' && in_array($sort_col[1], ['asc', 'desc'])) {
             return $this->builder
                     ->orderByRaw('ISNULL(vendor_id), vendor_id '. $sort_col[1])
@@ -238,7 +246,7 @@ class ExpenseFilters extends QueryFilters
                     ->orderByRaw('ISNULL(payment_date), payment_date '. $sort_col[1]);
         }
 
-        if($sort_col[0] == 'number') {
+        if ($sort_col[0] == 'number') {
             return $this->builder->orderByRaw("REGEXP_REPLACE(number,'[^0-9]+','')+0 " . $dir);
         }
 

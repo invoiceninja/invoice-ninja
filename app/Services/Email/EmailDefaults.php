@@ -214,15 +214,15 @@ class EmailDefaults
         $reply_to_email = $this->email->company->owner()->email;
         $reply_to_name = $this->email->company->owner()->present()->name();
 
-        if(str_contains($this->email->email_object->settings->reply_to_email, "@")) {
+        if (str_contains($this->email->email_object->settings->reply_to_email, "@")) {
             $reply_to_email = $this->email->email_object->settings->reply_to_email;
-        } elseif(isset($this->email->email_object->invitation->user)) {
+        } elseif (isset($this->email->email_object->invitation->user)) {
             $reply_to_email = $this->email->email_object->invitation->user->email;
         }
 
-        if(strlen($this->email->email_object->settings->reply_to_name) > 3) {
+        if (strlen($this->email->email_object->settings->reply_to_name) > 3) {
             $reply_to_name = $this->email->email_object->settings->reply_to_name;
-        } elseif(isset($this->email->email_object->invitation->user)) {
+        } elseif (isset($this->email->email_object->invitation->user)) {
             $reply_to_name = $this->email->email_object->invitation->user->present()->name();
         }
 
@@ -310,7 +310,7 @@ class EmailDefaults
         if ($this->email->email_object->settings->pdf_email_attachment) {
             $pdf = ((new CreateRawPdf($this->email->email_object->invitation))->handle());
 
-            if($this->email->email_object->settings->embed_documents && ($this->email->email_object->entity->documents()->where('is_public', true)->count() > 0 || $this->email->email_object->entity->company->documents()->where('is_public', true)->count() > 0)) {
+            if ($this->email->email_object->settings->embed_documents && ($this->email->email_object->entity->documents()->where('is_public', true)->count() > 0 || $this->email->email_object->entity->company->documents()->where('is_public', true)->count() > 0)) {
                 $pdf = $this->email->email_object->entity->documentMerge($pdf);
             }
 
@@ -327,17 +327,16 @@ class EmailDefaults
         }
         /** E-Invoice xml file */
         if ($this->email->email_object->settings->enable_e_invoice && $this->email->email_object->settings->enable_e_invoice) {
-            
+
             $xml_string = false;
 
-            try{
+            try {
                 $xml_string = $this->email->email_object->entity->service()->getEDocument();
-            }
-            catch(\Throwable $th){
+            } catch (\Throwable $th) {
                 nlog("could not generate e invoice for:: ".$this->email->email_object->entity->id);
             }
 
-            if($xml_string) {
+            if ($xml_string) {
                 $this->email->email_object->attachments = array_merge($this->email->email_object->attachments, [['file' => base64_encode($xml_string), 'name' => explode(".", $this->email->email_object->entity->getFileName('xml'))[0]."-e_invoice.xml"]]);
             }
 

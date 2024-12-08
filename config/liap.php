@@ -11,7 +11,6 @@ use Imdhemy\Purchases\Events\GooglePlay\SubscriptionPaused;
 use Imdhemy\Purchases\Events\GooglePlay\SubscriptionExpired;
 use Imdhemy\Purchases\Events\GooglePlay\SubscriptionRenewed;
 use Imdhemy\Purchases\Events\GooglePlay\SubscriptionRevoked;
-use Imdhemy\Purchases\Events\AppStore\DidChangeRenewalStatus;
 use Imdhemy\Purchases\Events\AppStore\Subscribed;
 use Imdhemy\Purchases\Events\GooglePlay\SubscriptionCanceled;
 use Imdhemy\Purchases\Events\GooglePlay\SubscriptionPurchased;
@@ -129,6 +128,8 @@ return [
         DidRecover::class => class_exists(\Modules\Admin\Listeners\Subscription\AppleRecover::class) ? [\Modules\Admin\Listeners\Subscription\AppleRecover::class] : [],
         InitialBuy::class => class_exists(\Modules\Admin\Listeners\Subscription\AppleInitialBuy::class) ? [\Modules\Admin\Listeners\Subscription\AppleInitialBuy::class] : [],
         InteractiveRenewal::class => class_exists(\Modules\Admin\Listeners\Subscription\AppleInteractiveRenewal::class) ? [\Modules\Admin\Listeners\Subscription\AppleInteractiveRenewal::class] : [],
+        \Imdhemy\Purchases\Events\AppStore\DidChangeRenewalStatus::class => class_exists(\Modules\Admin\Listeners\Subscription\AppleSubscribed::class) ? [\Modules\Admin\Listeners\Subscription\AppleSubscribed::class] : [],
+
     ],
 
     /*

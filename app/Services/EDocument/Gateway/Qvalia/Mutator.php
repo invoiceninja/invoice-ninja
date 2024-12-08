@@ -16,7 +16,6 @@ use App\Services\EDocument\Gateway\MutatorInterface;
 
 class Mutator implements MutatorInterface
 {
-
     private \InvoiceNinja\EInvoice\Models\Peppol\Invoice $p_invoice;
 
     private ?\InvoiceNinja\EInvoice\Models\Peppol\Invoice $_client_settings;
@@ -26,7 +25,7 @@ class Mutator implements MutatorInterface
     private $invoice;
 
     private MutatorUtil $mutator_util;
-    
+
     public function __construct(public Qvalia $qvalia)
     {
         $this->mutator_util = new MutatorUtil($this);
@@ -93,7 +92,7 @@ class Mutator implements MutatorInterface
     public function senderSpecificLevelMutators(): self
     {
 
-        if(method_exists($this, $this->invoice->company->country()->iso_3166_2)) {
+        if (method_exists($this, $this->invoice->company->country()->iso_3166_2)) {
             $this->{$this->invoice->company->country()->iso_3166_2}();
         }
 
@@ -111,14 +110,14 @@ class Mutator implements MutatorInterface
     public function receiverSpecificLevelMutators(): self
     {
 
-        if(method_exists($this, "client_{$this->invoice->company->country()->iso_3166_2}")) {
+        if (method_exists($this, "client_{$this->invoice->company->country()->iso_3166_2}")) {
             $this->{"client_{$this->invoice->company->country()->iso_3166_2}"}();
         }
 
         return $this;
     }
 
-        // Country-specific methods
+    // Country-specific methods
     public function DE(): self
     {
         return $this;

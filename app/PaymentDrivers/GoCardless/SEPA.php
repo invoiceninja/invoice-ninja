@@ -144,12 +144,12 @@ class SEPA implements MethodInterface, LivewireMethodInterface
                     'invoices' => collect($this->go_cardless->payment_hash->data->invoices)->map(fn ($invoice) => $invoice->invoice_id)->toArray(),
                     'action' => 'payment',
                 ];
-                
+
                 $request = new ProcessInvoicesInBulkRequest();
                 $request->replace($data);
-    
+
                 session()->flash('message', ctrans('texts.payment_method_added'));
-    
+
                 return app(InvoiceController::class)->bulk($request);
             }
 
@@ -277,19 +277,19 @@ class SEPA implements MethodInterface, LivewireMethodInterface
 
         throw new PaymentFailed('Failed to process the payment.', 500);
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.gocardless.sepa.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $data['gateway'] = $this->go_cardless;
         $data['amount'] = $this->go_cardless->convertToGoCardlessAmount($data['total']['amount_with_fee'], $this->go_cardless->client->currency()->precision);

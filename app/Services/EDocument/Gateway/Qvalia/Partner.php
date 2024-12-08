@@ -13,14 +13,13 @@ namespace App\Services\EDocument\Gateway\Qvalia;
 
 class Partner
 {
-
     private string $partner_number;
 
     public function __construct(public Qvalia $qvalia)
     {
-        $this->partner_number = config('ninja.qvalia_partner_number'); 
+        $this->partner_number = config('ninja.qvalia_partner_number');
     }
-    
+
     /**
      * getAccount
      *
@@ -35,7 +34,7 @@ class Partner
 
         return $r->object();
     }
-    
+
     /**
      * getPeppolId
      *
@@ -46,7 +45,7 @@ class Partner
     public function getPeppolId(string $id)
     {
         $uri = "/partner/{$this->partner_number}/peppol/lookup/{$id}";
-        
+
         $uri = "/partner/{$this->partner_number}/account";
 
         $r = $this->qvalia->httpClient($uri, (\App\Enum\HttpVerb::GET)->value, []);
@@ -54,7 +53,7 @@ class Partner
         return $r->object();
 
     }
-    
+
     /**
      * getAccountId
      *

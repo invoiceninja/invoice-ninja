@@ -45,7 +45,7 @@ class TemplateService
     use MakesDates;
     use PdfMaker;
     use MakesHash;
-    
+
     private \DomDocument $document;
 
     public \Twig\Environment $twig;
@@ -105,7 +105,7 @@ class TemplateService
 
         $function = new \Twig\TwigFunction('img', \Closure::fromCallable(function (string $image_src, string $image_style = '') {
             $html = '<img src="' . $image_src . '" style="' . $image_style . '"></img>';
-            
+
             return new \Twig\Markup($html, 'UTF-8');
 
         }));
@@ -131,7 +131,7 @@ class TemplateService
         $allowedProperties = ['type_id'];
         // $allowedMethods = ['img','t'];
         $allowedMethods = [
-            'Illuminate\Support\Collection' => ['__toString'], 
+            'Illuminate\Support\Collection' => ['__toString'],
         ];
 
         $policy = new \Twig\Sandbox\SecurityPolicy($allowedTags, $allowedFilters, $allowedMethods, $allowedProperties, $allowedFunctions);
@@ -176,7 +176,7 @@ class TemplateService
     public function setGlobals(): self
     {
 
-        foreach($this->global_vars as $key => $value) {
+        foreach ($this->global_vars as $key => $value) {
             $this->twig->addGlobal($key, $value);
         }
 
@@ -195,11 +195,11 @@ class TemplateService
 
     private function getSettings(): object
     {
-        if($this->settings) {
+        if ($this->settings) {
             return $this->settings;
         }
 
-        if($this->client) {
+        if ($this->client) {
             return $this->client->getMergedSettings();
         }
 
@@ -308,19 +308,19 @@ class TemplateService
 
             try {
                 $template = $this->twig->createTemplate(html_entity_decode($template));
-            } catch(SyntaxError $e) {
+            } catch (SyntaxError $e) {
                 nlog($e->getMessage());
                 throw ($e);
-            } catch(RuntimeError $e) {
+            } catch (RuntimeError $e) {
                 nlog("runtime = " . $e->getMessage());
                 throw ($e);
-            } catch(LoaderError $e) {
+            } catch (LoaderError $e) {
                 nlog("loader = " . $e->getMessage());
                 throw ($e);
-            } catch(SecurityError $e) {
+            } catch (SecurityError $e) {
                 nlog("security = " . $e->getMessage());
                 throw ($e);
-            } catch(Error $e) {
+            } catch (Error $e) {
                 nlog("error = " . $e->getMessage());
                 throw ($e);
             }
@@ -337,7 +337,7 @@ class TemplateService
 
         }
 
-        foreach($contents as $key => $content) {
+        foreach ($contents as $key => $content) {
             $content->parentNode->replaceChild($replacements[$key], $content);
         }
 
@@ -370,15 +370,15 @@ class TemplateService
 
         $html = $this->getHtml();
 
-        foreach($this->variables as $key => $variable) {
-            if(isset($variable['labels']) && isset($variable['values'])) {
+        foreach ($this->variables as $key => $variable) {
+            if (isset($variable['labels']) && isset($variable['values'])) {
                 $html = strtr($html, $variable['labels']);
                 $html = strtr($html, $variable['values']);
             }
         }
 
         @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-        
+
         $this->save();
 
         return $this;
@@ -403,7 +403,7 @@ class TemplateService
      */
     public function compose(): self
     {
-        if(!$this->template) {
+        if (!$this->template) {
             return $this;
         }
 
@@ -419,9 +419,9 @@ class TemplateService
 
     }
 
-    public function setRawTemplate(string $template):self
+    public function setRawTemplate(string $template): self
     {
-                
+
         @$this->document->loadHTML(mb_convert_encoding($template, 'HTML-ENTITIES', 'UTF-8'));
 
         return $this;
@@ -461,7 +461,7 @@ class TemplateService
 
             $processed = [];
 
-            if(in_array($key, ['tasks', 'projects', 'aging', 'unapplied']) || !$value->first()) {
+            if (in_array($key, ['aging', 'unapplied']) || !$value->first() || (in_array($key, ['projects','tasks']) && !$value->first()->client)) {
                 return $processed;
             }
 
@@ -471,15 +471,12 @@ class TemplateService
                 'quotes' => $processed = (new HtmlEngine($value->first()->invitations()->first()))->setSettings($this->getSettings())->generateLabelsAndValues() ?? [],
                 'credits' => $processed = (new HtmlEngine($value->first()->invitations()->first()))->setSettings($this->getSettings())->generateLabelsAndValues() ?? [],
                 'payments' => $processed = (new PaymentHtmlEngine($value->first(), $value->first()->client->contacts()->first()))->setSettings($this->getSettings())->generateLabelsAndValues() ?? [], //@phpstan-ignore-line
-                'tasks' => $processed = [],
-                'projects' => $processed = [],
+                'tasks' => $processed = (new HtmlEngine($value->first()->client->invoices()->first()->invitations()->first()))->setSettings($this->getSettings())->generateLabelsAndValues() ?? [],
+                'projects' => $processed = (new HtmlEngine($value->first()->client->invoices()->first()->invitations()->first()))->setSettings($this->getSettings())->generateLabelsAndValues() ?? [],
                 'purchase_orders' => (new VendorHtmlEngine($value->first()->invitations()->first()))->setSettings($this->getSettings())->generateLabelsAndValues() ?? [],
                 'aging' => $processed = [],
                 default => $processed = [],
             };
-
-            // nlog($key);
-            // nlog($processed);
 
             return $processed;
 
@@ -496,7 +493,7 @@ class TemplateService
      */
     private function preProcessDataBlocks($data): array
     {
-           
+
         return collect($data)->map(function ($value, $key) {
 
             $processed = [];
@@ -535,7 +532,7 @@ class TemplateService
                     $payments = [];
                     $this->entity = $invoice;
 
-                    if($invoice->payments ?? false) {
+                    if ($invoice->payments ?? false) {
                         $payments = $invoice->payments->map(function ($payment) {
                             return $this->transformPayment($payment);
                         })->toArray();
@@ -623,7 +620,7 @@ class TemplateService
 
             $item->cost = Number::formatMoney($item->cost_raw, $client_or_vendor);
 
-            if($item->is_amount_discount) {
+            if ($item->is_amount_discount) {
                 $item->discount = Number::formatMoney($item->discount_raw, $client_or_vendor);
             }
 
@@ -632,7 +629,7 @@ class TemplateService
             $item->tax_amount = Number::formatMoney($item->tax_amount_raw, $client_or_vendor);
             $item->product_cost = Number::formatMoney($item->product_cost_raw, $client_or_vendor);
             $item->task = strlen($item->task_id ?? '') > 1 ? $this->processInvoiceTask($item->task_id) : [];
-            
+
             return (array)$item;
 
         })->toArray();
@@ -737,7 +734,7 @@ class TemplateService
     private function getPaymentRefundActivity(Payment $payment): array
     {
 
-        if(!is_array($payment->refund_meta)) {
+        if (!is_array($payment->refund_meta)) {
             return [];
         }
 
@@ -750,7 +747,7 @@ class TemplateService
 
             $map = [];
 
-            foreach($refund['invoices'] as $refunded_invoice) {
+            foreach ($refund['invoices'] as $refunded_invoice) {
                 $invoice = Invoice::withTrashed()->find($refunded_invoice['invoice_id']);
                 $amount = Number::formatMoney($refunded_invoice['amount'], $payment->client);
                 $notes = ctrans('texts.status_partially_refunded_amount', ['amount' => $amount]);
@@ -845,7 +842,7 @@ class TemplateService
 
                     $this->entity = $credit;
 
-                    if($credit->payments ?? false) {
+                    if ($credit->payments ?? false) {
                         $payments = $credit->payments->map(function ($payment) {
                             return $this->transformPayment($payment);
                         })->toArray();
@@ -958,7 +955,7 @@ class TemplateService
         $task = Task::where('company_id', $this->company->id)
                     ->where('id', $this->decodePrimaryKey($task_id))
                     ->first();
-    
+
         return $task ? [
             'number' => (string) $task->number ?: '',
             'description' => (string) $task->description ?: '',
@@ -1028,7 +1025,7 @@ class TemplateService
      */
     public function processProjects($projects): array
     {
-        
+
         return
         collect($projects)->map(function ($project) {
 
@@ -1049,7 +1046,7 @@ class TemplateService
 
     private function transformProject(Project $project, bool $nested = false): array
     {
-        
+
         return [
             'name' => $project->name ?: '',
             'number' => $project->number ?: '',
@@ -1298,7 +1295,7 @@ class TemplateService
      */
     private function shippingDetails(bool $include_labels = false): self
     {
-        if(!$this->entity->client) {
+        if (!$this->entity->client) {
             return $this;
         }
 
@@ -1306,7 +1303,7 @@ class TemplateService
 
         $shipping_address = [
             // ['element' => 'p', 'content' => ctrans('texts.shipping_address'), 'properties' => ['data-ref' => 'shipping_address-label', 'style' => 'font-weight: bold; text-transform: uppercase']],
-            ['element' => 'p', 'content' => $this->client->name, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.name']],
+            // ['element' => 'p', 'content' => $this->client->name, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.name']],
             ['element' => 'p', 'content' => $this->client->shipping_address1, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.shipping_address1']],
             ['element' => 'p', 'content' => $this->client->shipping_address2, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.shipping_address2']],
             ['element' => 'p', 'show_empty' => false, 'elements' => [
@@ -1365,19 +1362,19 @@ class TemplateService
     private function resolveEntity(): string
     {
         switch ($this->entity) {
-            case  ($this->entity instanceof Invoice):
-               return 'invoice';
-            case  ($this->entity instanceof Quote):
-               return 'quote';
-            case  ($this->entity instanceof Credit):
-               return 'credit';
-            case  ($this->entity instanceof RecurringInvoice):
-               return 'invoice';
-            case  ($this->entity instanceof PurchaseOrder):
-               return 'purchase_order';
-            
+            case ($this->entity instanceof Invoice):
+                return 'invoice';
+            case ($this->entity instanceof Quote):
+                return 'quote';
+            case ($this->entity instanceof Credit):
+                return 'credit';
+            case ($this->entity instanceof RecurringInvoice):
+                return 'invoice';
+            case ($this->entity instanceof PurchaseOrder):
+                return 'purchase_order';
+
             default:
-               return 'invoice';
+                return 'invoice';
         }
 
     }

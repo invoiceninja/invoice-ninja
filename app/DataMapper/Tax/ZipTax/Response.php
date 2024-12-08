@@ -103,9 +103,9 @@ class Response
     public function __construct($data = null)
     {
 
-        if($data) {
+        if ($data) {
 
-            foreach($data as $key => $value) {
+            foreach ($data as $key => $value) {
                 $this->{$key} = $value;
             }
 

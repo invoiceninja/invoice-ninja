@@ -16,10 +16,10 @@ use App\Models\Country;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateEntityRequest extends FormRequest
 {
-  
     public function authorize(): bool
     {
         /**
@@ -52,4 +52,15 @@ class UpdateEntityRequest extends FormRequest
 
         $this->replace($input);
     }
+
+    // public function after(): array 
+    // {
+    //     return [
+    //         function (Validator $validator) {
+    //             if ($this->input('acts_as_sender') === false && $this->input('acts_as_receiver') === false) {
+    //                 $validator->errors()->add('acts_as_receiver', ctrans('texts.acts_as_must_be_true'));
+    //             }
+    //         }
+    //     ];
+    // }
 }

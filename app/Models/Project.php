@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Project\ProjectService;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laracasts\Presenter\PresentableTrait;
@@ -143,6 +144,15 @@ class Project extends BaseModel
         return $this->hasMany(Quote::class);
     }
 
+     /**
+     * Service entry points.
+     *
+     * @return ProjectService
+     */
+    public function service(): ProjectService
+    {
+        return new ProjectService($this);
+    }
 
     public function translate_entity()
     {

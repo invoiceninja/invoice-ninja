@@ -57,7 +57,7 @@ class GenericNinjaAdminNotification extends Notification
     {
         $content = '';
 
-        foreach($this->message_array as $message) {
+        foreach ($this->message_array as $message) {
             $content .= $message . "\n";
         }
 

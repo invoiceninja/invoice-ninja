@@ -118,7 +118,7 @@ class UserTransformer extends EntityTransformer
 
         $cu = $user->company_users()->where('company_id', $user->company_id)->first();
 
-        if(!$cu) {
+        if (!$cu) {
             return null;
         }
 

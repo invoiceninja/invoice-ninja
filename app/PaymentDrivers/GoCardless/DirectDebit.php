@@ -127,7 +127,7 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
      */
     public function authorizeResponse(Request $request)
     {
-    
+
         try {
 
             $billing_request = $this->go_cardless->gateway->billingRequests()->get($request->billing_request);
@@ -155,12 +155,12 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
                     'invoices' => collect($this->go_cardless->payment_hash->data->invoices)->map(fn ($invoice) => $invoice->invoice_id)->toArray(),
                     'action' => 'payment',
                 ];
-                
+
                 $request = new ProcessInvoicesInBulkRequest();
                 $request->replace($data);
-    
+
                 session()->flash('message', ctrans('texts.payment_method_added'));
-    
+
                 return app(InvoiceController::class)->bulk($request);
             }
 
@@ -193,8 +193,9 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
     {
         $data = $this->paymentData($data);
 
-        if(isset($data['authorize_then_redirect']))
+        if (isset($data['authorize_then_redirect'])) {
             return $this->authorizeView($data);
+        }
 
         return render('gateways.gocardless.direct_debit.pay', $data);
     }
@@ -308,15 +309,15 @@ class DirectDebit implements MethodInterface, LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
-    {        
+    public function livewirePaymentView(array $data): string
+    {
         return 'gateways.gocardless.direct_debit.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $data['gateway'] = $this->go_cardless;
         $data['amount'] = $this->go_cardless->convertToGoCardlessAmount($data['total']['amount_with_fee'], $this->go_cardless->client->currency()->precision);

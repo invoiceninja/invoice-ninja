@@ -30,12 +30,12 @@ class EInvoiceController extends BaseController
     private array $einvoice_props = [
         'payment_means',
     ];
-    
+
     /**
      * Checks a given model for validity for sending
      *
      * @param  ValidateEInvoiceRequest $request
-     * 
+     *
      */
     public function validateEntity(ValidateEInvoiceRequest $request)
     {
@@ -43,17 +43,17 @@ class EInvoiceController extends BaseController
 
         $data = [];
 
-        match($request->entity){
+        match($request->entity) {
             'invoices' => $data = $el->checkInvoice($request->getEntity()),
             'clients' => $data = $el->checkClient($request->getEntity()),
             'companies' => $data = $el->checkCompany($request->getEntity()),
             default => $data['passes'] = false,
         };
-        
+
         return response()->json($data, $data['passes'] ? 200 : 422);
 
     }
-    
+
     /**
      * Updated the E-Invoice Setting Configurations
      *
@@ -64,16 +64,18 @@ class EInvoiceController extends BaseController
     {
         $einvoice = new \InvoiceNinja\EInvoice\Models\Peppol\Invoice();
 
-        foreach($request->input('payment_means', []) as $payment_means)
-        {
+        $payment_means_array = $request->input('payment_means', []);
+
+        $einvoice->PaymentMeans = [];
+
+        foreach ($payment_means_array as $payment_means) {
             $pm = new PaymentMeans();
 
             $pmc = new PaymentMeansCode();
             $pmc->value = $payment_means['code'];
             $pm->PaymentMeansCode = $pmc;
 
-            if(in_array($payment_means['code'], ['54,55']))
-            {
+            if (in_array($payment_means['code'], ['54,55'])) {
                 $ctc = new CardTypeCode();
                 $ctc->value = $payment_means['card_type'];
                 $card_account = new CardAccount();
@@ -82,8 +84,7 @@ class EInvoiceController extends BaseController
                 $pm->CardAccount = $card_account;
             }
 
-            if(isset($payment_means['iban']))
-            {
+            if (isset($payment_means['iban'])) {
                 $fib = new FinancialInstitutionBranch();
                 $fi = new FinancialInstitution();
                 $bic_id = new ID();
@@ -98,23 +99,27 @@ class EInvoiceController extends BaseController
                 $pfa->FinancialInstitutionBranch = $fib;
 
                 $pm->PayeeFinancialAccount = $pfa;
-               
+
             }
 
-            if(isset($payment_means['information']))
+            if (isset($payment_means['information'])) {
                 $pm->InstructionNote = $payment_means['information'];
+            }
 
+            // nlog($pm);
             $einvoice->PaymentMeans[] = $pm;
         }
-        
+
+        // nlog($einvoice);
+
         $stub = new \stdClass();
         $stub->Invoice = $einvoice;
-   
+
         $company = auth()->user()->company();
         $company->e_invoice = $stub;
         $company->save();
     }
-    
+
     /**
      * Returns the current E-Invoice Quota.
      *
@@ -123,11 +128,11 @@ class EInvoiceController extends BaseController
      */
     public function quota(ShowQuotaRequest $request): JsonResponse
     {
-         /**
-         * @var \App\Models\Company
-         */
+        /**
+        * @var \App\Models\Company
+        */
         $company = auth()->user()->company();
-        
+
         $response = \Illuminate\Support\Facades\Http::baseUrl(config('ninja.hosted_ninja_url'))
             ->withHeaders([
                 'Content-Type' => 'application/json',
@@ -139,7 +144,6 @@ class EInvoiceController extends BaseController
                 'account_key' => $company->account->key,
             ]);
 
-
         if ($response->status() == 422) {
             return response()->json(['message' => $response->json('message')], 422);
         }
@@ -148,8 +152,13 @@ class EInvoiceController extends BaseController
             return response()->json(['message' => $response->json('message')], 400);
         }
 
+        $account = $company->account;
+
+        $account->e_invoice_quota = (int) $response->body();
+        $account->save();
+
         return response()->json([
-            'quota' => $response->body(),
+            'quota' => $account->e_invoice_quota,
         ]);
     }
 }

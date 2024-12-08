@@ -28,7 +28,7 @@ class SubscriptionsTable extends Component
     public $company_id;
 
     public $db;
-    
+
     public function mount()
     {
         MultiDB::setDb($this->db);

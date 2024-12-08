@@ -56,21 +56,21 @@ class CompanyService
                 case '724': // Spain
                     $taxes[] = ['name' => 'IVA', 'rate' => 21];
                     break;
-                case '554': // New Zealand                    
+                case '554': // New Zealand
                     $taxes[] = ['name' => 'GST', 'rate' => 15];
                     break;
-    
+
                 default:
                     return;
             }
 
-            foreach($taxes as $tax) {
+            foreach ($taxes as $tax) {
                 $tax_rate = TaxRateFactory::create($this->company->id, $user->id);
                 $tax_rate->fill($tax);
                 $tax_rate->save();
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: CompanyService::" . $e->getMessage());
             nlog($e->getMessage());
         }

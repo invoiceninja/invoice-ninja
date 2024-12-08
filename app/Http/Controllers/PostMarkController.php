@@ -65,7 +65,7 @@ class PostMarkController extends BaseController
     public function webhook(Request $request)
     {
         if ($request->header('X-API-SECURITY') && $request->header('X-API-SECURITY') == config('services.postmark.token')) {
-            ProcessPostmarkWebhook::dispatch($request->all())->delay(rand(6, 14));
+            ProcessPostmarkWebhook::dispatch($request->all())->delay(15);
 
             return response()->json(['message' => 'Success'], 200);
         }
@@ -273,8 +273,9 @@ class PostMarkController extends BaseController
 
         $input = $request->all();
 
-        if (!$request->has('token') || $request->token != config('ninja.inbound_mailbox.inbound_webhook_token'))
+        if (!$request->has('token') || $request->token != config('ninja.inbound_mailbox.inbound_webhook_token')) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         if (!(array_key_exists("MessageStream", $input) && $input["MessageStream"] == "inbound") || !array_key_exists("To", $input) || !array_key_exists("From", $input) || !array_key_exists("MessageID", $input)) {
             nlog('Failed: Message could not be parsed, because required parameters are missing.');
@@ -324,8 +325,9 @@ class PostMarkController extends BaseController
             $inboundEngine->handleExpenseMailbox($inboundMail);
 
         } catch (\Exception $e) {
-            if ($e->getCode() == 409)
+            if ($e->getCode() == 409) {
                 return response()->json(['message' => $e->getMessage()], 409);
+            }
 
             throw $e;
         }

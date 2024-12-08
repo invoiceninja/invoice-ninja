@@ -127,7 +127,7 @@ class InvoiceSum
 
     private function calculateInvoiceTaxes(): self
     {
-        if($this->client->is_tax_exempt) {
+        if ($this->client->is_tax_exempt) {
             $this->invoice->tax_name1 = '';
             $this->invoice->tax_name2 = '';
             $this->invoice->tax_name3 = '';
@@ -254,7 +254,7 @@ class InvoiceSum
      */
     private function setCalculatedAttributes(): self
     {
-        if($this->invoice->status_id == Invoice::STATUS_CANCELLED) {
+        if ($this->invoice->status_id == Invoice::STATUS_CANCELLED) {
             $this->invoice->balance = 0;
         } elseif ($this->invoice->status_id != Invoice::STATUS_DRAFT) {
             if ($this->invoice->amount != $this->invoice->balance) {
@@ -268,14 +268,14 @@ class InvoiceSum
 
         $this->invoice->total_taxes = $this->getTotalTaxes();
 
-        if($this->rappen_rounding) {
+        if ($this->rappen_rounding) {
             $this->invoice->amount = $this->roundRappen($this->invoice->amount);
             $this->invoice->balance = $this->roundRappen($this->invoice->balance);
             $this->total = $this->roundRappen($this->total);
             $this->invoice->total_taxes = $this->roundRappen($this->invoice->total_taxes);
         }
 
-        
+
         return $this;
     }
 
@@ -351,11 +351,11 @@ class InvoiceSum
             $tax_name = $values->filter(function ($value, $k) use ($key) {
                 return $value['key'] == $key;
             })->pluck('tax_name')->first();
-            
+
             $tax_rate = $values->filter(function ($value, $k) use ($key) {
                 return $value['key'] == $key;
             })->pluck('tax_rate')->first();
-            
+
             $tax_id = $values->filter(function ($value, $k) use ($key) {
                 return $value['key'] == $key;
             })->pluck('tax_id')->first();
@@ -363,14 +363,14 @@ class InvoiceSum
             $total_line_tax = $values->filter(function ($value, $k) use ($key) {
                 return $value['key'] == $key;
             })->sum('total');
-            
+
             $base_amount = $values->filter(function ($value, $k) use ($key) {
                 return $value['key'] == $key;
             })->sum('base_amount');
 
             $tax_id = $values->first()['tax_id'] ?? '';
 
-            $this->tax_map[] = ['name' => $tax_name, 'total' => $total_line_tax, 'tax_id' => $tax_id, 'tax_rate' => $tax_rate, 'base_amount' => round($base_amount,2)];
+            $this->tax_map[] = ['name' => $tax_name, 'total' => $total_line_tax, 'tax_id' => $tax_id, 'tax_rate' => $tax_rate, 'base_amount' => round($base_amount, 2)];
 
             $this->total_taxes += $total_line_tax;
         }

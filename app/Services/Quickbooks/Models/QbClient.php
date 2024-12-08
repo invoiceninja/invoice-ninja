@@ -39,13 +39,13 @@ class QbClient implements SyncInterface
 
             $ninja_data = $transformer->qbToNinja($record);
 
-            if($ninja_data[0]['terms']){
+            if ($ninja_data[0]['terms']) {
 
                 $days =  $this->service->findEntityById('Term', $ninja_data[0]['terms']);
 
                 nlog($days);
 
-                if($days){
+                if ($days) {
                     $ninja_data[0]['settings']->payment_terms = (string)$days->DueDays;
                 }
 
@@ -60,16 +60,14 @@ class QbClient implements SyncInterface
 
                 $contact = $client->contacts()->where('email', $ninja_data[1]['email'])->first();
 
-                if(!$contact)
-                {
+                if (!$contact) {
                     $contact = ClientContactFactory::create($this->service->company->id, $this->service->company->owner()->id);
                     $contact->client_id = $client->id;
                     $contact->send_email = true;
                     $contact->is_primary = true;
                     $contact->fill($ninja_data[1]);
                     $contact->saveQuietly();
-                }
-                elseif($this->service->syncable('client', \App\Enum\SyncDirection::PULL)){
+                } elseif ($this->service->syncable('client', \App\Enum\SyncDirection::PULL)) {
                     $contact->fill($ninja_data[1]);
                     $contact->saveQuietly();
                 }
@@ -98,7 +96,7 @@ class QbClient implements SyncInterface
         if ($search->count() == 0) {
 
             $client = ClientFactory::create($this->service->company->id, $this->service->company->owner()->id);
-            
+
             $sync = new ClientSync();
             $sync->qb_id = $key;
             $client->sync = $sync;

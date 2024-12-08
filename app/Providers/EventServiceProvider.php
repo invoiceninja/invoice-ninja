@@ -548,7 +548,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         QuoteReminderWasEmailed::class => [
             QuoteReminderEmailActivity::class,
-            // QuoteEmailedNotification::class,
+            QuoteEmailedNotification::class,
         ],
         RecurringExpenseWasCreated::class => [
             CreatedRecurringExpenseActivity::class,

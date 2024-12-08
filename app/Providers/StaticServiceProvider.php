@@ -39,7 +39,7 @@ class StaticServiceProvider extends ServiceProvider
         /** @return \Illuminate\Support\Collection<Currency> */
         app()->singleton('currencies', function ($app) {
 
-            if($resource = Cache::get('currencies')) {
+            if ($resource = Cache::get('currencies')) {
                 return $resource;
             }
 
@@ -54,7 +54,7 @@ class StaticServiceProvider extends ServiceProvider
         /** @return \Illuminate\Support\Collection<Language> */
         app()->singleton('languages', function ($app) {
 
-            if($resource = Cache::get('languages')) {
+            if ($resource = Cache::get('languages')) {
                 return $resource;
             }
 
@@ -69,7 +69,7 @@ class StaticServiceProvider extends ServiceProvider
         /** @return \Illuminate\Support\Collection<Country> */
         app()->singleton('countries', function ($app) {
 
-            if($resource = Cache::get('countries')) {
+            if ($resource = Cache::get('countries')) {
                 return $resource;
             }
 
@@ -84,7 +84,7 @@ class StaticServiceProvider extends ServiceProvider
         /** @return \Illuminate\Support\Collection<PaymentType> */
         app()->singleton('payment_types', function ($app) {
 
-            if($resource = Cache::get('payment_types')) {
+            if ($resource = Cache::get('payment_types')) {
                 return $resource;
             }
 
@@ -101,7 +101,7 @@ class StaticServiceProvider extends ServiceProvider
         app()->singleton('banks', function ($app) {
 
 
-            if($resource = Cache::get('banks')) {
+            if ($resource = Cache::get('banks')) {
                 return $resource;
             }
 
@@ -117,7 +117,7 @@ class StaticServiceProvider extends ServiceProvider
         app()->singleton('date_formats', function ($app) {
 
 
-            if($resource = Cache::get('date_formats')) {
+            if ($resource = Cache::get('date_formats')) {
                 return $resource;
             }
 
@@ -133,7 +133,7 @@ class StaticServiceProvider extends ServiceProvider
         app()->singleton('timezones', function ($app) {
 
 
-            if($resource = Cache::get('timezones')) {
+            if ($resource = Cache::get('timezones')) {
                 return $resource;
             }
 
@@ -148,7 +148,7 @@ class StaticServiceProvider extends ServiceProvider
         /** @return \Illuminate\Support\Collection<Gateway> */
         app()->singleton('gateways', function ($app) {
 
-            if($resource = Cache::get('gateways')) {
+            if ($resource = Cache::get('gateways')) {
                 return $resource;
             }
 
@@ -165,7 +165,7 @@ class StaticServiceProvider extends ServiceProvider
         app()->singleton('industries', function ($app) {
 
 
-            if($resource = Cache::get('industries')) {
+            if ($resource = Cache::get('industries')) {
                 return $resource;
             }
 
@@ -181,7 +181,7 @@ class StaticServiceProvider extends ServiceProvider
         app()->singleton('sizes', function ($app) {
 
 
-            if($resource = Cache::get('sizes')) {
+            if ($resource = Cache::get('sizes')) {
                 return $resource;
             }
 
@@ -196,7 +196,7 @@ class StaticServiceProvider extends ServiceProvider
         /** @return \Illuminate\Support\Collection<DatetimeFormat> */
         app()->singleton('datetime_formats', function ($app) {
 
-            if($resource = Cache::get('datetime_formats')) {
+            if ($resource = Cache::get('datetime_formats')) {
                 return $resource;
             }
 
@@ -250,6 +250,14 @@ class StaticServiceProvider extends ServiceProvider
                     'subject' => EmailTemplateDefaults::emailStatementSubject(),
                     'body' => EmailTemplateDefaults::emailStatementTemplate(),
                 ],
+                'purchase_order' => [
+                    'subject' => EmailTemplateDefaults::emailPurchaseOrderSubject(),
+                    'body' => EmailTemplateDefaults::emailPurchaseOrderTemplate(),
+                ],
+                'partial_payment' => [
+                    'subject' => EmailTemplateDefaults::emailPaymentPartialSubject(),
+                    'body' => EmailTemplateDefaults::emailPaymentPartialTemplate(),
+                ]
             ];
 
         });

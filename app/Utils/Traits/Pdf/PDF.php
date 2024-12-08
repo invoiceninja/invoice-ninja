@@ -29,7 +29,7 @@ class PDF extends FPDI
 
         try {
             $trans = mb_convert_encoding($trans, 'ISO-8859-1', 'UTF-8');
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
         }
 
         $this->Cell(0, 5, $trans, 0, 0, $this->text_alignment);

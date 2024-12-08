@@ -31,7 +31,7 @@ class Merge extends AbstractService
 
     public function run()
     {
-       
+
         $this->mergable_vendor->activities()->update(['vendor_id' => $this->vendor->id]);
         $this->mergable_vendor->contacts()->update(['vendor_id' => $this->vendor->id]);
         $this->mergable_vendor->credits()->update(['vendor_id' => $this->vendor->id]);
@@ -58,5 +58,5 @@ class Merge extends AbstractService
         return $this->vendor;
     }
 
-    
+
 }

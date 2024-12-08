@@ -164,7 +164,7 @@ class RecurringExpenseFilters extends QueryFilters
                     ->whereColumn('expense_categories.id', 'recurring_expenses.category_id'), $sort_col[1]);
         }
 
-        if($sort_col[0] == 'number') {
+        if ($sort_col[0] == 'number') {
             return $this->builder->orderByRaw('ABS(number) ' . $dir);
         }
 

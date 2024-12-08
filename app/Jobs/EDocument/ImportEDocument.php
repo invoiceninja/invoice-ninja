@@ -61,7 +61,7 @@ class ImportEDocument implements ShouldQueue
         if ($exception) {
             nlog("EXCEPTION:: ImportEDocument:: " . $exception->getMessage());
         }
-        
+
         $this->fail($exception); //manually fail - prevents future jobs with the same name from being discarded
         config(['queue.failed.driver' => null]);
     }

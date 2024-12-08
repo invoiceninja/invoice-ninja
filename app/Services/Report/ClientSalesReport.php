@@ -11,16 +11,18 @@
 
 namespace App\Services\Report;
 
-use App\Export\CSV\BaseExport;
-use App\Libraries\MultiDB;
-use App\Models\Client;
-use App\Models\Company;
-use App\Models\Invoice;
+use App\Models\User;
 use App\Utils\Ninja;
 use App\Utils\Number;
+use App\Models\Client;
+use League\Csv\Writer;
+use App\Models\Company;
+use App\Models\Invoice;
+use App\Libraries\MultiDB;
+use App\Export\CSV\BaseExport;
 use App\Utils\Traits\MakesDates;
 use Illuminate\Support\Facades\App;
-use League\Csv\Writer;
+use App\Services\Template\TemplateService;
 
 class ClientSalesReport extends BaseExport
 {
@@ -33,6 +35,10 @@ class ClientSalesReport extends BaseExport
     public Writer $csv;
 
     public string $date_key = 'created_at';
+
+    private string $template = '/views/templates/reports/client_sales_report.html';
+
+    private array $clients = [];
 
     public array $report_keys = [
         'client_name',
@@ -98,6 +104,31 @@ class ClientSalesReport extends BaseExport
 
     }
 
+    public function getPdf()
+    {
+        $user = isset($this->input['user_id']) ? User::withTrashed()->find($this->input['user_id']) : $this->company->owner();
+
+        $user_name = $user ? $user->present()->name() : '';
+
+        $data = [
+            'clients' => $this->clients,
+            'company_logo' => $this->company->present()->logo(),
+            'company_name' => $this->company->present()->name(),
+            'created_on' => $this->translateDate(now()->format('Y-m-d'), $this->company->date_format(), $this->company->locale()),
+            'created_by' => $user_name,
+        ];
+
+        $ts = new TemplateService();
+
+        $ts_instance = $ts->setCompany($this->company)
+                    ->setData($data)
+                    ->setRawTemplate(file_get_contents(resource_path($this->template)))
+                    ->parseNinjaBlocks()
+                    ->save();
+
+        return $ts_instance->getPdf();
+    }
+
     private function buildRow(Client $client): array
     {
         $query = Invoice::query()->where('client_id', $client->id)
@@ -109,7 +140,7 @@ class ClientSalesReport extends BaseExport
         $balance = $query->sum('balance');
         $paid = $amount - $balance;
 
-        return [
+        $item = [
             $client->present()->name(),
             $client->number,
             $client->id_number,
@@ -120,6 +151,10 @@ class ClientSalesReport extends BaseExport
             Number::formatMoney($amount - $balance, $this->company),
 
         ];
+
+        $this->clients[] = $item;
+
+        return $item;
     }
 
     public function buildHeader(): array

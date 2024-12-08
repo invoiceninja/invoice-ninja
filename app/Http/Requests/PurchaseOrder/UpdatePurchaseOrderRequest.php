@@ -76,6 +76,11 @@ class UpdatePurchaseOrderRequest extends Request
         $rules['status_id'] = 'sometimes|integer|in:1,2,3,4,5';
         $rules['exchange_rate'] = 'bail|sometimes|numeric';
         $rules['amount'] = ['sometimes', 'bail', 'numeric', 'max:99999999999999'];
+       
+        $rules['custom_surcharge1'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
+        $rules['custom_surcharge2'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
+        $rules['custom_surcharge3'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
+        $rules['custom_surcharge4'] = ['sometimes', 'nullable', 'bail', 'numeric', 'max:99999999999999'];
 
         return $rules;
     }
@@ -88,7 +93,7 @@ class UpdatePurchaseOrderRequest extends Request
 
         $input['id'] = $this->purchase_order->id;
 
-        if(isset($input['partial']) && $input['partial'] == 0) {
+        if (isset($input['partial']) && $input['partial'] == 0) {
             $input['partial_due_date'] = null;
         }
 
@@ -100,7 +105,7 @@ class UpdatePurchaseOrderRequest extends Request
         if (array_key_exists('exchange_rate', $input) && is_null($input['exchange_rate'])) {
             $input['exchange_rate'] = 1;
         }
-        
+
         if (isset($input['footer']) && $this->hasHeader('X-REACT')) {
             $input['footer'] = str_replace("\n", "", $input['footer']);
         }

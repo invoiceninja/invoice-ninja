@@ -33,23 +33,24 @@ class ValidateEInvoiceRequest extends Request
 
         $entity = $this->getEntity();
 
-        if($entity instanceof Company)
+        if ($entity instanceof Company) {
             return $entity->id == $user->company()->id;
+        }
 
         return $user->can('view', $entity);
-        
+
     }
 
     public function rules()
     {
-        
+
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
         return [
             'entity' => 'required|bail|in:invoices,clients,companies',
             'entity_id' => ['required','bail', Rule::exists($this->entity, 'id')
-                                                                ->when($this->entity != 'companies', function ($q) use($user){
+                                                                ->when($this->entity != 'companies', function ($q) use ($user) {
                                                                     $q->where('company_id', $user->company()->id);
                                                                 })
                                                             ],
@@ -60,9 +61,9 @@ class ValidateEInvoiceRequest extends Request
     {
         $input = $this->all();
 
-            if (isset($input['entity_id']) && $input['entity_id'] != null) {
-                $input['entity_id'] = $this->decodePrimaryKey($input['entity_id']);
-            }
+        if (isset($input['entity_id']) && $input['entity_id'] != null) {
+            $input['entity_id'] = $this->decodePrimaryKey($input['entity_id']);
+        }
 
 
         $this->replace($input);
@@ -70,22 +71,23 @@ class ValidateEInvoiceRequest extends Request
 
     public function getEntity()
     {
-        if(!$this->entity) {
+        if (!$this->entity) {
             return false;
         }
-        
-        
+
+
         $class = Invoice::class;
 
         match ($this->entity) {
-          'invoices' => $class = Invoice::class,
-          'clients' => $class = Client::class,
-          'companies' => $class = Company::class,
-          default => $class = Invoice::class,
+            'invoices' => $class = Invoice::class,
+            'clients' => $class = Client::class,
+            'companies' => $class = Company::class,
+            default => $class = Invoice::class,
         };
 
-        if($this->entity == 'companies')
+        if ($this->entity == 'companies') {
             return auth()->user()->company();
+        }
 
         return $class::withTrashed()->find(is_string($this->entity_id) ? $this->decodePrimaryKey($this->entity_id) : $this->entity_id);
 

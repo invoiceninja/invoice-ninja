@@ -52,7 +52,7 @@ class RefundTransaction
 
         $transaction_type = $transaction_status == 'capturedPendingSettlement' ? 'voidTransaction' : 'refundTransaction';
 
-        if($transaction_type == 'voidTransaction') {
+        if ($transaction_type == 'voidTransaction') {
             $amount = $transaction_details->getTransaction()->getAuthAmount();
         }
 

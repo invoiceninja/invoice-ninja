@@ -23,7 +23,6 @@ use Illuminate\Support\Facades\Cache;
 
 class SubscriptionPlanSwitch extends Component
 {
-
     public $recurring_invoice_id;
 
     public $subscription_id;
@@ -35,7 +34,7 @@ class SubscriptionPlanSwitch extends Component
     public $contact_id;
 
     public $db;
-    
+
     /**
      * @var array
      */

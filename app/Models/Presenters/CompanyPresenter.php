@@ -94,7 +94,7 @@ class CompanyPresenter extends EntityPresenter
     public function email()
     {
         /** @var \App\Models\Company $this */
-        if(str_contains($this->settings->email, "@")) {
+        if (str_contains($this->settings->email, "@")) {
             return $this->settings->email;
         }
 

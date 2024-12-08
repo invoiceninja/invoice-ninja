@@ -177,9 +177,9 @@ class InvoiceItemSumInclusive
     private function setDiscount()
     {
         if ($this->invoice->is_amount_discount) {
-            $this->setLineTotal($this->getLineTotal() - $this->formatValue($this->item->discount, $this->currency->precision));
+            $this->setLineTotal(round($this->getLineTotal() - $this->formatValue($this->item->discount, $this->currency->precision),2));
         } else {
-            $this->setLineTotal($this->getLineTotal() - $this->formatValue(($this->item->line_total * ($this->item->discount / 100)), $this->currency->precision));
+            $this->setLineTotal(round($this->getLineTotal() - $this->formatValue(($this->item->line_total * ($this->item->discount / 100)), $this->currency->precision),2));
         }
 
         $this->item->is_amount_discount = $this->invoice->is_amount_discount;
@@ -425,7 +425,7 @@ class InvoiceItemSumInclusive
 
             $this->rule = new $class();
 
-            if($this->rule->regionWithNoTaxCoverage($this->client->country->iso_3166_2 ?? false)) {
+            if ($this->rule->regionWithNoTaxCoverage($this->client->country->iso_3166_2 ?? false)) {
                 return $this;
             }
 

@@ -105,7 +105,7 @@ class EmailReport
             default => $export = false,
         };
 
-        if(!$export) {
+        if (!$export) {
             $this->cancelSchedule();
             return;
         }
@@ -125,7 +125,7 @@ class EmailReport
         $nmo->settings = $this->scheduler->company->settings;
         $nmo->to_user = $this->scheduler->user->withoutRelations();
 
-                
+
         try {
             (new NinjaMailerJob($nmo))->handle();
         } catch (\Throwable $th) {

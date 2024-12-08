@@ -50,7 +50,7 @@ class Rule extends BaseRule implements RuleInterface
      */
     public function init(): self
     {
-        
+
         $this->calculateRates();
 
         return $this;
@@ -65,11 +65,11 @@ class Rule extends BaseRule implements RuleInterface
     public function taxByType($item): self
     {
 
-        
+
         if ($this->client->is_tax_exempt || !property_exists($item, 'tax_id') || (isset($item->type_id) && $item->type_id == '5')) {
             return $this->taxExempt($item);
         }
-        
+
         match(intval($item->tax_id)) {
             Product::PRODUCT_TYPE_EXEMPT => $this->taxExempt($item),
             Product::PRODUCT_TYPE_DIGITAL => $this->taxDigital($item),
@@ -216,7 +216,7 @@ class Rule extends BaseRule implements RuleInterface
      */
     public function override($item): self
     {
-        
+
         $this->tax_rate1 = $item->tax_rate1;
         $this->tax_name1 = $item->tax_name1;
         $this->tax_rate2 = $item->tax_rate2;
@@ -270,14 +270,14 @@ class Rule extends BaseRule implements RuleInterface
         }
 
         // GB => GB sales
-        if($this->client_subregion == 'GB') {
+        if ($this->client_subregion == 'GB') {
 
             $this->tax_name = $this->client->company->tax_data->regions->UK->subregions->GB->tax_name;
             $this->tax_rate = $this->client->company->tax_data->regions->UK->subregions->GB->tax_rate ?? 0;
 
             return $this;
         }
-        
+
         $is_over_threshold = $this->client->company->tax_data->regions->EU->has_sales_above_threshold ?? false;
 
         //GB => EU sales - Reverse Charge
@@ -287,20 +287,19 @@ class Rule extends BaseRule implements RuleInterface
             $this->tax_rate = 0;
 
             return $this;
-        }
-        elseif(in_array($this->client_subregion, $this->eu_country_codes) && $is_over_threshold) {
-            
+        } elseif (in_array($this->client_subregion, $this->eu_country_codes) && $is_over_threshold) {
+
             $this->tax_name = $this->client->company->tax_data->regions->EU->subregions->{$this->client->country->iso_3166_2}->tax_name;
             $this->tax_rate = $this->client->company->tax_data->regions->EU->subregions->{$this->client->country->iso_3166_2}->tax_rate ?? 0;
-            
+
             return $this;
         }
-        
+
         // must be tax exempt at this point
 
-            $this->tax_name = 'VAT';
-            $this->tax_rate = 0;
-        
+        $this->tax_name = 'VAT';
+        $this->tax_rate = 0;
+
         return $this;
 
     }

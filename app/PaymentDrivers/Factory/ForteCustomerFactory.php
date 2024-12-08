@@ -17,10 +17,9 @@ use App\Models\Company;
 
 class ForteCustomerFactory
 {
-
     public function convertToForte(Client $client): array
     {
-        
+
         return [
             "first_name" => $client->present()->first_name(),
             "last_name" => $client->present()->last_name(),
@@ -95,11 +94,11 @@ class ForteCustomerFactory
     private function getBillingAddress(array $customer): array
     {
         nlog($customer);
-        if(isset($customer['default_billing_address_token']) && isset($customer['addresses'])) {
+        if (isset($customer['default_billing_address_token']) && isset($customer['addresses'])) {
 
-            foreach($customer['addresses'] as $address) {
+            foreach ($customer['addresses'] as $address) {
 
-                if($address['address_token'] != $customer['default_billing_address_token']) {
+                if ($address['address_token'] != $customer['default_billing_address_token']) {
                     continue;
                 }
 
@@ -118,7 +117,7 @@ class ForteCustomerFactory
 
         }
 
-        if(isset($customer['addresses'][0])) {
+        if (isset($customer['addresses'][0])) {
 
             $address = $customer['addresses'][0];
 
@@ -142,11 +141,11 @@ class ForteCustomerFactory
     private function getShippingAddress(array $customer): array
     {
 
-        if(isset($customer['default_shipping_address_token'])) {
+        if (isset($customer['default_shipping_address_token'])) {
 
-            foreach($customer['addresses'] as $address) {
+            foreach ($customer['addresses'] as $address) {
 
-                if($address['address_token'] != $customer['default_shipping_address_token']) {
+                if ($address['address_token'] != $customer['default_shipping_address_token']) {
                     continue;
                 }
 
@@ -163,7 +162,7 @@ class ForteCustomerFactory
 
         }
 
-        if(isset($customer['addresses'][1])) {
+        if (isset($customer['addresses'][1])) {
 
             $address = $customer['addresses'][1];
 

@@ -207,21 +207,21 @@ class BankTransfer implements MethodInterface, LivewireMethodInterface
     {
         return $this->processSuccessfulPayment($payment, 'open');
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         // Doesn't support, it's offsite payment method.
 
         return '';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $this->paymentView($data);
 

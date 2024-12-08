@@ -585,7 +585,7 @@ class QuoteController extends BaseController
         }
 
 
-        if($action == 'template' && $user->can('view', $quotes->first())) {
+        if ($action == 'template' && $user->can('view', $quotes->first())) {
 
             $hash_or_response = $request->boolean('send_email') ? 'email sent' : \Illuminate\Support\Str::uuid();
 

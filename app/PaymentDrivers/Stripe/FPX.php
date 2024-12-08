@@ -89,7 +89,7 @@ class FPX implements LivewireMethodInterface
             $this->stripe->client,
             $this->stripe->client->company,
         );
-        
+
         return redirect()->route('client.payments.show', ['payment' => $payment->hashed_id]);
 
     }

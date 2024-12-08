@@ -679,15 +679,15 @@ class CompanyExport implements ShouldQueue
 
         Storage::disk(config('filesystems.default'))->put('backups/'.str_replace(".json", ".zip", $this->file_name), file_get_contents($zip_path));
 
-        if(file_exists($zip_path)) {
+        if (file_exists($zip_path)) {
             unlink($zip_path);
         }
 
-        if(file_exists(sys_get_temp_dir().'/'.$this->file_name)) {
+        if (file_exists(sys_get_temp_dir().'/'.$this->file_name)) {
             unlink(sys_get_temp_dir().'/'.$this->file_name);
         }
 
-        if(Ninja::isSelfHost()) {
+        if (Ninja::isSelfHost()) {
             $storage_path = 'backups/'.str_replace(".json", ".zip", $this->file_name);
         } else {
             $storage_path = Storage::disk(config('filesystems.default'))->path('backups/'.str_replace(".json", ".zip", $this->file_name));
@@ -714,7 +714,7 @@ class CompanyExport implements ShouldQueue
         if (Ninja::isHosted()) {
             sleep(3);
 
-            if(file_exists(sys_get_temp_dir().'/'.$zip_path)) {
+            if (file_exists(sys_get_temp_dir().'/'.$zip_path)) {
                 unlink(sys_get_temp_dir().'/'.$zip_path);
             }
         }

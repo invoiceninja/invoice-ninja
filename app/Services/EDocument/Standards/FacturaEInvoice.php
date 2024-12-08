@@ -175,12 +175,6 @@ class FacturaEInvoice extends AbstractService
              ->setBillingPeriod()
              ->signDocument();
 
-        // $disk = config('filesystems.default');
-
-        // if (!Storage::disk($disk)->exists($this->invoice->client->e_invoice_filepath($this->invoice->invitations->first()))) {
-        //     Storage::makeDirectory($this->invoice->client->e_invoice_filepath($this->invoice->invitations->first()));
-        // }
-
         return $this->fac->export();
 
     }
@@ -190,11 +184,11 @@ class FacturaEInvoice extends AbstractService
     {
         $facturae_centres = [];
 
-        if($this->invoice->client->custom_value1 == 'yes') {
+        if ($this->invoice->client->custom_value1 == 'yes') {
 
-            foreach($this->invoice->client->contacts()->whereNotNull('custom_value1')->whereNull('deleted_at')->cursor() as $contact) {
+            foreach ($this->invoice->client->contacts()->whereNotNull('custom_value1')->whereNull('deleted_at')->cursor() as $contact) {
 
-                if(in_array($contact->custom_value1, array_keys($this->centre_codes))) {
+                if (in_array($contact->custom_value1, array_keys($this->centre_codes))) {
                     $facturae_centres[] = new FacturaeCentre([
                         'role' => $this->centre_codes[$contact->custom_value1],
                         'code' => $contact->custom_value2,
@@ -222,7 +216,7 @@ class FacturaEInvoice extends AbstractService
 
     private function setDiscount(): self
     {
-        if($this->invoice->discount > 0) {
+        if ($this->invoice->discount > 0) {
             $this->fac->addDiscount(ctrans('texts.discount'), $this->calc->getTotalDiscount());
         }
 
@@ -238,7 +232,7 @@ class FacturaEInvoice extends AbstractService
 
     private function setBillingPeriod(): self
     {
-        if(!$this->invoice->custom_value3) {
+        if (!$this->invoice->custom_value3) {
             return $this;
         }
 
@@ -248,7 +242,7 @@ class FacturaEInvoice extends AbstractService
             ) {
                 $this->fac->setBillingPeriod(\Carbon\Carbon::parse($this->invoice->custom_value3)->format('Y-m-d'), \Carbon\Carbon::parse($this->invoice->custom_value4)->format('Y-m-d'));
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog($e->getMessage());
         }
 
@@ -355,7 +349,7 @@ class FacturaEInvoice extends AbstractService
 
         $data['method'] = $method;
 
-        if($method == FacturaePayment::TYPE_TRANSFER) {
+        if ($method == FacturaePayment::TYPE_TRANSFER) {
             $data['iban'] = $payment->custom_value1;
             $data['bic'] = $payment->custom_value2;
         }
@@ -368,7 +362,7 @@ class FacturaEInvoice extends AbstractService
     private function buildItems(): self
     {
 
-        foreach($this->invoice->line_items as $item) {
+        foreach ($this->invoice->line_items as $item) {
             $this->fac->addItem(new FacturaeItem([
                 'name' => $item->product_key,
                 'description' => $item->notes,
@@ -413,7 +407,7 @@ class FacturaEInvoice extends AbstractService
 
         }
 
-        if(count($data) == 0) {
+        if (count($data) == 0) {
             $data[Facturae::TAX_IVA] = 0;
         }
 
@@ -462,7 +456,7 @@ class FacturaEInvoice extends AbstractService
     {
         $company = $this->invoice->company;
 
-        if($company->getSetting('classification') == 'individual') {
+        if ($company->getSetting('classification') == 'individual') {
             return $this->setIndividualSeller();
         }
 
@@ -560,7 +554,7 @@ class FacturaEInvoice extends AbstractService
             // "ineTownCode" => "280796" // Cód. de municipio del INE
         ];
 
-        if($this->invoice->client->classification === 'individual') {
+        if ($this->invoice->client->classification === 'individual') {
             $buyer_array['name'] = $this->invoice->client->present()->first_name();
             $buyer_array['firstSurname'] = $this->invoice->client->present()->last_name();
         }
@@ -579,7 +573,7 @@ class FacturaEInvoice extends AbstractService
         $ssl_cert = $this->invoice->company->getInvoiceCert();
         $ssl_passphrase = $this->invoice->company->getSslPassPhrase();
 
-        if($ssl_cert) {
+        if ($ssl_cert) {
             $this->fac->sign($ssl_cert, null, $ssl_passphrase);
         }
 

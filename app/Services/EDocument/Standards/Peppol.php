@@ -65,8 +65,8 @@ class Peppol extends AbstractService
      *
      */
 
-    private ?string $override_vat_number; 
-    
+    private ?string $override_vat_number;
+
     /** @var array $InvoiceTypeCodes */
     private array $InvoiceTypeCodes = [
         "380" => "Commercial invoice",
@@ -82,7 +82,7 @@ class Peppol extends AbstractService
         "875" => "Self-billed credit note",
         "896" => "Debit note related to self-billed invoice"
     ];
-    
+
     /** @var array $tax_codes */
     private array $tax_codes = [
         'AE' => [
@@ -126,7 +126,7 @@ class Peppol extends AbstractService
             'description' => 'VAT not to be paid to the issuer of the invoice but directly to relevant tax authority. This code is allowed in the EN 16931 for Italy only based on the Italian A-deviation.'
         ]
     ];
-    
+
     private Company $company;
 
     private InvoiceSum | InvoiceSumInclusive $calc;
@@ -145,7 +145,7 @@ class Peppol extends AbstractService
 
     private string $customizationID = 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0';
 
-    private string $profileID = 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';    
+    private string $profileID = 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';
 
     private array $tax_map = [];
 
@@ -162,10 +162,10 @@ class Peppol extends AbstractService
         $this->company = $invoice->company;
         $this->calc = $this->invoice->calc();
         $this->e = new EInvoice();
-        $this->gateway = new $this->api_network;
+        $this->gateway = new $this->api_network();
         $this->setSettings()->setInvoice();
     }
-    
+
     /**
      * Entry point for building document
      *
@@ -189,11 +189,13 @@ class Peppol extends AbstractService
             $this->p_invoice->ID = $this->invoice->number;
             $this->p_invoice->IssueDate = new \DateTime($this->invoice->date);
 
-            if($this->invoice->due_date) 
+            if ($this->invoice->due_date) {
                 $this->p_invoice->DueDate = new \DateTime($this->invoice->due_date);
+            }
 
-            if(strlen($this->invoice->public_notes ?? '') > 0)
+            if (strlen($this->invoice->public_notes ?? '') > 0) {
                 $this->p_invoice->Note = strip_tags($this->invoice->public_notes);
+            }
 
             $this->p_invoice->DocumentCurrencyCode = $this->invoice->client->currency()->code;
 
@@ -203,7 +205,7 @@ class Peppol extends AbstractService
                 $ip->EndDate = new \DateTime($this->invoice->due_date);
                 $this->p_invoice->InvoicePeriod = [$ip];
             }
-            
+
             if ($this->invoice->project_id) {
                 $pr = new \InvoiceNinja\EInvoice\Models\Peppol\ProjectReferenceType\ProjectReference();
                 $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\ID();
@@ -222,7 +224,10 @@ class Peppol extends AbstractService
             $this->p_invoice->LegalMonetaryTotal = $this->getLegalMonetaryTotal();
             $this->p_invoice->Delivery = $this->getDelivery();
 
-            $this->setOrderReference()->setTaxBreakdown();
+            $this->setOrderReference()
+                 ->setTaxBreakdown()
+                 ->setPaymentTerms()
+                 ->standardPeppolRules();
 
             //isolate this class to only peppol changes
             $this->p_invoice = $this->gateway
@@ -231,7 +236,7 @@ class Peppol extends AbstractService
                                     ->receiverSpecificLevelMutators()
                                     ->getPeppol();
 
-        }catch(\Throwable $th) {
+        } catch (\Throwable $th) {
             nlog("Unable to create Peppol Invoice" . $th->getMessage());
             $this->errors[] = $th->getMessage();
         }
@@ -239,7 +244,7 @@ class Peppol extends AbstractService
         return $this;
 
     }
-    
+
     /**
      * Transforms a stdClass Invoice
      * to Peppol\Invoice::class
@@ -247,7 +252,7 @@ class Peppol extends AbstractService
      * @param  mixed $invoice
      * @return self
      */
-    public function decode(mixed $invoice):self
+    public function decode(mixed $invoice): self
     {
         $this->p_invoice = $this->e->decode('Peppol', json_encode($invoice), 'json');
 
@@ -262,7 +267,7 @@ class Peppol extends AbstractService
     private function setInvoice(): self
     {
         /** Handle Existing Document */
-        if($this->invoice->e_invoice && isset($this->invoice->e_invoice->Invoice)) {
+        if ($this->invoice->e_invoice && isset($this->invoice->e_invoice->Invoice)) {
 
             $this->decode($this->invoice->e_invoice->Invoice);
 
@@ -273,7 +278,7 @@ class Peppol extends AbstractService
                 ->setClientSettings($this->_client_settings)
                 ->setCompanySettings($this->_company_settings);
 
-                return $this;
+            return $this;
 
         }
 
@@ -306,7 +311,7 @@ class Peppol extends AbstractService
 
         return $this;
     }
-    
+
     /**
      * getInvoice
      *
@@ -316,12 +321,12 @@ class Peppol extends AbstractService
     {
         return $this->p_invoice;
     }
-    
+
     /**
      * toXml
      *
      * Builds a full Peppol XML document including tags
-     * 
+     *
      * @return string
      */
     public function toXml(): string
@@ -335,20 +340,20 @@ class Peppol extends AbstractService
     xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">';
 
         $suffix = '</Invoice>';
-    
+
         $xml = str_ireplace(['\n','<?xml version="1.0"?>'], ['', $prefix], $xml);
 
         $xml .= $suffix;
 
         return $xml;
-        
+
     }
-    
+
     /**
      * toJson
      *
      * Returns the peppol invoice in json format
-     * 
+     *
      * @return string
      */
     public function toJson(): string
@@ -359,36 +364,36 @@ class Peppol extends AbstractService
         return $json;
 
     }
-    
+
     /**
      * toObject
      *
      * returns the Peppol document in object format.
-     * 
+     *
      * @return mixed
      */
     public function toObject(): mixed
     {
-        $invoice = new \stdClass;
+        $invoice = new \stdClass();
 
         $invoice->Invoice = json_decode($this->toJson());
 
         return $invoice;
     }
-    
+
     /**
      * toArray
      *
      * Returns the peppol document in Array format
-     * 
+     *
      * @return array
      */
     public function toArray(): array
     {
         return ['Invoice' => json_decode($this->toJson(), true)];
     }
-    
-    
+
+
     /**
      * setOrderReference
      *
@@ -398,7 +403,7 @@ class Peppol extends AbstractService
     private function setOrderReference(): self
     {
 
-        
+
         if (strlen($this->invoice->po_number ?? '') > 1) {
 
             $this->p_invoice->BuyerReference = $this->invoice->po_number ?? '';
@@ -415,16 +420,16 @@ class Peppol extends AbstractService
         return $this;
 
     }
-    
+
     /**
      * getAllowanceCharges
      *
      * Allowance charges are discounts / fees that are
      * applied to line or invoice level items
-     * 
+     *
      * ChargeIndicator flags whether the item is a discount 'false'
      * this prop is ONLY set for discounts. Fees are inferred.
-     * 
+     *
      * @return array
      */
     private function getAllowanceCharges(): array
@@ -432,7 +437,7 @@ class Peppol extends AbstractService
         $allowances = [];
 
         //Invoice Level discount
-        if($this->invoice->discount > 0){
+        if ($this->invoice->discount > 0) {
 
             // Add Allowance Charge to Price
             $allowanceCharge = new \InvoiceNinja\EInvoice\Models\Peppol\AllowanceChargeType\AllowanceCharge();
@@ -443,7 +448,7 @@ class Peppol extends AbstractService
 
             // Add percentage if available
             if ($this->invoice->discount > 0 && !$this->invoice->is_amount_discount) {
-                        
+
                 $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
                 $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
                 $allowanceCharge->BaseAmount->amount = number_format($this->calc->getSubtotalWithSurcharges(), 2, '.', '');
@@ -464,7 +469,7 @@ class Peppol extends AbstractService
         }
 
         //Invoice level surcharges (@todo React - need to turn back on surcharge taxes and use the first tax....)
-        if($this->invoice->custom_surcharge1 > 0){
+        if ($this->invoice->custom_surcharge1 > 0) {
 
             // Add Allowance Charge to Price
             $allowanceCharge = new \InvoiceNinja\EInvoice\Models\Peppol\AllowanceChargeType\AllowanceCharge();
@@ -493,8 +498,8 @@ class Peppol extends AbstractService
             $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
             $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
             $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
-            
-            
+
+
             $this->calculateTaxMap($this->invoice->custom_surcharge2);
 
             $allowanceCharge->TaxCategory = $this->globalTaxCategories;
@@ -513,7 +518,7 @@ class Peppol extends AbstractService
             $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
             $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
             $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
-            
+
             $this->calculateTaxMap($this->invoice->custom_surcharge3);
 
             $allowanceCharge->TaxCategory = $this->globalTaxCategories;
@@ -579,24 +584,24 @@ class Peppol extends AbstractService
 
         $am = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\AllowanceTotalAmount();
         $am->currencyID = $this->invoice->client->currency()->code;
-        $am->amount = number_format($this->calc->getTotalDiscount(), 2, '.','');
+        $am->amount = number_format($this->calc->getTotalDiscount(), 2, '.', '');
         $lmt->AllowanceTotalAmount = $am;
 
         return $lmt;
     }
-    
+
     /**
      * getTaxType
      *
      * Calculates the PEPPOL code for the tax type
-     * 
+     *
      * @param  string $tax_id
      * @return string
      */
     private function getTaxType(string $tax_id = ''): string
     {
         $tax_type = null;
-        
+
         switch ($tax_id) {
             case Product::PRODUCT_TYPE_SERVICE:
             case Product::PRODUCT_TYPE_DIGITAL:
@@ -613,13 +618,14 @@ class Peppol extends AbstractService
                 break;
             case Product::PRODUCT_TYPE_REVERSE_TAX:
                 $tax_type = 'AE';
+                // no break
             case Product::PRODUCT_INTRA_COMMUNITY:
                 $tax_type = 'K';
                 break;
         }
 
         $eu_states = ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "EL", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "ES-CE", "ES-ML", "ES-CN", "SE", "IS", "LI", "NO", "CH"];
-        
+
         if (empty($tax_type)) {
             if ((in_array($this->company->country()->iso_3166_2, $eu_states) && in_array($this->invoice->client->country->iso_3166_2, $eu_states)) && $this->invoice->company->country()->iso_3166_2 != $this->invoice->client->country->iso_3166_2) {
                 $tax_type = 'K'; // EEA Exempt
@@ -630,8 +636,8 @@ class Peppol extends AbstractService
             }
         }
 
-        if(in_array($this->invoice->client->country->iso_3166_2, ["ES-CE", "ES-ML", "ES-CN"]) && $tax_type == 'S') {
-            
+        if (in_array($this->invoice->client->country->iso_3166_2, ["ES-CE", "ES-ML", "ES-CN"]) && $tax_type == 'S') {
+
             if ($this->invoice->client->country->iso_3166_2 == "ES-CN") {
                 $tax_type = 'L'; //Canary Islands general indirect tax
             } elseif (in_array($this->invoice->client->country->iso_3166_2, ["ES-CE", "ES-ML"])) {
@@ -642,19 +648,19 @@ class Peppol extends AbstractService
 
         return $tax_type;
     }
-       
+
 
     private function resolveTaxExemptReason($item, $ctc = null): mixed
     {
-        
+
         $eu_states = ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "EL", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "ES-CE", "ES-ML", "ES-CN", "SE", "IS", "LI", "NO", "CH"];
 
-        if($item->tax_id == '9') {
+        if ($item->tax_id == '9') {
             $tax_type = 'AE'; // EEA Exempt
             $reason_code = 'vatex-eu-ae';
             $reason = 'Reverse charge';
-        } elseif ((in_array($this->company->country()->iso_3166_2, $eu_states) && 
-                   in_array($this->invoice->client->country->iso_3166_2, $eu_states)) && 
+        } elseif ((in_array($this->company->country()->iso_3166_2, $eu_states) &&
+                   in_array($this->invoice->client->country->iso_3166_2, $eu_states)) &&
                    $this->invoice->company->country()->iso_3166_2 != $this->invoice->client->country->iso_3166_2) {
             $tax_type = 'K'; // EEA Exempt
             $reason_code = 'vatex-eu-ic';
@@ -665,7 +671,7 @@ class Peppol extends AbstractService
             $reason_code = 'vatex-eu-g';
             $reason = 'Export outside the EU';
         } else {
-            $tax_type = 'O'; 
+            $tax_type = 'O';
             $reason_code = "vatex-eu-o";
             $reason = 'Services outside scope of tax';
         }
@@ -673,13 +679,14 @@ class Peppol extends AbstractService
         $this->tax_category_id = $tax_type;
 
         //no vat, build a single tax category for tax exemption
-       
+
         $taxCategory = new \InvoiceNinja\EInvoice\Models\Peppol\TaxCategoryType\TaxCategory();
         $taxCategory->ID = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\ID();
         $taxCategory->ID->value = $tax_type;
 
-        if($this->tax_category_id != 'O')
+        if ($this->tax_category_id != 'O') {
             $taxCategory->Percent = '0';
+        }
 
         $taxScheme = new \InvoiceNinja\EInvoice\Models\Peppol\TaxSchemeType\TaxScheme();
         $taxScheme->ID = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\ID();
@@ -692,18 +699,20 @@ class Peppol extends AbstractService
 
         $this->globalTaxCategories = [$taxCategory];
 
-        if($this->tax_category_id == 'O' && isset($this->p_invoice->AccountingSupplierParty->Party->PartyTaxScheme))
+        if ($this->tax_category_id == 'O' && isset($this->p_invoice->AccountingSupplierParty->Party->PartyTaxScheme)) {
             unset($this->p_invoice->AccountingSupplierParty->Party->PartyTaxScheme);
-            
+        }
+
         if ($this->tax_category_id == 'O' && isset($this->p_invoice->AccountingCustomerParty->Party->PartyTaxScheme)) {
             unset($this->p_invoice->AccountingCustomerParty->Party->PartyTaxScheme);
         }
 
-        if($ctc) {        
+        if ($ctc) {
             $ctc->ID->value = $tax_type;
 
-            if($this->tax_category_id != 'O')
+            if ($this->tax_category_id != 'O') {
                 $ctc->Percent = '0';
+            }
             // $terc = new \InvoiceNinja\EInvoice\Models\Peppol\CodeType\TaxExemptionReasonCode();
             // $terc->value = $reason_code;
             // $ctc->TaxExemptionReasonCode = $terc;
@@ -717,19 +726,19 @@ class Peppol extends AbstractService
     }
 
 
-     /**
-     * getInvoiceLines
-     * 
-     * Compiles the invoice line items of the document
-     * 
-     * @return array
-     */
+    /**
+    * getInvoiceLines
+    *
+    * Compiles the invoice line items of the document
+    *
+    * @return array
+    */
     private function getInvoiceLines(): array
     {
         $lines = [];
 
-        foreach($this->invoice->line_items as $key => $item) {
-            
+        foreach ($this->invoice->line_items as $key => $item) {
+
             // $item->line_total = round($item->line_total,2);
             // $item->gross_line_total = round($item->gross_line_total, 2);
 
@@ -737,13 +746,14 @@ class Peppol extends AbstractService
             $_item->Name = $item->product_key;
             $_item->Description = $item->notes;
 
-            
+
             $ctc = new ClassifiedTaxCategory();
             $ctc->ID = new ID();
             $ctc->ID->value = $this->getTaxType($item->tax_id);
 
-            if($item->tax_rate1 > 0)
+            if ($item->tax_rate1 > 0) {
                 $ctc->Percent = (string)$item->tax_rate1;
+            }
 
             $ts = new TaxScheme();
             $id = new ID();
@@ -751,23 +761,23 @@ class Peppol extends AbstractService
             $ts->ID = $id;
             $ctc->TaxScheme = $ts;
 
-            if(floatval($item->tax_rate1) === 0.0)
-            {
+            if (floatval($item->tax_rate1) === 0.0) {
                 $ctc = $this->resolveTaxExemptReason($item, $ctc);
 
-                if($this->tax_category_id == 'O')
+                if ($this->tax_category_id == 'O') {
                     unset($ctc->Percent);
-                
+                }
+
             }
 
             $_item->ClassifiedTaxCategory[] = $ctc;
-        
+
             if ($item->tax_rate2 > 0) {
                 $ctc = new ClassifiedTaxCategory();
                 $ctc->ID = new ID();
                 $ctc->ID->value = $this->getTaxType($item->tax_id);
                 $ctc->Percent = (string)$item->tax_rate2;
-                                
+
                 $ts = new TaxScheme();
                 $id = new ID();
                 $id->value = $this->standardizeTaxSchemeId($item->tax_name2);
@@ -793,9 +803,9 @@ class Peppol extends AbstractService
             }
 
             $line = new InvoiceLine();
-            
+
             $id = new ID();
-            $id->value = (string) ($key+1);
+            $id->value = (string) ($key + 1);
             $line->ID = $id;
 
             $iq = new \InvoiceNinja\EInvoice\Models\Peppol\QuantityType\InvoicedQuantity();
@@ -805,7 +815,7 @@ class Peppol extends AbstractService
 
             $lea = new LineExtensionAmount();
             $lea->currencyID = $this->invoice->client->currency()->code;
-            $lea->amount = $this->invoice->uses_inclusive_taxes ? $item->line_total - $this->calcInclusiveLineTax($item->tax_rate1, $item->line_total) : $item->line_total;
+            $lea->amount = $this->invoice->uses_inclusive_taxes ? round($item->line_total - $this->calcInclusiveLineTax($item->tax_rate1, $item->line_total),2) : round($item->line_total,2);
             $line->LineExtensionAmount = $lea;
             $line->Item = $_item;
 
@@ -814,7 +824,7 @@ class Peppol extends AbstractService
 
             // Handle Price and Discounts
             if ($item->discount > 0) {
-                
+
                 // Base Price (before discount)
                 $basePrice = new Price();
                 $basePriceAmount = new PriceAmount();
@@ -827,7 +837,7 @@ class Peppol extends AbstractService
                 $allowanceCharge->ChargeIndicator = 'false'; // false = discount
                 $allowanceCharge->Amount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\Amount();
                 $allowanceCharge->Amount->currencyID = $this->invoice->client->currency()->code;
-                $allowanceCharge->Amount->amount = number_format($this->calculateTotalItemDiscountAmount($item),2, '.', '');
+                $allowanceCharge->Amount->amount = number_format($this->calculateTotalItemDiscountAmount($item), 2, '.', '');
                 $this->allowance_total += $this->calculateTotalItemDiscountAmount($item);
 
 
@@ -836,13 +846,13 @@ class Peppol extends AbstractService
 
                     $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
                     $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
-                    $allowanceCharge->BaseAmount->amount = (string)round(($item->cost * $item->quantity),2);
+                    $allowanceCharge->BaseAmount->amount = (string)round(($item->cost * $item->quantity), 2);
 
                     $mfn = new \InvoiceNinja\EInvoice\Models\Peppol\NumericType\MultiplierFactorNumeric();
-                    $mfn->value = (string) round($item->discount,2);
+                    $mfn->value = (string) round($item->discount, 2);
                     $allowanceCharge->MultiplierFactorNumeric = $mfn; // Convert percentage to decimal
                 }
-                
+
                 // }
                 // Required reason
                 $allowanceCharge->AllowanceChargeReason = ctrans('texts.discount');
@@ -866,9 +876,9 @@ class Peppol extends AbstractService
         return $lines;
     }
 
-    private function calculateTotalItemDiscountAmount($item):float
+    private function calculateTotalItemDiscountAmount($item): float
     {
-                
+
         if ($item->is_amount_discount) {
             return $item->discount;
         }
@@ -881,21 +891,20 @@ class Peppol extends AbstractService
      * calculateTaxMap
      *
      * Generates a standard tax_map entry for a given $amount
-     * 
+     *
      * Iterates through all of the globalTaxCategories found in the document
-     * 
+     *
      * @param  float $amount
      * @return self
      */
     private function calculateTaxMap($amount): self
     {
 
-        foreach($this->globalTaxCategories as $tc)
-        {
+        foreach ($this->globalTaxCategories as $tc) {
 
             $this->tax_map[] = [
                 'taxableAmount' => $amount,
-                'taxAmount' => $amount * ($tc->Percent/100),
+                'taxAmount' => $amount * ($tc->Percent / 100),
                 'percentage' => $tc->Percent,
             ];
 
@@ -903,13 +912,13 @@ class Peppol extends AbstractService
 
         return $this;
     }
-    
+
     /**
      * getAllUsedTaxes
      *
      * Build a full tax category property based on all
      * of the item taxes that have been applied to the invoice.
-     * 
+     *
      * @return self
      */
     private function getAllUsedTaxes(): self
@@ -928,8 +937,8 @@ class Peppol extends AbstractService
             })
             ->unique(fn ($tax) => $tax['percentage'] . '_' . $tax['name'])
             ->values()
-            ->each(function ($tax){
-                
+            ->each(function ($tax) {
+
                 $taxCategory = new \InvoiceNinja\EInvoice\Models\Peppol\TaxCategoryType\TaxCategory();
                 $taxCategory->ID = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\ID();
                 $taxCategory->ID->value = $tax['scheme'];
@@ -940,14 +949,14 @@ class Peppol extends AbstractService
                 $taxCategory->TaxScheme = $taxScheme;
 
                 $this->globalTaxCategories[] = $taxCategory;
-                
+
             });
-            
+
         return $this;
 
     }
-    
-    
+
+
     /**
      * getAccountingSupplierParty
      *
@@ -968,8 +977,8 @@ class Peppol extends AbstractService
             $pi = new PartyIdentification();
             $vatID = new ID();
             $vatID->schemeID = $this->resolveScheme();
-            $vatID->value = $this->override_vat_number ?? $this->company->settings->vat_number; //todo if we are cross border - switch to the supplier local vat number 
-            
+            $vatID->value = $this->override_vat_number ?? $this->company->settings->vat_number; //todo if we are cross border - switch to the supplier local vat number
+
             $pi->ID = $vatID;
             $party->PartyIdentification[] = $pi;
             $pts = new \InvoiceNinja\EInvoice\Models\Peppol\PartyTaxSchemeType\PartyTaxScheme();
@@ -997,9 +1006,10 @@ class Peppol extends AbstractService
         $address = new Address();
         $address->CityName = $this->invoice->company->settings->city;
         $address->StreetName = $this->invoice->company->settings->address1;
-        
-        if(strlen($this->invoice->company->settings->address2 ?? '') > 1)
+
+        if (strlen($this->invoice->company->settings->address2 ?? '') > 1) {
             $address->AdditionalStreetName = $this->invoice->company->settings->address2;
+        }
 
         $address->PostalZone = $this->invoice->company->settings->postal_code;
         // $address->CountrySubentity = $this->invoice->company->settings->state;
@@ -1009,10 +1019,10 @@ class Peppol extends AbstractService
         $ic = new IdentificationCode();
         $ic->value = substr($this->invoice->company->country()->iso_3166_2, 0, 2);
         $country->IdentificationCode = $ic;
-        
+
         $address->Country = $country;
         $party->PostalAddress = $address;
-        
+
         $contact = new Contact();
         $contact->ElectronicMail = $this->gateway->mutator->getSetting('Invoice.AccountingSupplierParty.Party.Contact') ?? $this->invoice->company->owner()->present()->email();
         $contact->Telephone = $this->gateway->mutator->getSetting('Invoice.AccountingSupplierParty.Party.Telephone') ?? $this->invoice->company->getSetting('phone');
@@ -1023,12 +1033,12 @@ class Peppol extends AbstractService
         $ple = new \InvoiceNinja\EInvoice\Models\Peppol\PartyLegalEntity();
         $ple->RegistrationName = $this->invoice->company->present()->name();
         $party->PartyLegalEntity[] = $ple;
-        
+
         $asp->Party = $party;
 
         return $asp;
     }
-    
+
     /**
      * getAccountingCustomerParty
      *
@@ -1041,7 +1051,7 @@ class Peppol extends AbstractService
 
         $party = new Party();
 
-        if(strlen($this->invoice->client->vat_number ?? '') > 1) {
+        if (strlen($this->invoice->client->vat_number ?? '') > 1) {
 
             $pi = new PartyIdentification();
 
@@ -1072,13 +1082,17 @@ class Peppol extends AbstractService
         $party_name->Name = $this->invoice->client->present()->name();
 
         //@todo if we have an exact GLN/routing number we should update this, otherwise Storecove will proxy and update on transit
-        if(strlen($this->invoice->client->routing_id ?? '') > 1)
-        {
-            $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\EndpointID();
-            $id->value = $this->invoice->client->routing_id;
-            $id->schemeID = $this->resolveScheme(true);
-            $party->EndpointID = $id;
-        }
+
+        $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\EndpointID();
+        $id->value = $this->invoice->client->routing_id 
+        ?? $this->invoice->client->vat_number 
+        ?? $this->invoice->client->id_number
+        ?? 'fallback1234';
+        
+        $id->schemeID = $this->resolveScheme(true);
+        $party->EndpointID = $id;
+        
+
 
         $party->PartyName[] = $party_name;
 
@@ -1086,8 +1100,9 @@ class Peppol extends AbstractService
         $address->CityName = $this->invoice->client->city;
         $address->StreetName = $this->invoice->client->address1;
 
-        if(strlen($this->invoice->client->address2 ?? '') > 1)
+        if (strlen($this->invoice->client->address2 ?? '') > 1) {
             $address->AdditionalStreetName = $this->invoice->client->address2;
+        }
 
         $address->PostalZone = $this->invoice->client->postal_code;
         // $address->CountrySubentity = $this->invoice->client->state;
@@ -1096,7 +1111,7 @@ class Peppol extends AbstractService
 
         $ic = new IdentificationCode();
         $ic->value = substr($this->invoice->client->country->iso_3166_2, 0, 2);
-        
+
         $country->IdentificationCode = $ic;
         $address->Country = $country;
 
@@ -1105,8 +1120,9 @@ class Peppol extends AbstractService
         $contact = new Contact();
         $contact->ElectronicMail = $this->invoice->client->present()->email();
 
-        if(strlen($this->invoice->client->phone ?? '') > 2)
+        if (strlen($this->invoice->client->phone ?? '') > 2) {
             $contact->Telephone = $this->invoice->client->phone;
+        }
 
         $party->Contact = $contact;
 
@@ -1118,7 +1134,7 @@ class Peppol extends AbstractService
 
         return $acp;
     }
-    
+
     private function getDelivery(): array
     {
         $delivery = new \InvoiceNinja\EInvoice\Models\Peppol\DeliveryType\Delivery();
@@ -1180,7 +1196,7 @@ class Peppol extends AbstractService
                 $total -= $this->invoice->discount;
             } else {
                 $total *= (100 - $this->invoice->discount) / 100;
-                
+
             }
         }
 
@@ -1200,11 +1216,11 @@ class Peppol extends AbstractService
             $total += $this->invoice->custom_surcharge4;
         }
 
-        return round($total,2);
+        return round($total, 2);
     }
 
     /////////////////  Helper Methods /////////////////////////
-    
+
 
     /**
      * setInvoiceDefaults
@@ -1216,16 +1232,14 @@ class Peppol extends AbstractService
     {
 
         // Stub new invoice with company settings.
-        if($this->_company_settings)
-        {
-            foreach(get_object_vars($this->_company_settings) as $prop => $value){
+        if ($this->_company_settings) {
+            foreach (get_object_vars($this->_company_settings) as $prop => $value) {
                 $this->p_invoice->{$prop} = $value;
             }
         }
 
         // Overwrite with any client level settings
-        if($this->_client_settings)
-        {
+        if ($this->_client_settings) {
             foreach (get_object_vars($this->_client_settings) as $prop => $value) {
                 $this->p_invoice->{$prop} = $value;
             }
@@ -1249,11 +1263,56 @@ class Peppol extends AbstractService
         ];
 
         //only scans for top level props
-        foreach($settings as $prop => $visibility) {
+        foreach ($settings as $prop => $visibility) {
 
-            if($prop_value = $this->gateway->mutator->getSetting($prop)) {
+            if ($prop_value = $this->gateway->mutator->getSetting($prop)) {
                 $this->p_invoice->{$prop} = $prop_value;
             }
+
+        }
+
+        return $this;
+    }
+    
+    /**
+     * standardPeppolRules
+     *
+     * Transform UBL => Peppol rules
+     * 
+     * 1. FinancialInstitutionBranch - remove
+     * 2. FinancialInstituion - remove
+     * 
+     * @return self
+     */
+    private function standardPeppolRules(): self
+    {
+        foreach($this->p_invoice->PaymentMeans as &$pm)
+        {
+            unset($pm->PayeeFinancialAccount->FinancialInstitutionBranch);
+        }
+        unset($pm);
+
+        return $this;
+    }
+        
+    /**
+     * setPaymentTerms
+     *
+     * If payment terms are defined, we should include these
+     * on the invoice.
+     * 
+     * @return self
+     */
+    private function setPaymentTerms(): self
+    {
+        $terms_string = $this->invoice->client->getSetting('payment_terms');
+
+        if(strlen($terms_string) > 1)
+        {
+            $terms = new \InvoiceNinja\EInvoice\Models\Peppol\PaymentTermsType\PaymentTerms();
+            $terms->Note = trans('texts.count_days', ['count' => $terms_string]);
+
+            $this->p_invoice->PaymentTerms[] = $terms;
 
         }
 
@@ -1262,13 +1321,12 @@ class Peppol extends AbstractService
 
     public function setTaxBreakdown(): self
     {
-        
+
         $tax_total = new TaxTotal();
         $taxes = $this->calc->getTaxMap();
 
-        if(count($taxes) < 1)
-        {
-                        
+        if (count($taxes) < 1) {
+
             $tax_amount = new TaxAmount();
             $tax_amount->currencyID = $this->invoice->client->currency()->code;
             $tax_amount->amount = (string)0;
@@ -1279,7 +1337,7 @@ class Peppol extends AbstractService
             // Required: TaxableAmount (BT-116)
             $taxable_amount = new TaxableAmount();
             $taxable_amount->currencyID = $this->invoice->client->currency()->code;
-            $taxable_amount->amount = (string)round($this->invoice->amount,2);
+            $taxable_amount->amount = (string)round($this->invoice->amount, 2);
 
             $tax_subtotal->TaxableAmount = $taxable_amount;
 
@@ -1316,8 +1374,7 @@ class Peppol extends AbstractService
 
         }
 
-        foreach($taxes as $key => $grouped_tax)
-        {
+        foreach ($taxes as $key => $grouped_tax) {
             // Required: TaxAmount (BT-110)
             $tax_amount = new TaxAmount();
             $tax_amount->currencyID = $this->invoice->client->currency()->code;
@@ -1331,17 +1388,18 @@ class Peppol extends AbstractService
             $taxable_amount = new TaxableAmount();
             $taxable_amount->currencyID = $this->invoice->client->currency()->code;
 
-            if(floatval($grouped_tax['total']) === 0.0)
+            if (floatval($grouped_tax['total']) === 0.0) {
                 $taxable_amount->amount = (string)round($this->invoice->amount, 2);
-            else
-                $taxable_amount->amount = (string)round($grouped_tax['base_amount'],2);
+            } else {
+                $taxable_amount->amount = (string)round($grouped_tax['base_amount'], 2);
+            }
             $tax_subtotal->TaxableAmount = $taxable_amount;
 
             // Required: TaxAmount (BT-117)
             $subtotal_tax_amount = new TaxAmount();
             $subtotal_tax_amount->currencyID = $this->invoice->client->currency()->code;
 
-            $subtotal_tax_amount->amount = (string)round($grouped_tax['total'],2);
+            $subtotal_tax_amount->amount = (string)round($grouped_tax['total'], 2);
 
             $tax_subtotal->TaxAmount = $subtotal_tax_amount;
 
@@ -1355,8 +1413,9 @@ class Peppol extends AbstractService
             $tax_category->ID = $category_id;
 
             // Required: TaxCategory Rate (BT-119)
-            if($grouped_tax['tax_rate'] > 0)
+            if ($grouped_tax['tax_rate'] > 0) {
                 $tax_category->Percent = (string)$grouped_tax['tax_rate'];
+            }
 
             // Required: TaxScheme (BG-23)
             $tax_scheme = new TaxScheme();
@@ -1377,36 +1436,35 @@ class Peppol extends AbstractService
 
     public function getJurisdiction()
     {
-        
+
         //calculate nexus
         $country_code = $this->company->country()->iso_3166_2;
         $br = new \App\DataMapper\Tax\BaseRule();
         $eu_countries = $br->eu_country_codes;
 
-        if($this->invoice->client->country->iso_3166_2 == $this->company->country()->iso_3166_2){
+        if ($this->invoice->client->country->iso_3166_2 == $this->company->country()->iso_3166_2) {
             //Domestic Sales
             $country_code = $this->company->country()->iso_3166_2;
-        }
-        elseif(in_array($country_code, $eu_countries) && !in_array($this->invoice->client->country->iso_3166_2, $eu_countries)){
+        } elseif (in_array($country_code, $eu_countries) && !in_array($this->invoice->client->country->iso_3166_2, $eu_countries)) {
             //EU => FOREIGN sale
-        }
-        elseif(in_array($this->invoice->client->country->iso_3166_2, $eu_countries)){
-            // EU Sale 
-            if((isset($this->company->tax_data->regions->EU->has_sales_above_threshold) && $this->company->tax_data->regions->EU->has_sales_above_threshold) || !$this->invoice->client->has_valid_vat_number){ //over threshold - tax in buyer country
-                
+        } elseif (in_array($this->invoice->client->country->iso_3166_2, $eu_countries)) {
+            // EU Sale
+            if ((isset($this->company->tax_data->regions->EU->has_sales_above_threshold) && $this->company->tax_data->regions->EU->has_sales_above_threshold) || !$this->invoice->client->has_valid_vat_number) { //over threshold - tax in buyer country
+
                 $country_code = $this->invoice->client->country->iso_3166_2;
 
-                if(isset($this->ninja_invoice->company->tax_data->regions->EU->subregions->{$country_code}->vat_number))
+                if (isset($this->ninja_invoice->company->tax_data->regions->EU->subregions->{$country_code}->vat_number)) {
                     $this->override_vat_number = $this->ninja_invoice->company->tax_data->regions->EU->subregions->{$country_code}->vat_number;
+                }
             }
         }
-        
+
         $jurisdiction = new \InvoiceNinja\EInvoice\Models\Peppol\AddressType\JurisdictionRegionAddress();
         $country = new Country();
         $ic = new IdentificationCode();
         $ic->value = $country_code;
         $country->IdentificationCode = $ic;
-        $jurisdiction->Country = $country;        
+        $jurisdiction->Country = $country;
         $addressTypeCode = new \InvoiceNinja\EInvoice\Models\Peppol\CodeType\AddressTypeCode();
         $addressTypeCode->value = 'JURISDICTION';  // or the appropriate code from PEPPOL spec
         $jurisdiction->AddressTypeCode = $addressTypeCode;
@@ -1416,32 +1474,32 @@ class Peppol extends AbstractService
     }
 
 
-    private function standardizeTaxSchemeId(string $tax_name): string 
+    private function standardizeTaxSchemeId(string $tax_name): string
     {
-                
+
         $br = new BaseRule();
         $eu_countries = $br->eu_country_codes;
 
         // If company is in EU, standardize to VAT
         // if (in_array($this->company->country()->iso_3166_2, $eu_countries)) {
-            return "VAT";
+        return "VAT";
         // }
 
         // For non-EU countries, return original or handle specifically
         // return $this->standardizeTaxSchemeId($tax_name);
     }
-    
+
     /**
      * ResolveScheme
      *
      * If we need to explicitly set the schemeID, we will need to resolve
      * the exact one based on the type the user has, ie. GLN DUNS, validation
      * is performed here, so lots can go wrong if bad data is used.
-     * 
+     *
      * @param  bool $is_client
      * @return string
      */
-    private function resolveScheme(bool $is_client=false): string
+    private function resolveScheme(bool $is_client = false): string
     {
 
         $vat_number = $is_client ? $this->invoice->client->vat_number : $this->company->settings->vat_number;

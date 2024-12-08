@@ -33,7 +33,7 @@ class UpdateCompanyRequest extends Request
         'portal_custom_css',
         'portal_custom_head'
     ];
-    
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -48,7 +48,7 @@ class UpdateCompanyRequest extends Request
 
     public function rules()
     {
-        
+
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
@@ -211,14 +211,14 @@ class UpdateCompanyRequest extends Request
         return $settings;
     }
 
-    
+
     /**
      * forceScheme
      *
      * @param  string $url
      * @return string
      */
-    private function forceScheme(string $url): string 
+    private function forceScheme(string $url): string
     {
         return stripos($url, 'http') !== false ? $url : "https://{$url}";
     }

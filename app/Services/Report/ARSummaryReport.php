@@ -115,7 +115,7 @@ class ARSummaryReport extends BaseExport
             'clients' => $this->clients,
             'company_logo' => $this->company->present()->logo(),
             'company_name' => $this->company->present()->name(),
-            'created_on' => $this->translateDate(now()->format('Y-m-d'),$this->company->date_format(), $this->company->locale()),
+            'created_on' => $this->translateDate(now()->format('Y-m-d'), $this->company->date_format(), $this->company->locale()),
             'created_by' => $user_name,
         ];
 

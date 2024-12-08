@@ -40,7 +40,7 @@ class ShowActivityRequest extends Request
     {
         $input = $this->all();
 
-        if(isset($input['entity_id'])) {
+        if (isset($input['entity_id'])) {
             $input['entity_id'] = $this->decodePrimaryKey($input['entity_id']);
         }
 

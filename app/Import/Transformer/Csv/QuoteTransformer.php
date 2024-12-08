@@ -14,12 +14,15 @@ namespace App\Import\Transformer\Csv;
 use App\Import\ImportException;
 use App\Import\Transformer\BaseTransformer;
 use App\Models\Quote;
+use App\Utils\Traits\CleanLineItems;
 
 /**
  * Class QuoteTransformer.
  */
 class QuoteTransformer extends BaseTransformer
 {
+    use CleanLineItems;
+
     /**
      * @param $data
      *
@@ -120,7 +123,7 @@ class QuoteTransformer extends BaseTransformer
                         $this->getString($quote_data, 'quote.status')
                     ))
                 ] ?? Quote::STATUS_SENT,
-            'archived' => $status === 'archived',
+            // 'archived' => $status === 'archived',
         ];
 
         /* If we can't find the client, then lets try and create a client */
@@ -221,7 +224,7 @@ class QuoteTransformer extends BaseTransformer
                 'type_id' => '1', //$this->getQuoteTypeId( $record, 'item.type_id' ),
             ];
         }
-        $transformed['line_items'] = $line_items;
+        $transformed['line_items'] = $this->cleanItems($line_items);
 
         return $transformed;
     }

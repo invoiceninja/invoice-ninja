@@ -265,9 +265,9 @@ class Activity extends StaticModel
 
     public const QUOTE_REMINDER1_SENT = 142;
 
-    public const AUTOBILL_SUCCESS = 143; 
+    public const AUTOBILL_SUCCESS = 143;
 
-    public const AUTOBILL_FAILURE = 144; 
+    public const AUTOBILL_FAILURE = 144;
 
     public const EINVOICE_SENT = 145;
 
@@ -426,29 +426,29 @@ class Activity extends StaticModel
 
         $found_variables = array_intersect(explode(" ", trans("texts.activity_{$this->activity_type_id}")), $intersect);
 
-        if($this->activity_type_id == 10 && $this->client_contact_id && !$this->token_id) {
+        if ($this->activity_type_id == 10 && $this->client_contact_id && !$this->token_id) {
             $found_variables = array_intersect(explode(" ", trans("texts.activity_10_online")), $intersect);
         }
 
-        if($this->activity_type_id == 54 && !$this->token_id) {
+        if ($this->activity_type_id == 54 && !$this->token_id) {
             array_push($found_variables, ':contact');
         }
 
         $replacements = [];
 
-        foreach($found_variables as $var) {
+        foreach ($found_variables as $var) {
             $replacements = array_merge($replacements, $this->matchVar($var));
         }
 
-        if($this->client) {
+        if ($this->client) {
             $replacements['client'] = ['label' => $this->client?->present()->name() ?? '', 'hashed_id' => $this->client->hashed_id ?? ''];
         }
 
-        if($this->vendor) {
+        if ($this->vendor) {
             $replacements['vendor'] = ['label' => $this->vendor?->present()->name() ?? '', 'hashed_id' => $this->vendor->hashed_id ?? ''];
         }
 
-        if($this->activity_type_id == 4 && $this->recurring_invoice) {
+        if ($this->activity_type_id == 4 && $this->recurring_invoice) {
             $replacements['recurring_invoice'] = ['label' => $this?->recurring_invoice?->number ?? '', 'hashed_id' => $this->recurring_invoice->hashed_id ?? ''];
         }
 
@@ -459,7 +459,7 @@ class Activity extends StaticModel
         $replacements['created_at'] = $this->created_at ?? '';
         $replacements['ip'] = $this->ip ?? '';
 
-        if($this->activity_type_id == 141) {
+        if ($this->activity_type_id == 141) {
             $replacements = $this->harvestNoteEntities($replacements);
         }
 
@@ -483,10 +483,10 @@ class Activity extends StaticModel
 
         ];
 
-        foreach($entities as $entity) {
+        foreach ($entities as $entity) {
             $entity_key = substr($entity, 1);
 
-            if($this?->{$entity_key}) {
+            if ($this?->{$entity_key}) {
                 $replacements = array_merge($replacements, $this->matchVar($entity));
             }
 
@@ -533,7 +533,7 @@ class Activity extends StaticModel
 
         $contact_entity = $this->contact ? 'clients' : 'vendors';
 
-        if(!$contact) {
+        if (!$contact) {
             return [];
         }
 

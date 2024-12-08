@@ -16,11 +16,11 @@
         name:
           description: 'The name of the client company or organization'
           type: string
-          example: "Jim's Housekeeping"
+          example: "Bob & Co Housekeeping"
         website:
           description: 'The website URL of the client company or organization'
           type: string
-          example: 'https://www.jims-housekeeping.com'
+          example: 'https://www.boandco-housekeeping.com'
         private_notes:
           description: 'Notes that are only visible to the user who created the client'
           type: string
@@ -58,7 +58,10 @@
           type: string
           example: '555-3434-3434'
         country_id:
-          description: "The unique identifier of the client's country"
+          description: |
+            The unique identifier of the client's country expressed by the countries ISO number.
+
+            Optionally, instead of the country_id you can pass either the iso_3166_2 or iso_3166_3 country code into the country_code property.
           type: number
           format: integer
           example: '1'
@@ -110,7 +113,10 @@
           type: string
           example: '6110'
         shipping_country_id:
-          description: "The unique identifier of the country for the client's shipping address"
+          description: |
+            The unique identifier of the client's shipping country expressed by the countries ISO number.
+
+            Optionally, instead of the shipping_country_id you can pass either the iso_3166_2 or iso_3166_3 country code into the shipping_country_code property.
           type: number
           format: integer
           example: '4'

@@ -14,7 +14,6 @@
       required: true
       schema:
         type: string
-        readOnly: true
         example: XMLHttpRequest
     X-API-TOKEN:
       name: X-API-TOKEN
@@ -52,7 +51,21 @@
     client_include:
       name: include
       in: query
-      description: Include child relationships of the Client Object.
+      description: |
+        Include child relationships of the Client Object. ie ?include=documents,system_logs
+
+        ```html
+        Available includes:
+
+        contacts [All contacts related to the client]
+        documents [All documents related to the client]
+        gateway_tokens [All payment tokens related to the client]
+        activities [All activities related to the client]
+        ledger [The client ledger]
+        system_logs [System logs related to the client]
+        group_settings [The group settings object the client is assigned to]
+        
+        ```
       required: false
       schema:
         type: string
@@ -116,7 +129,24 @@
     login_include:
       name: include
       in: query
-      description: Include child relations of the CompanyUser object, format is comma separated. **Note** it is possible to chain multiple includes together, ie. include=account,token
+      description: |
+        Include child relations of the CompanyUser object, format is comma separated.    
+
+        <br />
+        
+        > ### **Note**: it is possible to chain multiple includes together, ie. include=account,token
+
+        <br />
+
+        ```html
+        
+        Available includes:
+
+          user
+          company
+          token
+          account
+        ```
       required: false
       schema:
         type: string
@@ -161,7 +191,7 @@
       name: include_static
       in: query
       description: |
-        Static variables include:
+        This include will return the full set of static variables used in the application including:
           - Currencies
           - Countries 
           - Languages
@@ -179,7 +209,7 @@
       description: |
         Clears cache
 
-        Sometimes after a system update where the static variables have been updated, it may be necessary to clear the cache so that the static variables repopulate  
+        Clears (and rebuilds) the static variable cache.  
 
       required: false
       schema:
@@ -188,7 +218,24 @@
     index:
       name: index
       in: query
-      description: 'Replaces the default response index from data to a user specific string'
+      description: |
+        Replaces the default response index from data to a user specific string
+
+        ie.
+
+        ```html
+          ?index=new_index
+        ```
+
+        response is wrapped
+
+        ```json
+          {
+            'new_index' : [
+              .....  
+            ]
+          }
+        ```
       required: false
       schema:
         type: string

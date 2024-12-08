@@ -18,7 +18,6 @@ use Livewire\Component;
 
 class RecurringInvoiceCancellation extends Component
 {
-    
     public $invoice_id;
 
     public $db;
@@ -35,7 +34,7 @@ class RecurringInvoiceCancellation extends Component
 
     public function processCancellation()
     {
-        
+
         MultiDB::setDb($this->db);
 
         $ri = RecurringInvoice::withTrashed()->find($this->invoice_id);

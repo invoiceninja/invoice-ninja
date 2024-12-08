@@ -78,9 +78,10 @@ class UpdateExpenseRequest extends Request
             $input['currency_id'] = (string) $user->company()->settings->currency_id;
         }
 
-        if(isset($input['exchange_rate']) && $input['exchange_rate'] == 0)
+        if (isset($input['exchange_rate']) && $input['exchange_rate'] == 0) {
             $input['exchnage_rate'] = 1;
-        
+        }
+
         /* Ensure the project is related */
         if (array_key_exists('project_id', $input) && isset($input['project_id'])) {
             $project = Project::withTrashed()->where('id', $input['project_id'])->company()->first();

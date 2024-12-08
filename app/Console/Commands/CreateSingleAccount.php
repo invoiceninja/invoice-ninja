@@ -103,7 +103,7 @@ class CreateSingleAccount extends Command
         try {
             $pdo = \DB::connection('ronin')->getPdo();
 
-            if(class_exists(\Modules\Ronin\app\Models\Admin::class)) {
+            if (class_exists(\Modules\Ronin\app\Models\Admin::class)) {
                 $this->info('Creating Ronin Account');
                 $this->createRoninAccount();
             }
@@ -378,7 +378,7 @@ class CreateSingleAccount extends Command
 
         Project::query()->with('client')->whereNotNull('client_id')->cursor()->each(function ($p) {
 
-            if($p && $p->client && !isset($p->number)) {
+            if ($p && $p->client && !isset($p->number)) {
                 $p->number = $this->getNextProjectNumber($p);
                 $p->save();
             }
@@ -584,7 +584,7 @@ class CreateSingleAccount extends Command
                 'task_rate' => rand(1, 200),
             ]);
 
-        for($x = 0; $x < rand(2, 5); $x++) {
+        for ($x = 0; $x < rand(2, 5); $x++) {
             $task = $this->createTask($client);
             $task->project_id = $project->id;
             $task->save();
@@ -883,7 +883,7 @@ class CreateSingleAccount extends Command
             $cg->fees_and_limits = $fees_and_limits;
             $cg->save();
         }
-        
+
         if (config('ninja.testvars.braintree') && ($this->gateway == 'all' || $this->gateway == 'braintree')) {
             $cg = new CompanyGateway();
             $cg->company_id = $company->id;

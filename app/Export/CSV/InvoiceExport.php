@@ -63,7 +63,7 @@ class InvoiceExport extends BaseExport
                         ->where('company_id', $this->company->id);
 
 
-        if(!$this->input['include_deleted'] ?? false) {// @phpstan-ignore-line
+        if (!$this->input['include_deleted'] ?? false) {// @phpstan-ignore-line
             $query->where('is_deleted', 0);
         }
 
@@ -71,19 +71,19 @@ class InvoiceExport extends BaseExport
 
         $clients = &$this->input['client_id'];
 
-        if($clients) {
+        if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
 
-        if($this->input['status'] ?? false) {
+        if ($this->input['status'] ?? false) {
             $query = $this->addInvoiceStatusFilter($query, $this->input['status']);
         }
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 
-        if($this->input['pdf_email_attachment'] ?? false) {
+        if ($this->input['pdf_email_attachment'] ?? false) {
             $this->queuePdfs($query);
         }
 

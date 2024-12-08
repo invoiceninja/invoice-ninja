@@ -129,7 +129,6 @@ class CompanyGateway extends BaseModel
     // const TYPE_AUTHORIZE = 305;
     // const TYPE_CUSTOM = 306;
     // const TYPE_BRAINTREE = 307;
-    // const TYPE_WEPAY = 309;
     // const TYPE_PAYFAST = 310;
     // const TYPE_PAYTRACE = 311;
     // const TYPE_MOLLIE = 312;
@@ -451,7 +450,7 @@ class CompanyGateway extends BaseModel
                 } else {
                     $fee += round(($amount * $fees_and_limits->fee_percent / 100), 2);
                 }
-                
+
             }
         }
         /* Cap fee if we have to here. */
@@ -481,7 +480,7 @@ class CompanyGateway extends BaseModel
 
     public function getSettings()
     {
-        return $this->settings ?? new \stdClass;
+        return $this->settings ?? new \stdClass();
     }
 
     public function setSettings($settings)

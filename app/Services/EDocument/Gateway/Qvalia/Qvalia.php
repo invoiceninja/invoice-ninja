@@ -20,13 +20,13 @@ use Illuminate\Http\Client\RequestException;
 use Turbo124\Beacon\Facades\LightLogs;
 
 class Qvalia
-{    
+{
     /** @var string $base_url */
     private string $base_url = 'https://api.qvalia.com';
-    
+
     /** @var string $sandbox_base_url */
     private string $sandbox_base_url = 'https://api-qa.qvalia.com';
-    
+
     private bool $test_mode = true;
 
     /** @var array $peppol_discovery */
@@ -37,7 +37,7 @@ class Qvalia
         "scheme" =>  "de:lwid",
         "identifier" => "DE:VAT"
     ];
-    
+
     /** @var array $dbn_discovery */
     private array $dbn_discovery = [
         "documentTypes" =>  ["invoice"],
@@ -67,8 +67,9 @@ class Qvalia
     private function init(): self
     {
 
-        if($this->test_mode)
+        if ($this->test_mode) {
             $this->base_url = $this->sandbox_base_url;
+        }
 
         return $this;
     }
@@ -80,39 +81,38 @@ class Qvalia
     }
 
 
-     /**
-     * httpClient
-     *
-     * @param  string $uri
-     * @param  string $verb
-     * @param  array $data
-     * @param  array $headers
-     * @return \Illuminate\Http\Client\Response
-     */
+    /**
+    * httpClient
+    *
+    * @param  string $uri
+    * @param  string $verb
+    * @param  array $data
+    * @param  array $headers
+    * @return \Illuminate\Http\Client\Response
+    */
     public function httpClient(string $uri, string $verb, array $data, ?array $headers = [])
     {
 
-        try {            
+        try {
             $r = Http::withToken(config('ninja.qvalia_api_key'))
                 ->withHeaders($this->getHeaders($headers))
             ->{$verb}("{$this->base_url}{$uri}", $data)->throw();
-        }
-        catch (ClientException $e) {
+        } catch (ClientException $e) {
             // 4xx errors
-            
+
             nlog("LEI:: {$this->legal_entity_id}");
             nlog("Client error: " . $e->getMessage());
             nlog("Response body: " . $e->getResponse()->getBody()->getContents());
         } catch (ServerException $e) {
             // 5xx errors
-            
+
             nlog("LEI:: {$this->legal_entity_id}");
             nlog("Server error: " . $e->getMessage());
             nlog("Response body: " . $e->getResponse()->getBody()->getContents());
         } catch (\Illuminate\Http\Client\RequestException $e) {
 
             nlog("LEI:: {$this->legal_entity_id}");
-            nlog("Request error: {$e->getCode()}: " . $e->getMessage());       
+            nlog("Request error: {$e->getCode()}: " . $e->getMessage());
             $responseBody = $e->response->body();
             nlog("Response body: " . $responseBody);
 

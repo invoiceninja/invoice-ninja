@@ -321,8 +321,8 @@ class AuthorizeCreditCard implements LivewireMethodInterface
             'invoices' => $vars['invoices'],
         ];
     }
-    
-    public function livewirePaymentView(array $data): string 
+
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.authorize.credit_card.pay_livewire';
     }

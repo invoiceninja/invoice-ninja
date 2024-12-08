@@ -13,7 +13,6 @@ namespace App\PaymentDrivers\CBAPowerBoard\Models;
 
 class Gateway
 {
-
     public function __construct(
         public string $_id,
         public string $name,

@@ -29,7 +29,7 @@ class HostedMigrationController extends Controller
         MultiDB::findAndSetDbByCompanyKey($request->company_key);
         $c = Company::where('company_key', $request->company_key)->first();
 
-        if(!$c || $c->is_disabled) {
+        if (!$c || $c->is_disabled) {
             return response()->json(['message' => 'ok'], 200);
         }
 

@@ -35,9 +35,9 @@ class TriggeredActions extends AbstractService
         if ($this->request->has('auto_bill') && $this->request->input('auto_bill') == 'true') {
             try {
                 $this->invoice->service()->autoBill();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 nlog("Exception:: TriggeredActions::" . $e->getMessage());
-            } //update notification sends automatically for this.
+            } 
         }
 
         if ($this->request->has('paid') && $this->request->input('paid') == 'true') {
@@ -81,8 +81,11 @@ class TriggeredActions extends AbstractService
             $company->save();
         }
 
+        if($this->request->has('retry_e_send') && $this->request->input('retry_e_send') == 'true' && is_null($this->invoice->backup) && $this->invoice->client->peppolSendingEnabled()) {    
+            \App\Services\EDocument\Jobs\SendEDocument::dispatch(get_class($this->invoice), $this->invoice->id, $this->invoice->company->db);
+        }
+
         if ($this->updated) {
-            // event('eloquent.updated: App\Models\Invoice', $this->invoice);
             $this->invoice->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
 
         }
@@ -100,7 +103,7 @@ class TriggeredActions extends AbstractService
         });
 
         if ($this->invoice->invitations->count() > 0) {
-            event(new InvoiceWasEmailed($this->invoice->invitations->first(), $this->invoice->company, Ninja::eventVars(), 'invoice'));
+            $this->invoice->entityEmailEvent($this->invoice->invitations->first(), $reminder_template);
             $this->invoice->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
         }
     }

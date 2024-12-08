@@ -52,7 +52,7 @@ class MarkSent
 
         event(new CreditWasMarkedSent($this->credit, $this->credit->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null)));
 
-        if($fire_event) {
+        if ($fire_event) {
 
             event('eloquent.updated: App\Models\Credit', $this->credit);
             $this->credit->sendEvent(Webhook::EVENT_SENT_CREDIT);

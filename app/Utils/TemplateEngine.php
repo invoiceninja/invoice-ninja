@@ -441,13 +441,13 @@ class TemplateEngine
                 $client->load('company');
             }
 
-        }catch(\Throwable $th){
+        } catch (\Throwable $th) {
             nlog("Throwable:: transaction:: TemplateEngine MockEntity");
-            
+
             DB::connection(config('database.default'))->rollBack();
 
         }
-        
+
     }
 
     private function tearDown()

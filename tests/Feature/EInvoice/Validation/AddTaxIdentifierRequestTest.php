@@ -4,55 +4,37 @@ namespace Tests\Feature\EInvoice\Validation;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\Validator;
-use Modules\Admin\Http\Requests\EInvoice\Peppol\AddTaxIdentifierRequest;
+use App\Http\Requests\EInvoice\Peppol\AddTaxIdentifierRequest;
+use App\Models\Company;
+use App\Models\CompanyToken;
+use App\Models\CompanyUser;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Tests\MockAccountData;
 
 class AddTaxIdentifierRequestTest extends TestCase
 {
-    protected AddTaxIdentifierRequest $request;
+    use MockAccountData;
 
-    private array $vat_regex_patterns = [
-        'DE' => '/^DE\d{9}$/',
-        'AT' => '/^ATU\d{8}$/',
-        'BE' => '/^BE0\d{9}$/',
-        'BG' => '/^BG\d{9,10}$/',
-        'CY' => '/^CY\d{8}L$/',
-        'HR' => '/^HR\d{11}$/',
-        'DK' => '/^DK\d{8}$/',
-        'ES' => '/^ES[A-Z0-9]\d{7}[A-Z0-9]$/',
-        'EE' => '/^EE\d{9}$/',
-        'FI' => '/^FI\d{8}$/',
-        'FR' => '/^FR\d{2}\d{9}$/',
-        'EL' => '/^EL\d{9}$/',
-        'HU' => '/^HU\d{8}$/',
-        'IE' => '/^IE\d{7}[A-Z]{1,2}$/',
-        'IT' => '/^IT\d{11}$/',
-        'LV' => '/^LV\d{11}$/',
-        'LT' => '/^LT(\d{9}|\d{12})$/',
-        'LU' => '/^LU\d{8}$/',
-        'MT' => '/^MT\d{8}$/',
-        'NL' => '/^NL\d{9}B\d{2}$/',
-        'PL' => '/^PL\d{10}$/',
-        'PT' => '/^PT\d{9}$/',
-        'CZ' => '/^CZ\d{8,10}$/',
-        'RO' => '/^RO\d{2,10}$/',
-        'SK' => '/^SK\d{10}$/',
-        'SI' => '/^SI\d{8}$/',
-        'SE' => '/^SE\d{12}$/',
-    ];
+    protected AddTaxIdentifierRequest $request;
 
     protected function setUp(): void
     {
-        
-        if (!class_exists(\Modules\Admin\Http\Requests\EInvoice\Peppol\AddTaxIdentifierRequest::class)) {
-            $this->markTestSkipped('Skip test for GH Actions');
-        }
-
         parent::setUp();
+
         $this->request = new AddTaxIdentifierRequest();
+
+
+        $this->withoutMiddleware(
+            ThrottleRequests::class
+        );
+
+        $this->makeTestData();
     }
 
     public function testValidInput()
     {
+        $this->actingAs($this->user);
+
         $data = [
             'country' => 'DE',
             'vat_number' => 'DE123456789',
@@ -66,12 +48,15 @@ class AddTaxIdentifierRequestTest extends TestCase
 
     public function testInvalidCountry()
     {
+        $this->actingAs($this->user);
+
         $data = [
             'country' => 'US',
             'vat_number' => 'DE123456789',
         ];
 
         $this->request->initialize($data);
+
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertFalse($validator->passes());
@@ -80,6 +65,8 @@ class AddTaxIdentifierRequestTest extends TestCase
 
     public function testInvalidVatNumber()
     {
+        $this->actingAs($this->user);
+
         $data = [
             'country' => 'DE',
             'vat_number' => 'DE12345', // Too short
@@ -94,6 +81,8 @@ class AddTaxIdentifierRequestTest extends TestCase
 
     public function testMissingCountry()
     {
+        $this->actingAs($this->user);
+
         $data = [
             'vat_number' => 'DE123456789',
         ];
@@ -107,6 +96,8 @@ class AddTaxIdentifierRequestTest extends TestCase
 
     public function testMissingVatNumber()
     {
+        $this->actingAs($this->user);
+
         $data = [
             'country' => 'DE',
         ];
@@ -116,5 +107,31 @@ class AddTaxIdentifierRequestTest extends TestCase
 
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('vat_number', $validator->errors()->toArray());
+    }
+
+    public function testSameCountryFails()
+    {
+        $this->actingAs($this->user);
+
+        $this->user->setCompany($this->company);
+
+        $settings = $this->company->settings;
+        $settings->country_id = 276; // DE
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
+        $data = [
+            'country' => $settings->country_id,
+            'vat_number' => 'DE123456789',
+        ];
+
+        $this->request->initialize($data);
+        $this->request->prepareForValidation();
+
+        $validator = Validator::make($data, $this->request->rules());
+
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('country', $validator->errors()->toArray());
     }
 }

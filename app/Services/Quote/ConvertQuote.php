@@ -75,7 +75,7 @@ class ConvertQuote
         $quote->status_id = Quote::STATUS_CONVERTED;
         $quote->save();
 
-        if($quote->documents()->count() > 0) {
+        if ($quote->documents()->count() > 0) {
             CopyDocs::dispatch($quote->documents()->pluck('id'), $invoice, $invoice->company->db);
         }
 

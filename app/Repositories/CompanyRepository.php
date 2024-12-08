@@ -43,7 +43,7 @@ class CompanyRepository extends BaseRepository
 
         // nlog($data);
         /** Only required to handle v4 migration workloads */
-        if(Ninja::isHosted() && $company->isDirty('is_disabled') && !$company->is_disabled) {
+        if (Ninja::isHosted() && $company->isDirty('is_disabled') && !$company->is_disabled) {
             Ninja::triggerForwarding($company->company_key, $company->owner()->email);
         }
 
@@ -51,14 +51,14 @@ class CompanyRepository extends BaseRepository
             $company->saveSettings($data['settings'], $company);
         }
 
-        if(isset($data['smtp_username'])) {
+        if (isset($data['smtp_username'])) {
             $company->smtp_username = $data['smtp_username'];
         }
 
-        if(isset($data['smtp_password'])) {
+        if (isset($data['smtp_password'])) {
             $company->smtp_password = $data['smtp_password'];
         }
-        
+
         if (isset($data['e_invoice'])) {
             $company->e_invoice = $data['e_invoice'];
         }

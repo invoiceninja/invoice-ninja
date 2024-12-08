@@ -48,7 +48,7 @@ class CreditWasUpdated implements ShouldBroadcast
 
         $this->dontBroadcastToCurrentUser();
     }
-    
+
     public function broadcastModel(): BaseModel
     {
         return $this->credit;

@@ -40,15 +40,16 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 
 class StorecoveAdapter
 {
-
-    public function __construct(public Storecove $storecove){}
+    public function __construct(public Storecove $storecove)
+    {
+    }
 
     private Invoice $storecove_invoice;
 
     private array $errors = [];
 
     private bool $valid_document = true;
-    
+
     private $ninja_invoice;
 
     private string $nexus;
@@ -57,7 +58,7 @@ class StorecoveAdapter
 
     public function validate(): self
     {
-        
+
         if ($this->has_error) {
             return $this;
         }
@@ -74,25 +75,25 @@ class StorecoveAdapter
     {
         return $this->errors;
     }
-    
+
     /**
      * addError
      *
      * Adds an error to the errors array.
-     * 
+     *
      * @param  string $error
      * @return self
      */
     private function addError(string $error): self
     {
         $this->errors[] = $error;
-        
+
         return $this;
     }
-    
+
     public function deserialize($storecove_object)
     {
-        
+
         $context = [
                 DateTimeNormalizer::FORMAT_KEY => 'Y-m-d',
                 AbstractObjectNormalizer::SKIP_NULL_VALUES => true,
@@ -121,7 +122,7 @@ class StorecoveAdapter
             $serializer = $this->getSerializer();
 
             /** Currently - due to class structures, the serialization process goes like this:
-             * 
+             *
              * e-invoice => Peppol -> XML -> Peppol Decoded -> encode to Peppol -> deserialize to Storecove
              */
             $p = (new Peppol($invoice))->run()->toXml();
@@ -137,8 +138,7 @@ class StorecoveAdapter
             $this->storecove_invoice = $serializer->deserialize($peppolInvoice, $parent, 'json', $context);
 
             $this->buildNexus();
-        }
-        catch(\Throwable $th){
+        } catch (\Throwable $th) {
 
             $this->addError($th->getMessage());
             $this->has_error = true;
@@ -155,37 +155,34 @@ class StorecoveAdapter
 
     public function decorate(): self
     {
-        if($this->has_error)
+        if ($this->has_error) {
             return $this;
+        }
 
         //set all taxmap countries - resolve the taxing country
         $lines = $this->storecove_invoice->getInvoiceLines();
 
-        foreach($lines as &$line)
-        {
-            if(isset($line->taxes_duties_fees))
-            {
-                foreach($line->taxes_duties_fees as &$tax)
-                {
+        foreach ($lines as &$line) {
+            if (isset($line->taxes_duties_fees)) {
+                foreach ($line->taxes_duties_fees as &$tax) {
                     $tax->country = $this->nexus;
-                    $tax->percentage = $tax->percentage ?? 0; 
-                    if(property_exists($tax,'category'))
+                    $tax->percentage = $tax->percentage ?? 0;
+                    if (property_exists($tax, 'category')) {
                         $tax->category = $this->tranformTaxCode($tax->category);
+                    }
                 }
                 unset($tax);
             }
 
-            if(isset($line->allowance_charges))
-            {
-                foreach($line->allowance_charges as &$allowance)
-                {
-                    if($allowance->reason == ctrans('texts.discount'))
+            if (isset($line->allowance_charges)) {
+                foreach ($line->allowance_charges as &$allowance) {
+                    if ($allowance->reason == ctrans('texts.discount')) {
                         $allowance->amount_excluding_tax = $allowance->amount_excluding_tax * -1;
+                    }
 
 
-                    foreach($allowance->getTaxesDutiesFees() ?? [] as &$tax)
-                    {
-                        
+                    foreach ($allowance->getTaxesDutiesFees() ?? [] as &$tax) {
+
                         if (property_exists($tax, 'category')) {
                             $tax->category = $this->tranformTaxCode($tax->category);
                         }
@@ -201,13 +198,13 @@ class StorecoveAdapter
 
         $tax_subtotals = $this->storecove_invoice->getTaxSubtotals();
 
-        foreach($tax_subtotals as &$tax)
-        {
+        foreach ($tax_subtotals as &$tax) {
             $tax->country = $this->nexus;
             $tax->percentage = $tax->percentage ?? 0;
 
-            if (property_exists($tax, 'category')) 
+            if (property_exists($tax, 'category')) {
                 $tax->category = $this->tranformTaxCode($tax->category);
+            }
 
         }
         unset($tax);
@@ -218,21 +215,18 @@ class StorecoveAdapter
         //update payment means codes to storecove equivalents
         $payment_means = $this->storecove_invoice->getPaymentMeansArray();
 
-        foreach($payment_means as &$pm)
-        {
+        foreach ($payment_means as &$pm) {
             $pm->code = $this->transformPaymentMeansCode($pm->code);
         }
-        
+
         $this->storecove_invoice->setPaymentMeansArray($payment_means);
 
         $allowances = $this->storecove_invoice->getAllowanceCharges() ?? [];
 
-        foreach($allowances as &$allowance)
-        {
+        foreach ($allowances as &$allowance) {
             $taxes = $allowance->getTaxesDutiesFees() ?? [];
 
-            foreach($taxes as &$tax)
-            {            
+            foreach ($taxes as &$tax) {
                 $tax->country = $this->nexus;
                 $tax->percentage = $tax->percentage ?? 0;
 
@@ -242,7 +236,7 @@ class StorecoveAdapter
             }
             unset($tax);
 
-            
+
             if ($allowance->reason == ctrans('texts.discount')) {
                 $allowance->amount_excluding_tax = $allowance->amount_excluding_tax * -1;
             }
@@ -255,12 +249,11 @@ class StorecoveAdapter
         $this->storecove_invoice->setAllowanceCharges($allowances);
 
         $this->storecove_invoice->setTaxSystem('tax_line_percentages');
-        
+
         //resolve and set the public identifier for the customer
         $accounting_customer_party = $this->storecove_invoice->getAccountingCustomerParty();
 
-        if(strlen($this->ninja_invoice->client->vat_number) > 2)
-        {
+        if (strlen($this->ninja_invoice->client->vat_number) > 2) {
             // $id = str_ireplace("fr","", $this->ninja_invoice->client->vat_number);
             $id = $this->ninja_invoice->client->vat_number;
             $scheme = $this->storecove->router->setInvoice($this->ninja_invoice)->resolveTaxScheme($this->ninja_invoice->client->country->iso_3166_2, $this->ninja_invoice->client->classification ?? 'individual');
@@ -274,7 +267,7 @@ class StorecoveAdapter
 
     private function getSerializer()
     {
-                
+
         $phpDocExtractor = new PhpDocExtractor();
         $reflectionExtractor = new ReflectionExtractor();
         $typeExtractors = [$reflectionExtractor,$phpDocExtractor];
@@ -299,7 +292,7 @@ class StorecoveAdapter
 
         return $serializer;
     }
-    
+
     /**
      * Builds the document and appends an errors prop
      *
@@ -308,10 +301,11 @@ class StorecoveAdapter
     public function getDocument(): mixed
     {
 
-        if($this->has_error)
+        if ($this->has_error) {
             return ['errors' => $this->getErrors(), 'document' => false];
-        
-        
+        }
+
+
         $serializer = $this->getSerializer();
 
         $context = [
@@ -333,7 +327,7 @@ class StorecoveAdapter
         return $data;
 
     }
-    
+
     /**
      * RemoveEmptyValues
      *
@@ -366,7 +360,7 @@ class StorecoveAdapter
         $eu_countries = $br->eu_country_codes;
 
         if ($client_country_code == $company_country_code) {
-            //Domestic Sales 
+            //Domestic Sales
             nlog("domestic sales");
             $this->nexus = $company_country_code;
         } elseif (in_array($company_country_code, $eu_countries) && !in_array($client_country_code, $eu_countries)) {
@@ -374,7 +368,7 @@ class StorecoveAdapter
             nlog("non eu");
             $this->nexus = $company_country_code;
         } elseif (in_array($client_country_code, $eu_countries)) {
-                    
+
             // First, determine if we're over threshold
             $is_over_threshold = isset($this->ninja_invoice->company->tax_data->regions->EU->has_sales_above_threshold) &&
                                 $this->ninja_invoice->company->tax_data->regions->EU->has_sales_above_threshold;
@@ -384,7 +378,7 @@ class StorecoveAdapter
                     !($this->ninja_invoice->client->has_valid_vat_number ?? false) ||
                     $this->ninja_invoice->client->classification == 'individual';
 
-                    
+
             // B2C, under threshold, no Company VAT Registerd - must charge origin country VAT
             if ($is_b2c && !$is_over_threshold && strlen($this->ninja_invoice->company->settings->vat_number) < 2) {
                 nlog("no company vat");
@@ -405,8 +399,8 @@ class StorecoveAdapter
                     // B2C under threshold - origin country VAT
                     $this->nexus = $company_country_code;
                 }
-            } elseif ($is_over_threshold && !in_array($company_country_code, $eu_countries)){
-                    $this->nexus = $client_country_code;
+            } elseif ($is_over_threshold && !in_array($company_country_code, $eu_countries)) {
+                $this->nexus = $client_country_code;
             } else {
                 nlog("B2B with valid vat");
                 // B2B with valid VAT - origin country
@@ -415,7 +409,7 @@ class StorecoveAdapter
 
         }
 
-        if($company_country_code == 'DE' && $client_country_code == 'DE' && $this->ninja_invoice->client->classification == 'government') {
+        if ($company_country_code == 'DE' && $client_country_code == 'DE' && $this->ninja_invoice->client->classification == 'government') {
             $this->removeSupplierVatNumber();
         }
 
@@ -432,9 +426,9 @@ class StorecoveAdapter
         return $this;
     }
 
-    private function setupDestinationVAT($client_country_code):self
+    private function setupDestinationVAT($client_country_code): self
     {
-        
+
         $this->storecove_invoice->setConsumerTaxMode(true);
         $id = $this->ninja_invoice->company->tax_data->regions->EU->subregions->{$client_country_code}->vat_number;
         $scheme = $this->storecove->router->setInvoice($this->ninja_invoice)->resolveTaxScheme($client_country_code, $this->ninja_invoice->client->classification ?? 'individual');
@@ -443,20 +437,21 @@ class StorecoveAdapter
         $asp = $this->storecove_invoice->getAccountingSupplierParty();
         $asp->addPublicIdentifiers($pi);
         $this->storecove_invoice->setAccountingSupplierParty($asp);
-        
+
         return $this;
     }
 
     private function tranformTaxCode(string $code): ?string
     {
 
-        if($code == 'O' && $this->ninja_invoice->client->classification == 'government')
+        if ($code == 'O' && $this->ninja_invoice->client->classification == 'government') {
             return 'exempt';
-        
+        }
+
         // elseif($code == 'K' && $this->ninja_invoice->company->getSetting('classification') == 'individual')
         //     return 'reverse_charge';
 
-        return match($code){
+        return match($code) {
             'S' => 'standard',
             'Z' => 'zero_rated',
             'E' => 'exempt',
@@ -477,14 +472,14 @@ class StorecoveAdapter
 
     private function transformPaymentMeansCode(?string $code): string
     {
-        return match($code){
+        return match($code) {
             '30' => 'credit_transfer',
             '58' => 'sepa_credit_transfer',
             '31' => 'debit_transfer',
             '49' => 'direct_debit',
             '59' => 'sepa_direct_debit',
             '48' => 'card',         // Generic card payment
-            '54' => 'bank_card',    
+            '54' => 'bank_card',
             '55' => 'credit_card',
             '57' => 'standing_agreement',
             '10' => 'cash',
@@ -510,5 +505,5 @@ class StorecoveAdapter
         };
 
     }
-    
+
 }

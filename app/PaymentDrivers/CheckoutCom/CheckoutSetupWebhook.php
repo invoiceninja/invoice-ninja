@@ -65,7 +65,7 @@ class CheckoutSetupWebhook implements ShouldQueue
             return $workflow['name'] == $this->authentication_webhook_name;
         });
 
-        if($wf) {
+        if ($wf) {
             return;
         }
 

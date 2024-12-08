@@ -93,7 +93,7 @@ trait Utilities
             $error_message = 'Error processing payment.';
         }
 
-        if(isset($_payment['actions'][0]['response_summary']) ?? false) {
+        if (isset($_payment['actions'][0]['response_summary']) ?? false) {
             $error_message = $_payment['actions'][0]['response_summary'];
         }
 

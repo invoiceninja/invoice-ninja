@@ -221,7 +221,7 @@ class QuoteController extends Controller
 
         $variables = false;
 
-        if($invitation = $quotes->first()->invitations()->first() ?? false) {
+        if ($invitation = $quotes->first()->invitations()->first() ?? false) {
             $variables = (new HtmlEngine($invitation))->generateLabelsAndValues();
         }
 

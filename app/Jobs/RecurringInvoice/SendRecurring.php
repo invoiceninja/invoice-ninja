@@ -62,8 +62,7 @@ class SendRecurring implements ShouldQueue
         // Generate Standard Invoice
         $invoice = RecurringInvoiceToInvoiceFactory::create($this->recurring_invoice, $this->recurring_invoice->client);
 
-        $date = now()->addSeconds($this->recurring_invoice->client->timezone_offset())->format('Y-m-d');
-        // $date = date('Y-m-d');
+        $date = date('Y-m-d'); //@todo this will always pull UTC date.
         $invoice->date = $date;
 
         nlog("Recurring Invoice Date Set on Invoice = {$invoice->date} - ". now()->format('Y-m-d'));
@@ -85,7 +84,6 @@ class SendRecurring implements ShouldQueue
                                ->save();
         }
 
-        //12-01-2023 i moved this block after fillDefaults to handle if standard invoice auto bill config has been enabled, recurring invoice should override.
         if ($this->recurring_invoice->auto_bill == 'always') {
             $invoice->auto_bill_enabled = true;
             $invoice->saveQuietly();
@@ -119,7 +117,7 @@ class SendRecurring implements ShouldQueue
             AutoBill::dispatch($invoice->id, $this->db, true)->delay(rand(1, 2));
 
             //04-08-2023 edge case to support where online payment notifications are not enabled
-            if(!$invoice->client->getSetting('client_online_payment_notification')) {
+            if (!$invoice->client->getSetting('client_online_payment_notification')) {
                 $this->sendRecurringEmails($invoice);
                 $invoice->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
             }
@@ -128,7 +126,7 @@ class SendRecurring implements ShouldQueue
             AutoBill::dispatch($invoice->id, $this->db, true)->delay(rand(1, 2));
 
             //04-08-2023 edge case to support where online payment notifications are not enabled
-            if(!$invoice->client->getSetting('client_online_payment_notification')) {
+            if (!$invoice->client->getSetting('client_online_payment_notification')) {
                 $this->sendRecurringEmails($invoice);
                 $invoice->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
             }
@@ -157,7 +155,7 @@ class SendRecurring implements ShouldQueue
         $invoice->invitations->each(function ($invitation) use ($invoice) {
             if ($invitation->contact && ! $invitation->contact->trashed() && strlen($invitation->contact->email) >= 1 && $invoice->client->getSetting('auto_email_invoice')) {
                 try {
-                    EmailEntity::dispatch($invitation->withoutRelations(), $invoice->company->db)->delay(rand(1, 2));
+                    EmailEntity::dispatch($invitation->withoutRelations(), $invoice->company->db, 'invoice')->delay(rand(1, 2));
                 } catch (\Exception $e) {
                     nlog($e->getMessage());
                 }

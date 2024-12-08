@@ -59,7 +59,7 @@ class PasswordProtection
             Cache::put(auth()->user()->hashed_id.'_'.auth()->user()->account_id.'_logged_in', Str::random(64), $timeout);
 
             return $next($request);
-        } elseif(strlen(auth()->user()->oauth_provider_id) > 2 && !auth()->user()->company()->oauth_password_required) {
+        } elseif (strlen(auth()->user()->oauth_provider_id) > 2 && !auth()->user()->company()->oauth_password_required) {
             return $next($request);
         } elseif ($request->header('X-API-OAUTH-PASSWORD') && strlen($request->header('X-API-OAUTH-PASSWORD')) > 1) {
             //user is attempting to reauth with OAuth - check the token value
@@ -92,7 +92,7 @@ class PasswordProtection
             } elseif (auth()->user()->oauth_provider_id == 'microsoft') {
                 try {
                     $payload = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', request()->header('X-API-OAUTH-PASSWORD'))[1]))));
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     nlog("Exception:: PasswordProtection::" . $e->getMessage());
                     nlog("could not decode microsoft response");
                     return response()->json(['message' => 'Could not decode the response from Microsoft'], 412);

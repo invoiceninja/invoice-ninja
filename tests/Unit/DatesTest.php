@@ -12,23 +12,14 @@
 namespace Tests\Unit;
 
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Tests\MockAccountData;
 use Tests\TestCase;
 
-/**
- * 
- */
 class DatesTest extends TestCase
 {
-    use MockAccountData;
-    use DatabaseTransactions;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // $this->makeTestData();
     }
 
     public function testDateNotGreaterThanMonthsEnd()

@@ -168,7 +168,7 @@ class ACSS implements LivewireMethodInterface
 
     public function paymentData(array $data): array
     {
-        if(count($data['tokens']) == 0) {
+        if (count($data['tokens']) == 0) {
             $hash = Str::random(32);
 
             Cache::put($hash, $data, 3600);
@@ -180,7 +180,7 @@ class ACSS implements LivewireMethodInterface
             $data['company_gateway'] = $this->stripe->company_gateway;
             $data['customer'] = $this->stripe->findOrCreateCustomer()->id;
             $data['country'] = $this->stripe->client->country->iso_3166_2;
-    
+
             $intent = \Stripe\SetupIntent::create([
                 'usage' => 'off_session',
                 'payment_method_types' => ['acss_debit'],
@@ -197,7 +197,7 @@ class ACSS implements LivewireMethodInterface
                     ],
                 ],
             ], $this->stripe->stripe_connect_auth);
-    
+
             $data['pi_client_secret'] = $intent->client_secret;
 
             return $data;
@@ -235,7 +235,7 @@ class ACSS implements LivewireMethodInterface
                 'invoices' => collect($data['invoices'])->map(fn ($invoice) => $invoice['invoice_id'])->toArray(),
                 'action' => 'payment',
             ];
-            
+
             $request = new ProcessInvoicesInBulkRequest();
             $request->replace($data);
 
@@ -407,8 +407,8 @@ class ACSS implements LivewireMethodInterface
             return $this->stripe->processInternallyFailedPayment($this->stripe, $e);
         }
     }
-    
-    public function livewirePaymentView(array $data): string 
+
+    public function livewirePaymentView(array $data): string
     {
         if (array_key_exists('needs_mandate_generate', $data)) {
             return 'gateways.stripe.acss.authorize_livewire';

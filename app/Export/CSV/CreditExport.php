@@ -75,7 +75,7 @@ class CreditExport extends BaseExport
             $clean_row[$key]['value'] = $row[$column_key];
             $clean_row[$key]['identifier'] = $value;
 
-            if(in_array($clean_row[$key]['id'], ['paid_to_date','total_taxes','amount', 'balance', 'partial', 'refunded', 'applied','unit_cost','cost','price'])) {
+            if (in_array($clean_row[$key]['id'], ['paid_to_date','total_taxes','amount', 'balance', 'partial', 'refunded', 'applied','unit_cost','cost','price'])) {
                 $clean_row[$key]['display_value'] = Number::formatMoney($row[$column_key], $resource->client);
             } else {
                 $clean_row[$key]['display_value'] = $row[$column_key];
@@ -114,15 +114,15 @@ class CreditExport extends BaseExport
 
         $clients = &$this->input['client_id'];
 
-        if($clients) {
+        if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
 
-        if($this->input['status'] ?? false) {
+        if ($this->input['status'] ?? false) {
             $query = $this->addCreditStatusFilter($query, $this->input['status']);
         }
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 
@@ -168,7 +168,7 @@ class CreditExport extends BaseExport
                 $entity[$keyval] = $transformed_credit[$credit_key];
             } elseif (isset($transformed_credit[$keyval])) {
                 $entity[$keyval] = $transformed_credit[$keyval];
-            } elseif(isset($transformed_credit[$searched_credit_key])) {
+            } elseif (isset($transformed_credit[$searched_credit_key])) {
                 $entity[$keyval] = $transformed_credit[$searched_credit_key];
             } else {
                 $entity[$key] = $this->decorator->transform($key, $credit);

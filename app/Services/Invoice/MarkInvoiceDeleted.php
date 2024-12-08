@@ -61,12 +61,12 @@ class MarkInvoiceDeleted extends AbstractService
 
     private function adjustPaidToDateAndBalance()
     {
-        
+
         $this->invoice
              ->client
              ->service()
              ->updateBalanceAndPaidToDate($this->balance_adjustment * -1, $this->adjustment_amount * -1)
-             ->save(); 
+             ->save();
 
         return $this;
     }
@@ -186,7 +186,7 @@ class MarkInvoiceDeleted extends AbstractService
 
     private function triggeredActions(): self
     {
-        if($this->invoice->quote) {
+        if ($this->invoice->quote) {
             $this->invoice->quote->invoice_id = null;
             $this->invoice->quote->status_id = Quote::STATUS_SENT;
             $this->invoice->pushQuietly();

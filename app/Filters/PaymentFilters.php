@@ -113,7 +113,7 @@ class PaymentFilters extends QueryFilters
                 $query->whereIn('status_id', $payment_filters);
             }
 
-            if(in_array('partially_unapplied', $status_parameters)) {
+            if (in_array('partially_unapplied', $status_parameters)) {
                 $query->whereColumn('amount', '>', 'applied')->where('refunded', 0);
             }
         });
@@ -175,7 +175,7 @@ class PaymentFilters extends QueryFilters
                     ->whereColumn('clients.id', 'payments.client_id'), $dir);
         }
 
-        if($sort_col[0] == 'number') {
+        if ($sort_col[0] == 'number') {
             return $this->builder->orderByRaw("REGEXP_REPLACE(number,'[^0-9]+','')+0 " . $dir);
         }
 
@@ -190,7 +190,7 @@ class PaymentFilters extends QueryFilters
             return $this->builder;
         }
 
-        if(!in_array($parts[0], ['date'])) {
+        if (!in_array($parts[0], ['date'])) {
             return $this->builder;
         }
 
@@ -200,7 +200,7 @@ class PaymentFilters extends QueryFilters
             $end_date = Carbon::parse($parts[2]);
 
             return $this->builder->whereBetween($parts[0], [$start_date, $end_date]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return $this->builder;
         }
 

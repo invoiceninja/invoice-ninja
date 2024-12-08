@@ -166,7 +166,7 @@ class PaymentLinkService
         // Redirects from here work just fine. Livewire will respect it.
         $client_contact = ClientContact::find($this->decodePrimaryKey($data['contact_id']));
 
-        if(is_string($data['client_id'])) {
+        if (is_string($data['client_id'])) {
             $data['client_id'] = $this->decodePrimaryKey($data['client_id']);
         }
 

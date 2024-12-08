@@ -83,7 +83,7 @@ class TemplateEmail extends Mailable
             $template_name = 'email.template.client';
         }
 
-        if($this->build_email->getTemplate() == 'premium') {
+        if ($this->build_email->getTemplate() == 'premium') {
             $template_name = 'email.template.client_premium';
         }
 
@@ -119,7 +119,7 @@ class TemplateEmail extends Mailable
         if (strlen($settings->bcc_email) > 1) {
             if (Ninja::isHosted()) {
 
-                if($company->account->isPaid()) {
+                if ($company->account->isPaid()) {
                     $bccs = explode(',', str_replace(' ', '', $settings->bcc_email));
                     $this->bcc(array_slice($bccs, 0, 5));
                 }
@@ -159,7 +159,7 @@ class TemplateEmail extends Mailable
             }
         }
 
-        if(!$this->invitation) {
+        if (!$this->invitation) {
             return $this;
         }
 

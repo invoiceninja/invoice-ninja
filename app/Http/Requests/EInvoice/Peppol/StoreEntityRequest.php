@@ -18,7 +18,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Auth\Access\AuthorizationException;
 use App\Http\Requests\EInvoice\Peppol\AddTaxIdentifierRequest;
 
-
 class StoreEntityRequest extends FormRequest
 {
     public function authorize(): bool
@@ -53,8 +52,8 @@ class StoreEntityRequest extends FormRequest
             'acts_as_sender' => ['required', 'bool'],
             'tenant_id' => ['required'],
             'classification' => ['required', 'in:business,individual'],
-            'vat_number' => [Rule::requiredIf(fn() => $this->input('classification') !== 'individual')],
-            'id_number' => [Rule::requiredIf(fn() => $this->input('classification') === 'individual')],
+            'vat_number' => [Rule::requiredIf(fn () => $this->input('classification') !== 'individual')],
+            'id_number' => [Rule::requiredIf(fn () => $this->input('classification') === 'individual')],
         ];
     }
 

@@ -229,12 +229,13 @@ class UpdatePaymentMethods
 
     private function buildPaymentMethodMeta(PaymentMethod $method, $type_id)
     {
-        
+
         switch ($type_id) {
             case GatewayType::CREDIT_CARD:
 
-                if($method->type == 'link')
+                if ($method->type == 'link') {
                     return new \stdClass();
+                }
 
                 /**
                  * @class \Stripe\PaymentMethod $method
@@ -256,7 +257,7 @@ class UpdatePaymentMethods
                 return $payment_meta;
             case GatewayType::ALIPAY:
             case GatewayType::SOFORT:
-            
+
                 return new \stdClass();
 
             case GatewayType::SEPA:

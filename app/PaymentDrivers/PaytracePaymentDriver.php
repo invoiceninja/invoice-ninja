@@ -254,7 +254,7 @@ class PaytracePaymentDriver extends BaseDriver
 
     public function getClientRequiredFields(): array
     {
-        
+
         $fields = [];
 
         if ($this->company_gateway->require_client_name) {
@@ -312,7 +312,7 @@ class PaytracePaymentDriver extends BaseDriver
         try {
             $this->init()->generateAuthHeaders() && strlen($this->company_gateway->getConfigField('integratorId')) > 2;
             return true;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
         }
 
@@ -336,25 +336,25 @@ class PaytracePaymentDriver extends BaseDriver
             $client_repo = new ClientRepository(new ClientContactRepository());
             $factory = new PaytraceCustomerFactory();
 
-            foreach($response->customers as $customer) {
+            foreach ($response->customers as $customer) {
                 $data = $factory->convertToNinja($customer, $this->company_gateway->company);
 
                 $client = false;
 
-                if(str_contains($data['contacts'][0]['email'], "@")) {
+                if (str_contains($data['contacts'][0]['email'], "@")) {
                     $client = ClientContact::query()
                                     ->where('company_id', $this->company_gateway->company_id)
                                     ->where('email', $data['contacts'][0]['email'])
                                     ->first()->client ?? false;
                 }
 
-                if(!$client) {
+                if (!$client) {
                     $client = $client_repo->save($data, ClientFactory::create($this->company_gateway->company_id, $this->company_gateway->user_id));
                 }
 
                 $this->client = $client;
 
-                if(ClientGatewayToken::query()->where('client_id', $client->id)->where('token', $data['card']['token'])->exists()) {
+                if (ClientGatewayToken::query()->where('client_id', $client->id)->where('token', $data['card']['token'])->exists()) {
                     continue;
                 }
 

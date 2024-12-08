@@ -88,7 +88,7 @@ class Document extends BaseModel
     protected $touches = [
         // 'documentable'
     ];
-    
+
     /**
      * @var array
      */
@@ -182,7 +182,7 @@ class Document extends BaseModel
     {
         try {
             return route('api.documents.show', ['document' => $this->hashed_id]).'/download';
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: Document::" . $e->getMessage());
             return '';
         }
@@ -242,7 +242,7 @@ class Document extends BaseModel
         $image = $this->getFile();
         $catch_image = $image;
 
-        if(!extension_loaded('imagick')) {
+        if (!extension_loaded('imagick')) {
             return $catch_image;
         }
 
@@ -256,7 +256,7 @@ class Document extends BaseModel
 
             return $img->getImageBlob();
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: Document::" . $e->getMessage());
             nlog($e->getMessage());
             return $catch_image;

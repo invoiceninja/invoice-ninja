@@ -82,7 +82,7 @@ class StorePaymentRequest extends Request
 
         $client_id = is_string($this->input('client_id', '')) ? $this->input('client_id') : '';
 
-        if(\Illuminate\Support\Facades\Cache::has($this->ip()."|".$this->input('amount', 0)."|".$client_id."|".$user->company()->company_key)) {
+        if (\Illuminate\Support\Facades\Cache::has($this->ip()."|".$this->input('amount', 0)."|".$client_id."|".$user->company()->company_key)) {
             throw new DuplicatePaymentException('Duplicate request.', 429);
         }
 
@@ -143,6 +143,10 @@ class StorePaymentRequest extends Request
 
         if (! isset($input['idempotency_key'])) {
             $input['idempotency_key'] = substr(time()."{$input['date']}{$input['amount']}{$credits_total}{$this->client_id}{$user->company()->company_key}", 0, 64);
+        }
+
+        if (array_key_exists('exchange_rate', $input) && $input['exchange_rate'] === null) {
+            unset($input['exchange_rate']);
         }
 
         $this->replace($input);

@@ -13,7 +13,6 @@ namespace App\Helpers;
 
 class Sanitizer
 {
-
     public static function removeBlanks($input): array
     {
         foreach ($input as &$value) {

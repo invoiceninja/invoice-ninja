@@ -46,7 +46,7 @@ class RequiredFields extends Component
     public ?string $client_custom_value4;
 
     // public $contact;
-    
+
     /** @var array<int, string> */
     public array $fields = [];
 
@@ -67,7 +67,7 @@ class RequiredFields extends Component
         $this->company_gateway = CompanyGateway::withTrashed()
             ->with('company')
             ->find($this->getContext()['company_gateway_id']);
-        
+
         $this->client_name = $contact->client->name;
         $this->contact_first_name = $contact->first_name;
         $this->contact_last_name = $contact->last_name;
@@ -97,10 +97,11 @@ class RequiredFields extends Component
         /** @var \App\Models\ClientContact $contact */
         $rff->check($contact);
 
-        if ($rff->unfilled_fields === 0 && !$this->company_gateway->always_show_required_fields)
+        if ($rff->unfilled_fields === 0 && !$this->company_gateway->always_show_required_fields) {
             $this->dispatch('required-fields');
-        else
+        } else {
             $this->is_loading = false;
+        }
 
     }
 
@@ -134,8 +135,8 @@ class RequiredFields extends Component
             'contact' => $this->getContext()['contact'],
         ]);
     }
-    
-    public function exception($e, $stopPropagation) 
+
+    public function exception($e, $stopPropagation)
     {
         app('sentry')->captureException($e);
         nlog($e->getMessage());

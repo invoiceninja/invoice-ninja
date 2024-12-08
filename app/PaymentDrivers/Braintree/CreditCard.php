@@ -77,7 +77,7 @@ class CreditCard implements LivewireMethodInterface
 
     public function paymentView(array $data)
     {
-       $data = $this->paymentData($data);
+        $data = $this->paymentData($data);
 
         return render('gateways.braintree.credit_card.pay', $data);
     }
@@ -274,15 +274,15 @@ class CreditCard implements LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.braintree.credit_card.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $data['gateway'] = $this->braintree;
         $data['client_token'] = $this->braintree->gateway->clientToken()->generate();

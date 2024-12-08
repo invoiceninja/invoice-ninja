@@ -31,7 +31,7 @@ class SendEmail
 
         if (!$this->contact) {
 
-            if($invoice = $this->payment->invoices->first() ?? false) {
+            if ($invoice = $this->payment->invoices->first() ?? false) {
 
                 $invitation =
                 $invoice
@@ -41,7 +41,7 @@ class SendEmail
                     })
                     ->first();
 
-                if($invitation) {
+                if ($invitation) {
                     $this->contact = $invitation->contact;
                 } else {
                     $this->contact = $this->payment->client->contacts()->orderBy('send_email', 'desc')->orderBy('is_primary', 'desc')->first();

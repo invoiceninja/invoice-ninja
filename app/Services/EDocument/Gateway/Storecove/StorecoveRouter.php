@@ -12,11 +12,11 @@
 namespace App\Services\EDocument\Gateway\Storecove;
 
 class StorecoveRouter
-{      
+{
     /**
      * Provides a country matrix for the correct scheme to send via
      * [ "iso_3166_2" =>  [<business_type>, <identifier1>, <tax_identifier>, <routing_identifier>]
-     * @var array $routing_rules 
+     * @var array $routing_rules
      **/
     private array $routing_rules = [
         "US" => [
@@ -104,10 +104,10 @@ class StorecoveRouter
     public function __construct()
     {
     }
-    
+
     /**
      * Return the routing code based on country and entity classification
-     * 
+     *
      * @param  string $country
      * @param  ?string $classification DE:STNR
      * @return string
@@ -115,16 +115,16 @@ class StorecoveRouter
     public function resolveRouting(string $country, ?string $classification = 'business'): string
     {
         $rules = $this->routing_rules[$country];
-            
+
         $code = 'B';
-        
+
         match($classification) {
             "business" => $code = "B",
             "government" => $code = "G",
             "individual" => $code = "C",
             default => $code = "B",
         };
-                
+
         //France determine routing scheme
         if ($this->invoice && $country == 'FR') {
 
@@ -137,28 +137,28 @@ class StorecoveRouter
             }
 
         }
-        
+
         //DE we can route via Steurnummer? double check with storecove @blocked
-        if($country == "DE" && $classification == 'individual'){
+        if ($country == "DE" && $classification == 'individual') {
             return 'DE:STNR';
         }
 
-        //Single array 
+        //Single array
         if (is_array($rules) && !is_array($rules[0])) {
             return $rules[3];
         }
 
         //Multi Array - iterate
-        foreach($rules as $rule) {
-            if(stripos($rule[0], $code) !== false) {
+        foreach ($rules as $rule) {
+            if (stripos($rule[0], $code) !== false) {
                 return $rule[3];
             }
         }
 
         return $rules[0][3];
     }
-    
-    public function setInvoice($invoice):self
+
+    public function setInvoice($invoice): self
     {
         $this->invoice = $invoice;
         return $this;
@@ -172,7 +172,7 @@ class StorecoveRouter
      */
     public function resolveTaxScheme(string $country, ?string $classification = "business"): string
     {
-                
+
         $rules = isset($this->routing_rules[$country]) ? $this->routing_rules[$country] : [false, false, false, false];
 
         $code = "B";
@@ -185,12 +185,12 @@ class StorecoveRouter
         };
 
         //single array
-        if(is_array($rules) && !is_array($rules[0])) {
+        if (is_array($rules) && !is_array($rules[0])) {
             return $rules[2];
         }
 
-        foreach($rules as $rule) {
-            if(stripos($rule[0], $code) !== false) {
+        foreach ($rules as $rule) {
+            if (stripos($rule[0], $code) !== false) {
                 return $rule[2];
             }
         }
@@ -204,47 +204,46 @@ class StorecoveRouter
         $country = $parts[0];
 
         $rules = $this->routing_rules[$country];
-        
+
         if (is_array($rules) && !is_array($rules[0])) {
-                    
+
             if (stripos($identifier, $rules[2]) !== false) {
                 return 'vat_number';
             } elseif (stripos($identifier, $rules[3]) !== false) {
                 return 'id_number';
             }
-            
-        }
-        else {
-            foreach($rules as $country_identifiers)
-            {
-                
-                if(stripos($identifier, $country_identifiers[2]) !== false)
+
+        } else {
+            foreach ($rules as $country_identifiers) {
+
+                if (stripos($identifier, $country_identifiers[2]) !== false) {
                     return 'vat_number';
-                elseif(stripos($identifier, $country_identifiers[3]) !== false)
+                } elseif (stripos($identifier, $country_identifiers[3]) !== false) {
                     return 'id_number';
+                }
             }
         }
 
         return '';
 
     }
-     /**
-     * used as a proxy for
-     * the schemeID of partyidentification
-     * property - for Storecove only:
-     *
-     * Used in the format key:value
-     *
-     * ie. IT:IVA / DE:VAT
-     *
-     * Note there are multiple options for the following countries:
-     *
-     * US (EIN/SSN) employer identification number / social security number
-     * IT (CF/IVA) Codice Fiscale (person/company identifier) / company vat number
-     *
-     * @var array
-     * @deprecated
-     */
+    /**
+    * used as a proxy for
+    * the schemeID of partyidentification
+    * property - for Storecove only:
+    *
+    * Used in the format key:value
+    *
+    * ie. IT:IVA / DE:VAT
+    *
+    * Note there are multiple options for the following countries:
+    *
+    * US (EIN/SSN) employer identification number / social security number
+    * IT (CF/IVA) Codice Fiscale (person/company identifier) / company vat number
+    *
+    * @var array
+    * @deprecated
+    */
     private array $schemeIdIdentifiers = [
         'US' => 'EIN',
         'US' => 'SSN',

@@ -34,11 +34,10 @@ use App\Http\Requests\ClientPortal\Payments\PaymentResponseRequest;
 
 class PaymentMethod implements MethodInterface, LivewireMethodInterface
 {
-
     private array $transaction = [
         "financial_transactions" => [],
-        "frequency" =>'Once',
-        "installments" =>1
+        "frequency" => 'Once',
+        "installments" => 1
     ];
 
     public function __construct(protected RotessaPaymentDriver $rotessa)
@@ -50,16 +49,16 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
      * Show the authorization page for Rotessa.
      *
      * @param array $data
-     * @return \Illuminate\View\View         
+     * @return \Illuminate\View\View
      */
     public function authorizeView(array $data): View
     {
         $data['contact'] = collect($data['client']->contacts->first()->toArray())->merge([
-            'home_phone' => $data['client']->phone, 
+            'home_phone' => $data['client']->phone,
             'custom_identifier' => $data['client']->number,
             'name' => $data['client']->name,
             'id' => null
-        ] )->all();
+        ])->all();
         $data['gateway'] = $this->rotessa;
         $data['gateway_type_id'] =   GatewayType::ACSS ;
         $data['account'] = [
@@ -67,8 +66,8 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
             'country' => $data['client']->country->iso_3166_2
         ];
         $data['address'] = collect($data['client']->toArray())->merge(['country' => $data['client']->country->iso_3166_2 ])->all();
-        
-        return render('gateways.rotessa.bank_transfer.authorize',  $data );
+
+        return render('gateways.rotessa.bank_transfer.authorize', $data);
     }
     /**
      * Handle the authorization page for Rotessa.
@@ -93,24 +92,23 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
             'bank_name' => ['required'],
             'phone' => ['required'],
             'home_phone' => ['required','size:10'],
-            'bank_account_type'=>['required_if:country,US'],
-            'routing_number'=>['required_if:country,US'],
-            'institution_number'=>['required_if:country,CA','numeric','digits:3'],
-            'transit_number'=>['required_if:country,CA','numeric','digits:5'],
-            'custom_identifier'=>['required_without:customer_id'],
-            'customer_id'=>['required_without:custom_identifier','integer'],
+            'bank_account_type' => ['required_if:country,US'],
+            'routing_number' => ['required_if:country,US'],
+            'institution_number' => ['required_if:country,CA','numeric','digits:3'],
+            'transit_number' => ['required_if:country,CA','numeric','digits:5'],
+            'custom_identifier' => ['required_without:customer_id'],
+            'customer_id' => ['required_without:custom_identifier','integer'],
             'customer_type' => ['required', 'in:Personal,Business'],
         ]);
 
-        $customer = array_merge(['address' => $request->only('address_1','address_2','city','postal_code','province_code','country'), 'custom_identifier' => $request->input('custom_identifier') ], $request->all());
+        $customer = array_merge(['address' => $request->only('address_1', 'address_2', 'city', 'postal_code', 'province_code', 'country'), 'custom_identifier' => $request->input('custom_identifier') ], $request->all());
 
-        try{
+        try {
             $this->rotessa->findOrCreateCustomer($customer);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
 
-            $message = json_decode($e->getMessage(), true);        
-            
+            $message = json_decode($e->getMessage(), true);
+
             return redirect()->route('client.payment_methods.index')->withErrors(array_values($message['errors'] ?? [$e->getMessage()]));
 
         }
@@ -138,7 +136,7 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
      * Payment view for the Rotessa.
      *
      * @param array $data
-     * @return \Illuminate\View\View         
+     * @return \Illuminate\View\View
      */
     public function paymentView(array $data): View
     {
@@ -148,7 +146,7 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
             return $this->authorizeView($data);
         }
 
-        return render('gateways.rotessa.bank_transfer.pay', $data );
+        return render('gateways.rotessa.bank_transfer.pay', $data);
     }
 
     /**
@@ -159,7 +157,7 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
     public function paymentResponse(PaymentResponseRequest $request)
     {
 
-        $response= null;
+        $response = null;
         $customer = null;
 
         try {
@@ -171,35 +169,38 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
                 ->where('token', $request->input('source'))
                 ->first();
 
-            if(!$customer) throw new \Exception('Client gateway token not found!',  SystemLog::TYPE_ROTESSA);
+            if (!$customer) {
+                throw new \Exception('Client gateway token not found!', SystemLog::TYPE_ROTESSA);
+            }
 
-            $transaction = array_merge($this->transaction,[
+            $transaction = array_merge($this->transaction, [
                 'amount' => $request->input('amount'),
                 'process_date' => now()->addSeconds($customer->client->utc_offset())->format('Y-m-d'),
                 'comment' => $this->rotessa->getDescription(false),
                 'customer_id' => $customer->gateway_customer_reference,
             ]);
 
-            $response = $this->rotessa->gatewayRequest('post','transaction_schedules', $transaction);
-            
-            if($response->failed()) 
-                $response->throw(); 
-            
+            $response = $this->rotessa->gatewayRequest('post', 'transaction_schedules', $transaction);
+
+            if ($response->failed()) {
+                $response->throw();
+            }
+
             $response = $response->json();
 
-           return  $this->processPendingPayment($response['id'], (float) $response['amount'], PaymentType::ACSS , $customer->token);
-        } catch(\Throwable $e) {
-            $this->processUnsuccessfulPayment( new \Exception($e->getMessage(), (int) $e->getCode()) );
+            return  $this->processPendingPayment($response['id'], (float) $response['amount'], PaymentType::ACSS, $customer->token);
+        } catch (\Throwable $e) {
+            $this->processUnsuccessfulPayment(new \Exception($e->getMessage(), (int) $e->getCode()));
         }
     }
 
-    public function processPendingPayment($payment_id, float $amount, int $gateway_type_id, $payment_method )
+    public function processPendingPayment($payment_id, float $amount, int $gateway_type_id, $payment_method)
     {
         $data = [
             'payment_method' => $payment_method,
             'payment_type' => $gateway_type_id,
             'amount' => $amount,
-            'transaction_reference' =>$payment_id,
+            'transaction_reference' => $payment_id,
             'gateway_type_id' => $gateway_type_id,
         ];
         $payment = $this->rotessa->createPayment($data, Payment::STATUS_PENDING);
@@ -241,7 +242,7 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         if (array_key_exists('authorize_then_redirect', $data)) {
             return 'gateways.rotessa.bank_transfer.authorize_livewire';
@@ -249,11 +250,11 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
 
         return 'gateways.rotessa.bank_transfer.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $data['gateway'] = $this->rotessa;
         $data['amount'] = $data['total']['amount_with_fee'];
@@ -262,18 +263,18 @@ class PaymentMethod implements MethodInterface, LivewireMethodInterface
         $data['currency'] = $this->rotessa->client->getCurrencyCode();
         $data['frequency'] = 'Once';
         $data['installments'] = 1;
-        $data['invoice_nums'] = $data['invoices']->pluck('invoice_number')->join(', '); 
+        $data['invoice_nums'] = $data['invoices']->pluck('invoice_number')->join(', ');
         $data['payment_hash'] = $this->rotessa->payment_hash->hash;
 
         if (count($data['tokens']) === 0) {
             $data['authorize_then_redirect'] = true;
 
             $data['contact'] = collect($data['client']->contacts->first()->toArray())->merge([
-                'home_phone' => $data['client']->phone, 
+                'home_phone' => $data['client']->phone,
                 'custom_identifier' => $data['client']->number,
                 'name' => $data['client']->name,
                 'id' => null
-            ] )->all();
+            ])->all();
             $data['gateway'] = $this->rotessa;
             $data['gateway_type_id'] =   GatewayType::ACSS ;
             $data['account'] = [

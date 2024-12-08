@@ -86,16 +86,16 @@ trait CompanySettingsSaver
 
         $entity->settings = $company_settings;
 
-        if($entity?->calculate_taxes && $company_settings->country_id == "840" && array_key_exists('settings', $entity->getDirty()) && !$entity?->account->isFreeHostedClient()) {
+        if ($entity?->calculate_taxes && $company_settings->country_id == "840" && array_key_exists('settings', $entity->getDirty()) && !$entity?->account->isFreeHostedClient()) {
             $old_settings = $entity->getOriginal()['settings'];
 
             /** Monitor changes of the Postal code */
-            if($old_settings->postal_code != $company_settings->postal_code) {
+            if ($old_settings->postal_code != $company_settings->postal_code) {
                 CompanyTaxRate::dispatch($entity);
             }
 
 
-        } elseif($entity?->calculate_taxes && $company_settings->country_id == "840" && array_key_exists('calculate_taxes', $entity->getDirty()) && $entity->getOriginal('calculate_taxes') == 0 && !$entity?->account->isFreeHostedClient()) {
+        } elseif ($entity?->calculate_taxes && $company_settings->country_id == "840" && array_key_exists('calculate_taxes', $entity->getDirty()) && $entity->getOriginal('calculate_taxes') == 0 && !$entity?->account->isFreeHostedClient()) {
             CompanyTaxRate::dispatch($entity);
         }
 
@@ -132,11 +132,10 @@ trait CompanySettingsSaver
 
                 continue;
             }
-            /*Separate loop if it is a _id field which is an integer cast as a string*/
-            elseif (substr($key, -3) == '_id' || substr($key, -14) == 'number_counter') {
+            /*Separate loop if it is a _id field which is an integer cast as a string*/ elseif (substr($key, -3) == '_id' || substr($key, -14) == 'number_counter') {
                 $value = 'integer';
 
-                if(in_array($key, $this->string_ids)) {
+                if (in_array($key, $this->string_ids)) {
                     // if ($key == 'besr_id') {
                     $value = 'string';
                 }
@@ -205,7 +204,7 @@ trait CompanySettingsSaver
             if (substr($key, -3) == '_id' || substr($key, -14) == 'number_counter') {
                 $value = 'integer';
 
-                if(in_array($key, $this->string_ids)) {
+                if (in_array($key, $this->string_ids)) {
                     $value = 'string';
                 }
 

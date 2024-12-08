@@ -13,7 +13,6 @@ namespace App\Services\EDocument\Gateway;
 
 interface MutatorInterface
 {
-
     public function receiverSpecificLevelMutators(): self;
 
     public function senderSpecificLevelMutators(): self;

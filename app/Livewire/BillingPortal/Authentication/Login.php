@@ -176,7 +176,7 @@ class Login extends Component
             // $this->dispatch('purchase.context', property: 'contact', value: auth()->guard('contact')->user());
             $this->dispatch('purchase.next');
         }
-        
+
     }
 
     public function render(): \Illuminate\View\View

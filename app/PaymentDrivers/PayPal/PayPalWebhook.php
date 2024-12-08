@@ -56,11 +56,11 @@ class PayPalWebhook implements ShouldQueue
         // $this->endpoint = $this->test_endpoint;
 
         //this can cause problems verifying the webhook, so unset it if it exists
-        if(isset($this->webhook_request['q'])) {
+        if (isset($this->webhook_request['q'])) {
             unset($this->webhook_request['q']);
         }
 
-        if($this->verifyWebhook()) {
+        if ($this->verifyWebhook()) {
             nlog('verified');
 
             match($this->webhook_request['event_type']) {//@phpstan-ignore-line
@@ -200,7 +200,7 @@ class PayPalWebhook implements ShouldQueue
         $amount = $order['purchase_units'][0]['payments']['captures'][0]['amount']['value'];
         $payment_hash = MultiDB::findAndSetByPaymentHash($order['purchase_units'][0]['custom_id']);
         $merchant_id = $order['purchase_units'][0]['payee']['merchant_id'];
-        if(!$payment_hash) {
+        if (!$payment_hash) {
 
             $ninja_company = Company::on('db-ninja-01')->find(config('ninja.ninja_default_company_id'));
             $ninja_company->notification(new PayPalUnlinkedTransaction($order['id'], $transaction_reference))->ninja();
@@ -208,15 +208,15 @@ class PayPalWebhook implements ShouldQueue
         }
 
         nlog("payment completed check");
-        if($payment_hash->payment && $payment_hash->payment->status_id == Payment::STATUS_COMPLETED) { // Payment made, all good!
+        if ($payment_hash->payment && $payment_hash->payment->status_id == Payment::STATUS_COMPLETED) { // Payment made, all good!
             return;
         }
 
         nlog("invoice paid check");
-        if($payment_hash->fee_invoice && $payment_hash->fee_invoice->status_id == Invoice::STATUS_PAID) { // Payment made, all good!
+        if ($payment_hash->fee_invoice && $payment_hash->fee_invoice->status_id == Invoice::STATUS_PAID) { // Payment made, all good!
 
             nlog("payment status check");
-            if($payment_hash->payment && $payment_hash->payment->status_id != Payment::STATUS_COMPLETED) { // Make sure the payment is marked as completed
+            if ($payment_hash->payment && $payment_hash->payment->status_id != Payment::STATUS_COMPLETED) { // Make sure the payment is marked as completed
                 $payment_hash->payment->status_id = Payment::STATUS_COMPLETED;
                 $payment_hash->push();
             }
@@ -224,11 +224,11 @@ class PayPalWebhook implements ShouldQueue
         }
 
         nlog("create payment check");
-        if($payment_hash->fee_invoice && in_array($payment_hash->fee_invoice->status_id, [Invoice::STATUS_SENT, Invoice::STATUS_PARTIAL])) {
+        if ($payment_hash->fee_invoice && in_array($payment_hash->fee_invoice->status_id, [Invoice::STATUS_SENT, Invoice::STATUS_PARTIAL])) {
 
             $payment = Payment::where('transaction_reference', $transaction_reference)->first();
 
-            if(!$payment) {
+            if (!$payment) {
                 nlog("make payment here!");
                 $payment = $this->createPayment($payment_hash, [
                     'amount' => $amount,
@@ -268,7 +268,7 @@ class PayPalWebhook implements ShouldQueue
         $order = $driver->getOrder($this->webhook_request['resource']['id']);
         $source = 'paypal';
 
-        if(isset($order['payment_source'])) {
+        if (isset($order['payment_source'])) {
             $source = array_key_first($order['payment_source']);
         }
 
@@ -300,7 +300,7 @@ class PayPalWebhook implements ShouldQueue
             ->first(function ($cg) use ($merchant_id) { //@phpstan-ignore-line
                 $config = $cg->getConfig();
 
-                if($config->merchantId == $merchant_id) {
+                if ($config->merchantId == $merchant_id) {
                     return $cg;
                 }
 
@@ -336,7 +336,7 @@ class PayPalWebhook implements ShouldQueue
         nlog($r);
         nlog($r->json());
 
-        if($r->successful() && $r->json()['verification_status'] == 'SUCCESS') {
+        if ($r->successful() && $r->json()['verification_status'] == 'SUCCESS') {
             return true;
         }
 

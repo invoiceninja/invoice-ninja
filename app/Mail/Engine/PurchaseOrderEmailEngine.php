@@ -123,7 +123,7 @@ class PurchaseOrderEmailEngine extends BaseEmailEngine
 
             $pdf = (new CreateRawPdf($this->invitation))->handle();
 
-            if($this->vendor->getSetting('embed_documents') && ($this->purchase_order->documents()->where('is_public', true)->count() > 0 || $this->purchase_order->company->documents()->where('is_public', true)->count() > 0)) {
+            if ($this->vendor->getSetting('embed_documents') && ($this->purchase_order->documents()->where('is_public', true)->count() > 0 || $this->purchase_order->company->documents()->where('is_public', true)->count() > 0)) {
                 $pdf = $this->purchase_order->documentMerge($pdf);
             }
 

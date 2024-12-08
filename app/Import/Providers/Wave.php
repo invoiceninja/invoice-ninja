@@ -117,8 +117,8 @@ class Wave extends BaseImport implements ImportInterface
 
         $this->transformer = new InvoiceTransformer($this->company);
 
-        foreach($data as $key => $invoice) {
-            if(!isset($invoice['Invoice Number']) || empty($invoice['Invoice Number'])) {
+        foreach ($data as $key => $invoice) {
+            if (!isset($invoice['Invoice Number']) || empty($invoice['Invoice Number'])) {
                 unset($data[$key]);
             }
         }
@@ -233,7 +233,7 @@ class Wave extends BaseImport implements ImportInterface
 
         foreach ($expenses as $raw_expense) {
 
-            if(!is_array($raw_expense)) {
+            if (!is_array($raw_expense)) {
                 continue;
             }
 
@@ -244,7 +244,7 @@ class Wave extends BaseImport implements ImportInterface
                 if (empty($expense_data['vendor_id'])) {
                     $vendor_data['user_id'] = $this->getUserIDForRecord($expense_data);
 
-                    if(isset($raw_expense['Vendor Name']) || isset($raw_expense['Vendor'])) {
+                    if (isset($raw_expense['Vendor Name']) || isset($raw_expense['Vendor'])) {
                         $vendor_repository->save(
                             ['name' => isset($raw_expense['Vendor Name']) ? $raw_expense['Vendor Name'] : isset($raw_expense['Vendor'])],
                             $vendor = VendorFactory::create(

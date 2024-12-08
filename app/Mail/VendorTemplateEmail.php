@@ -75,7 +75,7 @@ class VendorTemplateEmail extends Mailable
             $template_name = 'email.template.client';
         }
 
-        if($this->build_email->getTemplate() == 'premium') {
+        if ($this->build_email->getTemplate() == 'premium') {
             $template_name = 'email.template.client_premium';
         }
 
@@ -110,7 +110,7 @@ class VendorTemplateEmail extends Mailable
 
             if (Ninja::isHosted()) {
 
-                if($this->company->account->isPaid()) {
+                if ($this->company->account->isPaid()) {
                     $bccs = explode(',', str_replace(' ', '', $settings->bcc_email));
                     $this->bcc(array_slice($bccs, 0, 5));
                 }

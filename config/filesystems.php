@@ -64,6 +64,23 @@ return [
             'throw' => false,
         ],
 
+        'debian_docker' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL').'/storage',
+            'permissions' => [
+                'file' => [
+                    'public' => 0664,
+                    'private' => 0600,
+                ],
+                'dir' => [
+                    'public' => 0775,
+                    'private' => 0700,
+                ],
+            ],
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => public_path('storage'),
@@ -116,6 +133,31 @@ return [
             'path_prefix' => env('GOOGLE_CLOUD_STORAGE_PATH_PREFIX', null), // optional: /default/path/to/apply/in/bucket
             'storage_api_uri' => env('GOOGLE_CLOUD_STORAGE_API_URI', null), // see: Public URLs below
             'visibility' => 'public', // optional: public|private
+        ],
+
+        's3p' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_IDP'),
+            'secret' => env('AWS_SECRET_ACCESS_KEYP'),
+            'region' => env('AWS_DEFAULT_REGIONP'),
+            'bucket' => env('AWS_BUCKETP'),
+            'url' => env('AWS_URLP'),
+            'visibility' => 'private',
+            'endpoint' => env('AWS_ENDPOINTP'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINTP', false),
+            'throw' => false,
+        ],
+        'backup' => [
+            'driver' => 's3',
+            'key' => env('R2_ACCESS_KEY_ID_BACKUP'),
+            'secret' => env('R2_SECRET_ACCESS_KEY_BACKUP'),
+            'region' => env('R2_DEFAULT_REGION_BACKUP'),
+            'bucket' => env('R2_BUCKET_BACKUP'),
+            'url' => env('R2_URL_BACKUP'),
+            'visibility' => 'private',
+            'endpoint' => env('R2_ENDPOINT_BACKUP'),
+            'use_path_style_endpoint' => env('R2_USE_PATH_STYLE_ENDPOINT_BACKUP', false),
+            'throw' => false,
         ],
 
     ],

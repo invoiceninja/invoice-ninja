@@ -38,7 +38,7 @@ class CreditCard implements LivewireMethodInterface
     public function authorizeView($data)
     {
         $data = $this->paymentData($data);
-        
+
         return render('gateways.paytrace.authorize', $data);
     }
 
@@ -239,7 +239,7 @@ class CreditCard implements LivewireMethodInterface
         ];
 
         return $this->paytrace->processUnsuccessfulTransaction($data);
-    } 
+    }
 
     /**
      * @inheritDoc
@@ -248,7 +248,7 @@ class CreditCard implements LivewireMethodInterface
     {
         return 'gateways.paytrace.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */

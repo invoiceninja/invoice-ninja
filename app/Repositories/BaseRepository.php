@@ -147,7 +147,7 @@ class BaseRepository
      * @throws \ReflectionException
      */
     protected function alternativeSave($data, $model)
-    {   
+    {
         if (array_key_exists('client_id', $data)) {
             $model->client_id = $data['client_id'];
         }
@@ -202,12 +202,13 @@ class BaseRepository
 
         $model->saveQuietly();
 
-        if(method_exists($model, 'searchable'))
+        if (method_exists($model, 'searchable')) {
             $model->searchable();
-        
+        }
+
         /* Model now persisted, now lets do some child tasks */
 
-        if ($model instanceof Invoice) {
+        if ($model instanceof Invoice || $model instanceof Quote) {
             $model->service()->setReminder()->save();
         }
 
@@ -324,12 +325,10 @@ class BaseRepository
             }
 
             /** If Peppol is enabled - we will save the e_invoice document here at this point, document will not update after being sent */
-            if((!isset($model->backup) || !property_exists($model->backup, 'guid')) && $client->getSetting('e_invoice_type') == 'PEPPOL' && $model->company->legal_entity_id)
-            {
-                try{
+            if ((!isset($model->backup) || !property_exists($model->backup, 'guid')) && $client->getSetting('e_invoice_type') == 'PEPPOL' && $model->company->legal_entity_id) {
+                try {
                     $model->service()->getEInvoice();
-                }
-                catch(\Throwable $e){
+                } catch (\Throwable $e) {
                     nlog("EXCEPTION:: BASEREPOSITORY:: Error generating e_invoice for model {$model->id}");
                     nlog($e->getMessage());
                 }
@@ -396,24 +395,23 @@ class BaseRepository
     public function bulkUpdate(\Illuminate\Database\Eloquent\Builder $model, string $column, mixed $new_value): void
     {
         /** Handle taxes being updated */
-        if(in_array($column, ['tax1','tax2','tax3'])) {
+        if (in_array($column, ['tax1','tax2','tax3'])) {
 
             $parts = explode("||", $new_value);
             $tax_name_column = str_replace("tax", "tax_name", $column);
             $tax_rate_column = str_replace("tax", "tax_rate", $column);
 
             /** Harvest the tax name and rate */
-            if (count($parts) == 2)   
-            {
-                
+            if (count($parts) == 2) {
+
                 $rate = filter_var($parts[1], FILTER_VALIDATE_FLOAT);
                 $tax_name = $parts[0];
-                
-                if ($rate === false)
+
+                if ($rate === false) {
                     return;
-                
-            }
-            else { //else we need to clear the value
+                }
+
+            } else { //else we need to clear the value
 
                 $rate = 0;
                 $tax_name = "";

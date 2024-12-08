@@ -51,7 +51,7 @@ class BillingPortalPurchasev2 extends Component
      */
     public $email;
 
-   
+
     public $subscription_id;
 
 
@@ -151,7 +151,7 @@ class BillingPortalPurchasev2 extends Component
     {
         return Subscription::query()->with('company')->find($this->subscription_id);
     }
-    
+
     #[Computed]
     public function contact()
     {
@@ -184,7 +184,7 @@ class BillingPortalPurchasev2 extends Component
 
         $this->price = $subscription->price; // ?
         $this->float_amount_total = $this->price;
-        
+
         $this->products = $subscription->service()->products();
         $this->recurring_products = $subscription->service()->recurring_products();
         $this->optional_recurring_products = $subscription->service()->optional_recurring_products();
@@ -229,7 +229,7 @@ class BillingPortalPurchasev2 extends Component
 
         if ($contact) {
             Auth::guard('contact')->loginUsingId($contact->id, true);
-            
+
         } else {
             $this->createBlankClient();
         }
@@ -280,7 +280,7 @@ class BillingPortalPurchasev2 extends Component
      */
     public function handleCoupon()
     {
-        
+
         $subscription = $this->subscription();
 
         $this->resetErrorBag('coupon');
@@ -450,9 +450,9 @@ class BillingPortalPurchasev2 extends Component
             $this->methods = $contact->client->service()->getPaymentMethods($this->float_amount_total);
         }
 
-        foreach($this->methods as $method) {
+        foreach ($this->methods as $method) {
 
-            if($method['is_paypal'] == '1' && !$this->check_rff) {
+            if ($method['is_paypal'] == '1' && !$this->check_rff) {
                 $this->rff();
                 break;
             }
@@ -473,7 +473,7 @@ class BillingPortalPurchasev2 extends Component
         $this->client_city = $contact->client->city;
         $this->client_postal_code = $contact->client->postal_code;
 
-        if(
+        if (
             strlen($this->contact_first_name ?? '') == 0 ||
             strlen($this->contact_last_name ?? '') == 0 ||
             strlen($this->contact_email ?? '') == 0 ||
@@ -736,14 +736,14 @@ class BillingPortalPurchasev2 extends Component
             /** @var \Illuminate\Support\Collection<\App\Models\Currency> */
             $currencies = app('currencies');
 
-            $currency = $currencies->first(function ($item) use($subscription) {
+            $currency = $currencies->first(function ($item) use ($subscription) {
                 return $item->id == $subscription->group_settings->settings->currency_id;
             });
 
             if ($currency) {
                 $data['settings']->currency_id = $currency->id;
             }
-        }else {
+        } else {
             $data['settings']->currency_id = $subscription->company->getSetting('currency_id');
         }
 
@@ -764,9 +764,9 @@ class BillingPortalPurchasev2 extends Component
 
         $client = $client_repo->save($data, ClientFactory::create($company->id, $user->id));
         $contact = $client->fresh()->contacts->first();
-        
+
         Auth::guard('contact')->loginUsingId($contact->id, true);
-        
+
         return $contact;
     }
 

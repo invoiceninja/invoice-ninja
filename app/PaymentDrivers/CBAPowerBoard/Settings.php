@@ -12,9 +12,7 @@
 
 namespace App\PaymentDrivers\CBAPowerBoard;
 
-
 use App\Models\GatewayType;
-
 use App\PaymentDrivers\CBAPowerBoardPaymentDriver;
 use App\PaymentDrivers\CBAPowerBoard\Models\Gateway;
 use App\PaymentDrivers\CBAPowerBoard\Models\Gateways;
@@ -25,11 +23,11 @@ class Settings
     protected const GATEWAY_AFTERPAY = 'Afterpay';
     protected const GATEWAY_PAYPAL = 'Paypal';
     protected const GATEWAY_ZIP = 'Zipmoney';
-    
+
     public function __construct(public CBAPowerBoardPaymentDriver $powerboard)
     {
     }
-    
+
     /**
      * Returns the API response for the gateways
      *
@@ -39,20 +37,21 @@ class Settings
     {
         $r = $this->powerboard->gatewayRequest('/v1/gateways', (\App\Enum\HttpVerb::GET)->value, [], []);
 
-        if($r->failed())
+        if ($r->failed()) {
             $r->throw();
-        
+        }
+
         return (new \App\PaymentDrivers\CBAPowerBoard\Models\Parse())->encode(Gateway::class."[]", $r->object()->resource->data);
 
     }
 
-    /** We will need to have a process that updates this at intervals */    
+    /** We will need to have a process that updates this at intervals */
     /**
      * updateSettings from the API
      *
      * @return self
      */
-    public function updateSettings():self
+    public function updateSettings(): self
     {
         $gateways = $this->getGateways();
 
@@ -62,7 +61,7 @@ class Settings
 
         return $this;
     }
-    
+
     /**
      * getSettings
      *
@@ -72,7 +71,7 @@ class Settings
     {
         return $this->powerboard->company_gateway->getSettings();
     }
-    
+
     /**
      * Entry point for getting the payment gateway configuration
      *
@@ -83,14 +82,14 @@ class Settings
     {
         $type = self::GATEWAY_CBA;
 
-        match($gateway_type_id){
+        match($gateway_type_id) {
             \App\Models\GatewayType::CREDIT_CARD => $type = self::GATEWAY_CBA,
             default => $type = self::GATEWAY_CBA,
         };
 
         return $this->getGatewayByType($type);
     }
-    
+
     /**
      * Returns the CBA gateway object for a given gateway type
      *
@@ -101,26 +100,26 @@ class Settings
     {
         $settings = $this->getSettings();
 
-        if(!property_exists($settings, 'gateways')){
+        if (!property_exists($settings, 'gateways')) {
             $this->updateSettings();
             $settings = $this->getSettings();
         }
-        
+
         $gateways = (new \App\PaymentDrivers\CBAPowerBoard\Models\Parse())->encode(Gateway::class."[]", $settings->gateways);
 
         if ($gateway_type_const == self::GATEWAY_CBA && strlen($this->powerboard->company_gateway->getConfigField('gatewayId') ?? '') > 1) {
-                            
-                return collect($gateways)->first(function (Gateway $gateway) {
-                    return $gateway->_id == $this->powerboard->company_gateway->getConfigField('gatewayId');
-                });
+
+            return collect($gateways)->first(function (Gateway $gateway) {
+                return $gateway->_id == $this->powerboard->company_gateway->getConfigField('gatewayId');
+            });
 
         }
 
-        return collect($gateways)->first(function (Gateway $gateway) use ($gateway_type_const){
+        return collect($gateways)->first(function (Gateway $gateway) use ($gateway_type_const) {
             return $gateway->type == $gateway_type_const;
         });
     }
-        
+
     /**
      * Returns the CBA gateway ID for a given gateway type
      *

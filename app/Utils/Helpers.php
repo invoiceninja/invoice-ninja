@@ -59,7 +59,7 @@ class Helpers
         $custom_field = '';
         $quote_or_credit_field = false;
 
-        if($custom_fields && stripos($field, 'quote') !== false && property_exists($custom_fields, $field)) {
+        if ($custom_fields && stripos($field, 'quote') !== false && property_exists($custom_fields, $field)) {
             $custom_field = $custom_fields->{$field};
             $custom_field_parts = explode('|', $custom_field);
 
@@ -69,7 +69,7 @@ class Helpers
 
             $quote_or_credit_field = true;
 
-        } elseif($custom_fields && stripos($field, 'credit') !== false && property_exists($custom_fields, $field)) {
+        } elseif ($custom_fields && stripos($field, 'credit') !== false && property_exists($custom_fields, $field)) {
             $custom_field = $custom_fields->{$field};
             $custom_field_parts = explode('|', $custom_field);
 
@@ -79,9 +79,9 @@ class Helpers
 
             $quote_or_credit_field = true;
 
-        } elseif($custom_fields && stripos($field, 'credit') !== false) {
+        } elseif ($custom_fields && stripos($field, 'credit') !== false) {
             $field = str_replace("credit", "invoice", $field);
-        } elseif($custom_fields && stripos($field, 'quote') !== false) {
+        } elseif ($custom_fields && stripos($field, 'quote') !== false) {
             $field = str_replace("quote", "invoice", $field);
         }
 

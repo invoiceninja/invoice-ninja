@@ -380,10 +380,10 @@ class Design extends BaseDesign
         // We don't want to show account balance or invoice total on PDF.. or any amount with currency.
         if ($this->type == self::DELIVERY_NOTE) {
             $variables = array_filter($variables, function ($m) {
-                return !in_array($m, ['$invoice.balance_due', '$invoice.total']);
+                return !in_array($m, ['$invoice.balance_due', '$invoice.total', '$invoice.amount']);
             });
         }
-        
+
         foreach ($variables as $variable) {
             $_variable = explode('.', $variable)[1];
             $_customs = ['custom1', 'custom2', 'custom3', 'custom4'];
@@ -403,7 +403,7 @@ class Design extends BaseDesign
                 ]];
             }
         }
-        
+
         return $elements;
     }
 
@@ -528,7 +528,7 @@ class Design extends BaseDesign
 
     public function statementInvoiceTableTotals(): array
     {
-        
+
         if ($this->type !== self::STATEMENT) {
             return [];
         }
@@ -574,23 +574,23 @@ class Design extends BaseDesign
                 $tbody[] = $element;
 
                 $this->payment_amount_total += $payment->pivot->amount;
-            
+
                 if ($payment->pivot->refunded > 0) {
 
                     $refund_date = $payment->date;
 
-                    if($payment->refund_meta && is_array($payment->refund_meta)){
+                    if ($payment->refund_meta && is_array($payment->refund_meta)) {
 
-                        $refund_array = collect($payment->refund_meta)->first(function ($meta) use($invoice){
-                            foreach($meta['invoices'] as $refunded_invoice){
-                                
+                        $refund_array = collect($payment->refund_meta)->first(function ($meta) use ($invoice) {
+                            foreach ($meta['invoices'] as $refunded_invoice) {
+
                                 if ($refunded_invoice['invoice_id'] == $invoice->id) {
                                     return true;
                                 }
 
                             }
                         });
-                        
+
                         $refund_date = $refund_array['date'];
                     }
 
@@ -605,8 +605,8 @@ class Design extends BaseDesign
                     $this->payment_amount_total -= $payment->pivot->refunded;
 
                 }
-            
-        }
+
+            }
 
 
         }
@@ -687,9 +687,9 @@ class Design extends BaseDesign
         ];
     }
 
-    public function statementUnappliedPaymentTableTotals():array
+    public function statementUnappliedPaymentTableTotals(): array
     {
-                
+
         if (is_null($this->unapplied_payments) || !$this->unapplied_payments->first() || $this->type !== self::STATEMENT) {
             return [];
         }
@@ -713,7 +713,7 @@ class Design extends BaseDesign
      */
     public function statementUnappliedPaymentTable(): array
     {
-      
+
         if (is_null($this->unapplied_payments) && $this->type !== self::STATEMENT) {
             return [];
         }
@@ -727,8 +727,8 @@ class Design extends BaseDesign
         //24-03-2022 show payments per invoice
         foreach ($this->unapplied_payments as $unapplied_payment) {
             if ($unapplied_payment->is_deleted) {
-                    continue;
-                }
+                continue;
+            }
 
             $element = ['element' => 'tr', 'elements' => []];
             $element['elements'][] = ['element' => 'td', 'content' => $unapplied_payment->number];

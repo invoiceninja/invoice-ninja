@@ -72,10 +72,10 @@ class CBAPowerBoardPaymentDriver extends BaseDriver
 
     public function init(): self
     {
-        if($this->company_gateway->getConfigField('testMode')) {
+        if ($this->company_gateway->getConfigField('testMode')) {
             $this->widget_endpoint = 'https://widget.preproduction.powerboard.commbank.com.au/sdk/latest/widget.umd.min.js';
-            $this->api_endpoint = 'https://api.preproduction.powerboard.commbank.com.au';     
-            $this->environment = 'preproduction_cba';   
+            $this->api_endpoint = 'https://api.preproduction.powerboard.commbank.com.au';
+            $this->environment = 'preproduction_cba';
         }
 
         return $this;
@@ -134,7 +134,7 @@ class CBAPowerBoardPaymentDriver extends BaseDriver
      * @return mixed
      */
     public function processPaymentResponse($request)
-    {       
+    {
         return $this->payment_method->paymentResponse($request);
     }
 
@@ -175,7 +175,7 @@ class CBAPowerBoardPaymentDriver extends BaseDriver
 
     public function tokenBilling(ClientGatewayToken $cgt, PaymentHash $payment_hash)
     {
-        
+
         $this->init();
 
         $this->setPaymentMethod($cgt->gateway_type_id);
@@ -195,7 +195,7 @@ class CBAPowerBoardPaymentDriver extends BaseDriver
         $this->init();
 
         $this->settings()->updateSettings();
-        
+
         return true;
 
 
@@ -204,7 +204,7 @@ class CBAPowerBoardPaymentDriver extends BaseDriver
     public function gatewayRequest(string $uri, string $verb, array $payload, array $headers = [])
     {
         $this->init();
-        
+
         $r = Http::withHeaders($this->getHeaders($headers))
                    ->{$verb}($this->api_endpoint.$uri, $payload);
 
@@ -215,11 +215,13 @@ class CBAPowerBoardPaymentDriver extends BaseDriver
 
     public function getHeaders(array $headers = []): array
     {
-        return array_merge([
+        return array_merge(
+            [
             'x-user-secret-key' => $this->company_gateway->getConfigField('secretKey'),
             'Content-Type' => 'application/json',
         ],
-        $headers);
+            $headers
+        );
     }
 
     public function customer(): Customer

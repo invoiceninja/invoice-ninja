@@ -33868,19 +33868,19 @@ class USStates
 
     public static function getState(?string $zip = '90210'): string
     {
-        if(isset(self::$zip_code_map[$zip])) {
+        if (isset(self::$zip_code_map[$zip])) {
             return self::$zip_code_map[$zip];
         }
 
         $prefix_state = self::getStateFromThreeDigitPrefix($zip);
 
-        if($prefix_state) {
+        if ($prefix_state) {
             return $prefix_state;
         }
 
         $zippo_response = self::getStateFromZippo($zip);
 
-        if($zippo_response) {
+        if ($zippo_response) {
             return $zippo_response;
         }
 
@@ -33908,13 +33908,13 @@ class USStates
 
         $response = Http::get("https://api.zippopotam.us/us/{$zip}");
 
-        if($response->failed()) {
+        if ($response->failed()) {
             return false;
         }
 
         $data = $response->object();
 
-        if(isset($data->places[0])) {
+        if (isset($data->places[0])) {
             return $data->places[0]->{'state abbreviation'};
         }
 

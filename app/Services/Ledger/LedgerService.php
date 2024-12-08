@@ -44,7 +44,7 @@ class LedgerService
     public function updateInvoiceBalance($adjustment, $notes = '')
     {
 
-        if($adjustment == 0) {
+        if ($adjustment == 0) {
             return $this;
         }
 

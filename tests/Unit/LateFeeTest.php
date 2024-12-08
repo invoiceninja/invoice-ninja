@@ -404,7 +404,7 @@ class LateFeeTest extends TestCase
     public function testLateFeeAdded()
     {
 
-        $this->travelTo(now()->subDays(15));
+        $this->travelTo(now()->startOfDay()->subDays(10));
 
         $settings = CompanySettings::defaults();
         $settings->client_online_payment_notification = false;
@@ -415,7 +415,7 @@ class LateFeeTest extends TestCase
         $settings->enable_reminder1 = true;
         $settings->num_days_reminder1 = 10;
         $settings->schedule_reminder1 = 'after_due_date';
-        $settings->entity_send_time = '0';
+        $settings->entity_send_time = 0;
 
         $client = $this->buildData($settings);
 
@@ -427,8 +427,8 @@ class LateFeeTest extends TestCase
             'balance' => 0,
             'status_id' => 2,
             'total_taxes' => 1,
-            'date' => now()->format('Y-m-d'),
-            'due_date' => now()->addDays(10)->format('Y-m-d'),
+            'date' => now()->startOfDay()->format('Y-m-d'),
+            'due_date' => now()->startOfDay()->addDays(10)->format('Y-m-d'),
             'terms' => 'nada',
             'discount' => 0,
             'tax_rate1' => 0,
@@ -439,13 +439,17 @@ class LateFeeTest extends TestCase
             'tax_name3' => '',
             'uses_inclusive_taxes' => false,
             'line_items' => $this->buildLineItems(),
+            'last_sent_date' => now()->format('Y-m-d'),
         ]);
 
         $i = $i->calc()->getInvoice();
-        $i->service()->markSent()->setReminder()->applyNumber()->createInvitations()->save();
+        $i->service()->markSent()->setReminder($client->getMergedSettings())->applyNumber()->createInvitations()->save();
 
-        // $this->travelBack();
-        $this->travelTo(now()->addDays(20)->startOfDay()->format('Y-m-d'));
+        $this->assertNotNull($i->next_send_date);
+
+        $this->travelBack();
+        $this->travelTo(now()->addDays(10)->startOfDay());
+
         $i = $i->fresh();
 
         $this->assertEquals(10, $i->amount);
@@ -455,13 +459,92 @@ class LateFeeTest extends TestCase
         $reflectionMethod->setAccessible(true);
         $reflectionMethod->invokeArgs(new ReminderJob(), [$i]);
 
-        $i->fresh();
+        $i = $i->refresh();
 
+        $this->assertNotNull($i->reminder1_sent);
         $this->assertEquals(20, $i->balance);
 
         $this->travelBack();
 
     }
+
+
+    public function testLateFeeAddedWithCustomSendTime()
+    {
+
+        $this->travelTo(now()->startOfDay()->subDays(10));
+    
+        $settings = CompanySettings::defaults();
+        $settings->client_online_payment_notification = false;
+        $settings->client_manual_payment_notification = false;
+        $settings->late_fee_amount1 = 10;
+        $settings->late_fee_percent1 = 0;
+        $settings->lock_invoices = 'off';
+        $settings->enable_reminder1 = true;
+        $settings->num_days_reminder1 = 10;
+        $settings->schedule_reminder1 = 'after_due_date';
+        $settings->entity_send_time = 6;
+
+        $client = $this->buildData($settings);
+
+        $i = Invoice::factory()->create([
+            'client_id' => $client->id,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'amount' => 0,
+            'balance' => 0,
+            'status_id' => 2,
+            'total_taxes' => 1,
+            'date' => now()->startOfDay()->format('Y-m-d'),
+            'due_date' => now()->startOfDay()->addDays(10)->format('Y-m-d'),
+            'terms' => 'nada',
+            'discount' => 0,
+            'tax_rate1' => 0,
+            'tax_rate2' => 0,
+            'tax_rate3' => 0,
+            'tax_name1' => '',
+            'tax_name2' => '',
+            'tax_name3' => '',
+            'uses_inclusive_taxes' => false,
+            'line_items' => $this->buildLineItems(),
+            'last_sent_date' => now()->format('Y-m-d'),
+        ]);
+
+        $i = $i->calc()->getInvoice();
+        $i->service()->markSent()->setReminder($client->getMergedSettings())->applyNumber()->createInvitations()->save();
+
+        $this->assertNotNull($i->next_send_date);
+
+        $this->travelBack();
+        $this->travelTo(now()->addDays(10)->startOfDay());
+
+        $i = $i->fresh();
+
+        $this->assertEquals(10, $i->amount);
+        $this->assertEquals(10, $i->balance);
+
+        $x = false;
+
+        do {
+            
+            (new ReminderJob())->handle();
+            $invoice = $i->fresh();
+
+            $x = (bool)$invoice->reminder1_sent;
+            $this->travelTo(now()->addHour());
+
+        }while($x === false);
+        
+        $i = $i->fresh();
+        
+        $this->assertNotNull($i->reminder1_sent);
+        $this->assertEquals(20, $i->balance);
+
+        $this->travelBack();
+
+    }
+
+
 
     public function testLateFeeAddedToNewInvoiceWithLockedInvoiceConfig()
     {
@@ -475,6 +558,7 @@ class LateFeeTest extends TestCase
         $settings->enable_reminder1 = true;
         $settings->num_days_reminder1 = 10;
         $settings->schedule_reminder1 = 'after_due_date';
+        $settings->entity_send_time = 0;
 
         $client = $this->buildData($settings);
 

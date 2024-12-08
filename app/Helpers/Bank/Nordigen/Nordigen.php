@@ -97,17 +97,15 @@ class Nordigen
             $it = new AccountTransformer();
             return $it->transform($out);
 
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
             $response = $e->getResponse();
             $statusCode = $response->getStatusCode();
-            
+
             if ($statusCode === 429) {
                 nlog("Nordigen Rate Limit hit for account {$account_id}");
                 return ['error' => 'Nordigen Institution Rate Limit Reached'];
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
 
             nlog("Nordigen getAccount() failed => {$account_id} => " . $e->getMessage());
             return ['error' => $e->getMessage()];
@@ -133,7 +131,7 @@ class Nordigen
 
             return true;
         } catch (\Exception $e) {
-            
+
             nlog("Nordigen:: AccountActiveStatus:: {$e->getMessage()} {$e->getCode()}");
 
             if (strpos($e->getMessage(), "Invalid Account ID") !== false) {
@@ -164,7 +162,7 @@ class Nordigen
     {
         $cache_key = "email_quota:{$bank_integration->company->company_key}:{$bank_integration->id}";
 
-        if(Cache::has($cache_key)) {
+        if (Cache::has($cache_key)) {
             return;
         }
 

@@ -170,7 +170,7 @@ class AuthorizePaymentMethod
             $billto->setState(substr($this->authorize->client->state, 0, 40));
             $billto->setZip(substr($this->authorize->client->postal_code, 0, 20));
 
-            if(isset($contact->email) && str_contains($contact->email, '@')) {
+            if (isset($contact->email) && str_contains($contact->email, '@')) {
                 $billto->setEmail($contact->email);
             }
 

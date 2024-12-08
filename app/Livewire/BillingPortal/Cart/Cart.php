@@ -26,6 +26,16 @@ class Cart extends Component
 
     public string $subscription_id;
 
+    public function mount()
+    {
+
+        \Illuminate\Support\Facades\App::forgetInstance('translator');
+        $t = app('translator');
+        $t->replace(\App\Utils\Ninja::transformTranslations($this->subscription()->company->settings));
+        \Illuminate\Support\Facades\App::setLocale($this->subscription()->company->locale());
+
+    }
+
     #[Computed()]
     public function subscription()
     {

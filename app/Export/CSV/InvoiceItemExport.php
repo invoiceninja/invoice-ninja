@@ -78,7 +78,7 @@ class InvoiceItemExport extends BaseExport
                         })
                         ->where('company_id', $this->company->id);
 
-        if(!$this->input['include_deleted'] ?? false) {// @phpstan-ignore-line
+        if (!$this->input['include_deleted'] ?? false) {// @phpstan-ignore-line
             $query->where('is_deleted', 0);
         }
 
@@ -86,17 +86,17 @@ class InvoiceItemExport extends BaseExport
 
         $clients = &$this->input['client_id'];
 
-        if($clients) {
+        if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
 
-        if($this->input['status'] ?? false) {
+        if ($this->input['status'] ?? false) {
             $query = $this->addInvoiceStatusFilter($query, $this->input['status']);
         }
 
         $query = $this->applyProductFilters($query);
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 
@@ -120,7 +120,7 @@ class InvoiceItemExport extends BaseExport
                 /** @var \App\Models\Invoice $resource */
                 $this->iterateItems($resource);
 
-                foreach($this->storage_array as $row) {
+                foreach ($this->storage_array as $row) {
                     $this->storage_item_array[] = $this->processItemMetaData($row, $resource);
                 }
 
@@ -171,11 +171,11 @@ class InvoiceItemExport extends BaseExport
 
                     $tmp_key = str_replace("item.", "", $key);
 
-                    if($tmp_key == 'type_id') {
+                    if ($tmp_key == 'type_id') {
                         $tmp_key = 'type';
                     }
 
-                    if($tmp_key == 'tax_id') {
+                    if ($tmp_key == 'tax_id') {
                         $tmp_key = 'tax_category';
                     }
 
@@ -203,12 +203,12 @@ class InvoiceItemExport extends BaseExport
 
         $entity = [];
 
-        
+
         foreach (array_values($this->input['report_keys']) as $key) {
 
             $parts = explode('.', $key);
 
-            if(is_array($parts) && $parts[0] == 'item') {
+            if (is_array($parts) && $parts[0] == 'item') {
                 continue;
             }
 
@@ -220,7 +220,7 @@ class InvoiceItemExport extends BaseExport
                 $entity[$key] = $this->decorator->transform($key, $invoice);
             }
         }
-        
+
         $entity = $this->decorateAdvancedFields($invoice, $entity);
         return $entity;
     }

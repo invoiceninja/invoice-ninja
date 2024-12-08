@@ -16,10 +16,11 @@ jobs:
           extensions: mysql, mysqlnd, sqlite3, bcmath, gd, curl, zip, openssl, mbstring, xml
 
       - name: Checkout code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
         with:
           ref: v5-develop
-      
+          fetch-depth: 1
+
       - name: Copy .env file
         run: |
           cp .env.example .env

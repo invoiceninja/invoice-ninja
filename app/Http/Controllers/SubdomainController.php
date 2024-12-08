@@ -29,7 +29,7 @@ class SubdomainController extends BaseController
         $user = auth()->user();
         $company = $user->company();
 
-        if($company->subdomain == trim(request()->input('subdomain'))){
+        if ($company->subdomain == trim(request()->input('subdomain'))) {
             return response()->json(['message' => 'Current subdomain name.'], 200);
         }
 

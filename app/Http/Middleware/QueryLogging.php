@@ -78,7 +78,7 @@ class QueryLogging
 
             if ($request->hasHeader('X-CLIENT-PLATFORM')) {
                 $platform = $request->header('X-CLIENT-PLATFORM');
-            } elseif($request->hasHeader('X-React')) {
+            } elseif ($request->hasHeader('X-React')) {
                 $platform = 'react';
             }
 

@@ -11,6 +11,7 @@ parameters:
         analyseAndScan:
             - 'vendor'
             - 'resources'
+            - 'openapi'
             - 'app/Jobs/Ninja/*'
             - 'app/Models/Presenters/*'
             - 'app/Console/Commands/*'

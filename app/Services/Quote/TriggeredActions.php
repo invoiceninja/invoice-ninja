@@ -81,17 +81,23 @@ class TriggeredActions extends AbstractService
     private function sendEmail()
     {
         $reminder_template = $this->quote->calculateTemplate('quote');
-        // $reminder_template = 'email_template_quote';
-        // $quote_template = 'email_template_reminder1
-        $reminder_template = "email_template_{$reminder_template}";
         
-        $this->quote->invitations->load('contact.client.country', 'quote.client.country', 'quote.company')->each(function ($invitation) use ($reminder_template) {
-            
+        $template_body = 'email_template_quote';
+        $subject = 'email_subject_quote';
+    
+        if($reminder_template == 'reminder1'){
+            $template_body = 'email_quote_template_reminder1';
+            $subject = 'email_quote_subject_reminder1';
+            $reminder_template = 'email_quote_template_reminder1';
+        }
+
+        $this->quote->invitations->load('contact.client.country', 'quote.client.country', 'quote.company')->each(function ($invitation) use ($template_body, $subject) {
+
             $mo = new EmailObject();
             $mo->entity_id = $invitation->quote_id;
-            $mo->template = $reminder_template; //full template name in use
-            $mo->email_template_body = $reminder_template;
-            $mo->email_template_subject = str_replace("template", "subject", $reminder_template);
+            $mo->template = $template_body;
+            $mo->email_template_body = $template_body;
+            $mo->email_template_subject = $subject;
 
             $mo->entity_class = get_class($invitation->quote);
             $mo->invitation_id = $invitation->id;
@@ -103,9 +109,8 @@ class TriggeredActions extends AbstractService
         });
 
         if ($this->quote->invitations->count() > 0) {
-            event(new QuoteWasEmailed($this->quote->invitations->first(), $this->quote->company, Ninja::eventVars(), 'quote'));
+            $this->quote->entityEmailEvent($this->quote->invitations->first(), $reminder_template);
             $this->quote->sendEvent(Webhook::EVENT_SENT_QUOTE, "client");
-
         }
     }
 }

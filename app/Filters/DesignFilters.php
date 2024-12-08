@@ -59,7 +59,7 @@ class DesignFilters extends QueryFilters
     public function entities(string $entities = ''): Builder
     {
 
-        if(stripos($entities, 'statement') !== false) {
+        if (stripos($entities, 'statement') !== false) {
             $entities = 'client';
         }
 

@@ -96,7 +96,7 @@ class EPS implements LivewireMethodInterface
         );
 
 
-return redirect()->route('client.payments.show', ['payment' => $payment->hashed_id]);
+        return redirect()->route('client.payments.show', ['payment' => $payment->hashed_id]);
     }
 
     public function processUnsuccessfulPayment()

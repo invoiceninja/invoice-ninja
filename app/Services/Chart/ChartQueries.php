@@ -90,7 +90,7 @@ trait ChartQueries
 
         $user_filter = $this->is_admin ? '' : 'AND expenses.user_id = '.$this->user->id;
 
-        
+
         return DB::select("
                     SELECT
                     sum(expenses.amount) as total,
@@ -110,25 +110,6 @@ trait ChartQueries
             'end_date' => $end_date,
         ]);
 
-        // return DB::select("
-        //     SELECT
-        //     sum(expenses.amount) as total,
-        //     expenses.date,
-        //     IFNULL(expenses.currency_id, :company_currency) AS currency_id
-        //     FROM expenses
-        //     WHERE (expenses.date BETWEEN :start_date AND :end_date)
-        //     AND expenses.company_id = :company_id
-        //     AND expenses.is_deleted = 0
-        //     {$user_filter}
-        //     GROUP BY expenses.date
-        //     HAVING currency_id = :currency_id
-        // ", [
-        //     'company_currency' => $this->company->settings->currency_id,
-        //     'currency_id' => $currency_id,
-        //     'company_id' => $this->company->id,
-        //     'start_date' => $start_date,
-        //     'end_date' => $end_date,
-        // ]);
     }
 
     /**
@@ -207,8 +188,8 @@ trait ChartQueries
 
         $user_filter = $this->is_admin ? '' : 'AND payments.user_id = '.$this->user->id;
 
-        
-return DB::select("
+
+        return DB::select("
             SELECT
             sum(payments.amount - payments.refunded) as total,
             payments.date
@@ -221,33 +202,13 @@ return DB::select("
             AND IFNULL(payments.currency_id, :company_currency) = :currency_id
             GROUP BY payments.date
         ", [
-    'company_currency' => $this->company->settings->currency_id,
-    'currency_id' => $currency_id,
-    'company_id' => $this->company->id,
-    'start_date' => $start_date,
-    'end_date' => $end_date,
-]);
+            'company_currency' => $this->company->settings->currency_id,
+            'currency_id' => $currency_id,
+            'company_id' => $this->company->id,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ]);
 
-        // return DB::select("
-        //     SELECT
-        //     sum(payments.amount - payments.refunded) as total,
-        //     payments.date,
-        //     IFNULL(payments.currency_id, :company_currency) AS currency_id
-        //     FROM payments
-        //     WHERE payments.company_id = :company_id
-        //     AND payments.is_deleted = 0
-        //     {$user_filter}
-        //     AND payments.status_id IN (4,5,6)
-        //     AND (payments.date BETWEEN :start_date AND :end_date)
-        //     GROUP BY payments.date
-        //     HAVING currency_id = :currency_id
-        // ", [
-        //     'company_currency' => $this->company->settings->currency_id,
-        //     'currency_id' => $currency_id,
-        //     'company_id' => $this->company->id,
-        //     'start_date' => $start_date,
-        //     'end_date' => $end_date,
-        // ]);
     }
 
     /**
@@ -257,6 +218,7 @@ return DB::select("
     {
 
         $user_filter = $this->is_admin ? '' : 'AND clients.user_id = '.$this->user->id;
+            //            AND invoices.balance > 0
 
         return DB::select("
             SELECT
@@ -271,7 +233,7 @@ return DB::select("
             AND clients.is_deleted = 0
             {$user_filter}
             AND invoices.is_deleted = 0
-            AND invoices.balance > 0
+
             AND (invoices.date BETWEEN :start_date AND :end_date)
             GROUP BY currency_id
         ", ['company_currency' => $this->company->settings->currency_id, 'company_id' => $this->company->id, 'start_date' => $start_date, 'end_date' => $end_date]);
@@ -281,7 +243,7 @@ return DB::select("
     {
 
         $user_filter = $this->is_admin ? '' : 'AND clients.user_id = '.$this->user->id;
-
+//AND invoices.balance > 0
         return DB::select("
             SELECT
             SUM(invoices.balance / COALESCE(NULLIF(invoices.exchange_rate, 0), 1)) as amount,
@@ -294,7 +256,7 @@ return DB::select("
             AND clients.is_deleted = 0
             {$user_filter}
             AND invoices.is_deleted = 0
-            AND invoices.balance > 0
+            
             AND (invoices.date BETWEEN :start_date AND :end_date)
         ", [
          'company_id' => $this->company->id,
@@ -350,6 +312,8 @@ return DB::select("
     {
         $user_filter = $this->is_admin ? '' : 'AND clients.user_id = '.$this->user->id;
 
+        //AND invoices.amount > 0 @2024-12-03 - allow negative invoices to be included
+
         return DB::select("
             SELECT
                 SUM(invoices.amount / COALESCE(NULLIF(invoices.exchange_rate, 0), 1)) as invoiced_amount
@@ -358,7 +322,7 @@ return DB::select("
             WHERE invoices.status_id IN (2,3,4)
             AND invoices.company_id = :company_id
             {$user_filter}
-            AND invoices.amount > 0
+            
             AND clients.is_deleted = 0
             AND invoices.is_deleted = 0
             AND (invoices.date BETWEEN :start_date AND :end_date)
@@ -375,6 +339,8 @@ return DB::select("
     {
         $user_filter = $this->is_admin ? '' : 'AND clients.user_id = '.$this->user->id;
 
+        //AND invoices.amount > 0 @2024-12-03 - allow negative invoices to be included
+
         return DB::select("
             SELECT
             sum(invoices.amount) as invoiced_amount,
@@ -385,7 +351,7 @@ return DB::select("
             WHERE invoices.status_id IN (2,3,4)
             AND invoices.company_id = :company_id
             {$user_filter}
-            AND invoices.amount > 0
+            
             AND clients.is_deleted = 0
             AND invoices.is_deleted = 0
             AND (invoices.date BETWEEN :start_date AND :end_date)
@@ -421,8 +387,8 @@ return DB::select("
     {
         $user_filter = $this->is_admin ? '' : 'AND clients.user_id = '.$this->user->id;
 
-        
-return DB::select("
+
+        return DB::select("
             SELECT
             sum(invoices.balance) as total,
             invoices.date
@@ -438,36 +404,13 @@ return DB::select("
             AND IFNULL(CAST(JSON_UNQUOTE(JSON_EXTRACT(clients.settings, '$.currency_id')) AS SIGNED), :company_currency) = :currency_id
             GROUP BY invoices.date
         ", [
-    'company_currency' => (int) $this->company->settings->currency_id,
-    'currency_id' => $currency_id,
-    'company_id' => $this->company->id,
-    'start_date' => $start_date,
-    'end_date' => $end_date,
-]);
+            'company_currency' => (int) $this->company->settings->currency_id,
+            'currency_id' => $currency_id,
+            'company_id' => $this->company->id,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ]);
 
-        // return DB::select("
-        //     SELECT
-        //     sum(invoices.balance) as total,
-        //     invoices.date,
-        //     IFNULL(CAST(JSON_UNQUOTE(JSON_EXTRACT( clients.settings, '$.currency_id' )) AS SIGNED), :company_currency) AS currency_id
-        //     FROM clients
-        //     JOIN invoices
-        //     on invoices.client_id = clients.id
-        //     WHERE invoices.status_id IN (2,3,4)
-        //     AND invoices.company_id = :company_id
-        //     AND clients.is_deleted = 0
-        //     AND invoices.is_deleted = 0
-        //     {$user_filter}
-        //     AND (invoices.date BETWEEN :start_date AND :end_date)
-        //     GROUP BY invoices.date
-        //     HAVING currency_id = :currency_id
-        // ", [
-        //     'company_currency' => (int) $this->company->settings->currency_id,
-        //     'currency_id' => $currency_id,
-        //     'company_id' => $this->company->id,
-        //     'start_date' => $start_date,
-        //     'end_date' => $end_date,
-        // ]);
     }
 
 
@@ -521,29 +464,6 @@ return DB::select("
             'start_date' => $start_date,
             'end_date' => $end_date,
         ]);
-
-        // return DB::select("
-        //     SELECT
-        //     sum(invoices.amount) as total,
-        //     invoices.date,
-        //     IFNULL(CAST(JSON_UNQUOTE(JSON_EXTRACT( clients.settings, '$.currency_id' )) AS SIGNED), :company_currency) AS currency_id
-        //     FROM clients
-        //     JOIN invoices
-        //     on invoices.client_id = clients.id
-        //     WHERE invoices.company_id = :company_id
-        //     AND clients.is_deleted = 0
-        //     AND invoices.is_deleted = 0
-        //     {$user_filter}
-        //     AND invoices.status_id IN (2,3,4)
-        //     AND (invoices.date BETWEEN :start_date AND :end_date)
-        //     GROUP BY invoices.date
-        //     HAVING currency_id = :currency_id
-        // ", [
-        //     'company_currency' => (int) $this->company->settings->currency_id,
-        //     'currency_id' => $currency_id,
-        //     'company_id' => $this->company->id,
-        //     'start_date' => $start_date,
-        //     'end_date' => $end_date,
-        // ]);
+        
     }
 }

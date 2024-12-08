@@ -36,9 +36,9 @@ class Alipay implements LivewireMethodInterface
 
     public function paymentView(array $data)
     {
-       
+
         $data = $this->paymentData($data);
-       
+
         return render('gateways.stripe.alipay.pay', $data);
     }
 
@@ -134,15 +134,15 @@ class Alipay implements LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.stripe.alipay.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         try {
             $intent = \Stripe\PaymentIntent::create([
@@ -156,11 +156,10 @@ class Alipay implements LivewireMethodInterface
                     'gateway_type_id' => GatewayType::ALIPAY,
                 ],
             ], $this->stripe->stripe_connect_auth);
-        }
-        catch(\Throwable $e){
+        } catch (\Throwable $e) {
 
             throw new PaymentFailed($e->getMessage(), $e->getCode());
-            
+
         }
 
         $data['gateway'] = $this->stripe;

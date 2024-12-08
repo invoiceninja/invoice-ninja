@@ -26,7 +26,7 @@ class QbInvoice implements SyncInterface
     protected InvoiceTransformer $invoice_transformer;
 
     protected InvoiceRepository $invoice_repository;
-    
+
     public function __construct(public QuickbooksService $service)
     {
         $this->invoice_transformer = new InvoiceTransformer($this->service->company);
@@ -40,10 +40,10 @@ class QbInvoice implements SyncInterface
 
     public function syncToNinja(array $records): void
     {
-        
+
         foreach ($records as $record) {
 
-            $this->syncNinjaInvoice($record); 
+            $this->syncNinjaInvoice($record);
 
         }
 
@@ -59,14 +59,12 @@ class QbInvoice implements SyncInterface
         $current_ninja_invoice_balance = $invoice->balance;
         $qb_invoice_balance = $ninja_invoice_data['balance'];
 
-        if(floatval($current_ninja_invoice_balance) == floatval($qb_invoice_balance))
-        {
+        if (floatval($current_ninja_invoice_balance) == floatval($qb_invoice_balance)) {
             nlog('Invoice balance is the same, skipping update of line items');
             unset($ninja_invoice_data['line_items']);
             $invoice->fill($ninja_invoice_data);
             $invoice->saveQuietly();
-        }
-        else{
+        } else {
             nlog('Invoice balance is different, updating line items');
             $this->invoice_repository->save($ninja_invoice_data, $invoice);
         }
@@ -79,7 +77,7 @@ class QbInvoice implements SyncInterface
                             ->where('company_id', $this->service->company->id)
                             ->where('sync->qb_id', $id);
 
-        if($search->count() == 0) {
+        if ($search->count() == 0) {
             $invoice = InvoiceFactory::create($this->service->company->id, $this->service->company->owner()->id);
             $invoice->client_id = (int)$client_id;
 
@@ -88,7 +86,7 @@ class QbInvoice implements SyncInterface
             $invoice->sync = $sync;
 
             return $invoice;
-        } elseif($search->count() == 1) {
+        } elseif ($search->count() == 1) {
             return $this->service->syncable('invoice', \App\Enum\SyncDirection::PULL) ? $search->first() : null;
         }
 
@@ -103,35 +101,31 @@ class QbInvoice implements SyncInterface
 
         nlog($qb_record);
 
-        if($this->service->syncable('invoice', \App\Enum\SyncDirection::PULL))
-        {
+        if ($this->service->syncable('invoice', \App\Enum\SyncDirection::PULL)) {
 
             $invoice = $this->findInvoice($id);
 
             nlog("Comparing QB last updated: " . $last_updated);
             nlog("Comparing Ninja last updated: " . $invoice->updated_at);
 
-            if(data_get($qb_record, 'TxnStatus') === 'Voided')
-            {
+            if (data_get($qb_record, 'TxnStatus') === 'Voided') {
                 $this->delete($id);
                 return;
             }
 
-            if(!$invoice->id){
+            if (!$invoice->id) {
                 $this->syncNinjaInvoice($qb_record);
-            }
-            elseif(Carbon::parse($last_updated)->gt(Carbon::parse($invoice->updated_at)) || $qb_record->SyncToken == '0')
-            {
+            } elseif (Carbon::parse($last_updated)->gt(Carbon::parse($invoice->updated_at)) || $qb_record->SyncToken == '0') {
                 $ninja_invoice_data = $this->invoice_transformer->qbToNinja($qb_record);
                 nlog($ninja_invoice_data);
-                
+
                 $this->invoice_repository->save($ninja_invoice_data, $invoice);
 
             }
 
         }
     }
-    
+
     /**
      * syncNinjaInvoice
      *
@@ -144,7 +138,7 @@ class QbInvoice implements SyncInterface
         $ninja_invoice_data = $this->invoice_transformer->qbToNinja($record);
 
         nlog($ninja_invoice_data);
-        
+
         $payment_ids = $ninja_invoice_data['payment_ids'] ?? [];
 
         $client_id = $ninja_invoice_data['client_id'] ?? null;
@@ -211,8 +205,7 @@ class QbInvoice implements SyncInterface
     {
         $qb_record = $this->find($id);
 
-        if($this->service->syncable('invoice', \App\Enum\SyncDirection::PULL) && $invoice = $this->findInvoice($id))
-        {
+        if ($this->service->syncable('invoice', \App\Enum\SyncDirection::PULL) && $invoice = $this->findInvoice($id)) {
             $invoice->sync = null;
             $invoice->saveQuietly();
             $this->invoice_repository->delete($invoice);

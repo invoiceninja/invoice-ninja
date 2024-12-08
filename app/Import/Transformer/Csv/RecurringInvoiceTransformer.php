@@ -15,12 +15,15 @@ use App\Import\ImportException;
 use App\Import\Transformer\BaseTransformer;
 use App\Models\Invoice;
 use App\Models\RecurringInvoice;
+use App\Utils\Traits\CleanLineItems;
 
 /**
  * Class RecurringInvoiceTransformer.
  */
 class RecurringInvoiceTransformer extends BaseTransformer
 {
+    use CleanLineItems;
+
     /**
      * @param $data
      *
@@ -187,7 +190,7 @@ class RecurringInvoiceTransformer extends BaseTransformer
             ];
         }
 
-        $transformed['line_items'] = $line_items;
+        $transformed['line_items'] = $this->cleanItems($line_items);
 
         return $transformed;
     }

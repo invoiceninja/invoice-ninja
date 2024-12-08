@@ -74,7 +74,7 @@ class ApplyNumber extends AbstractService
                 $this->invoice->saveQuietly();
 
                 $this->completed = false;
-            } catch(QueryException $e) {
+            } catch (QueryException $e) {
                 $x++;
 
                 if ($x > 50) {

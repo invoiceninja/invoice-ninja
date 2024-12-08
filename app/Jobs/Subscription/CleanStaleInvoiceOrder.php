@@ -79,14 +79,14 @@ class CleanStaleInvoiceOrder implements ShouldQueue
 
                        $type_3_count = 0;
                        $type_4_count = 0;
-                                        
-                        foreach ($invoice->line_items as $line_item) {
-                            if ($line_item->type_id == '3') {
-                                $type_3_count++;
-                            } elseif ($line_item->type_id == '4') {
-                                $type_4_count++;
-                            }
-                        }
+
+                       foreach ($invoice->line_items as $line_item) {
+                           if ($line_item->type_id == '3') {
+                               $type_3_count++;
+                           } elseif ($line_item->type_id == '4') {
+                               $type_4_count++;
+                           }
+                       }
 
                        if ($type_4_count == 1) {
                            $invoice->service()->removeUnpaidGatewayFees();
@@ -119,7 +119,7 @@ class CleanStaleInvoiceOrder implements ShouldQueue
 
                         $type_3_count = 0;
                         $type_4_count = 0;
-                                                
+
                         foreach ($invoice->line_items as $line_item) {
                             if ($line_item->type_id == '3') {
                                 $type_3_count++;
@@ -226,7 +226,7 @@ class CleanStaleInvoiceOrder implements ShouldQueue
                         $type_3_count = 0;
                         $type_4_count = 0;
 
-                                                
+
                         foreach ($invoice->line_items as $line_item) {
                             if ($line_item->type_id == '3') {
                                 $type_3_count++;

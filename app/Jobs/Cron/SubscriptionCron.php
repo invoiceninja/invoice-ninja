@@ -86,7 +86,7 @@ class SubscriptionCron
                     $timezone_now = now()->setTimezone($company->timezone()->name ?? 'Pacific/Midway');
 
                     //Capture companies within the window of 00:00 and 00:30
-                    if($timezone_now->gt($timezone_now->copy()->startOfDay()) && $timezone_now->lt($timezone_now->copy()->startOfDay()->addMinutes(30))) {
+                    if ($timezone_now->gt($timezone_now->copy()->startOfDay()) && $timezone_now->lt($timezone_now->copy()->startOfDay()->addMinutes(30))) {
 
                         Invoice::query()
                                 ->where('company_id', $company->id)

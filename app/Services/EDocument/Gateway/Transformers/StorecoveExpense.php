@@ -43,14 +43,15 @@ use App\Services\EDocument\Gateway\Storecove\PeppolToStorecoveNormalizer;
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
-class StorecoveExpense 
+class StorecoveExpense
 {
-    
-    public function __construct(private Storecove $storecove){}
+    public function __construct(private Storecove $storecove)
+    {
+    }
 
     public function getStorecoveInvoice($storecove_json)
     {
-                
+
         $classMetadataFactory = new ClassMetadataFactory(new AttributeLoader());
 
         // Create a proper PropertyInfoExtractor
@@ -116,26 +117,25 @@ class StorecoveExpense
 
         $vendor = Vendor::query()
                 ->where('company_id', $company->id)
-                ->where(function($query) use ($expense_array) {
-                // Check VAT number if present
-                if (strlen($expense_array['vendor']['vat_number']) > 2) {
-                    $query->orWhere('vat_number', $expense_array['vendor']['vat_number']);
-                }
-                
-                // Check ID number if present
-                if (strlen($expense_array['vendor']['id_number']) > 2) {
-                    $query->orWhere('id_number', $expense_array['vendor']['id_number']);
-                }
-                
-                // If no valid identifiers, force no results
-                if (strlen($expense_array['vendor']['vat_number']) <= 2 && strlen($expense_array['vendor']['id_number']) <= 2) {
-                    $query->where('id', 0); // Forces no match
-                }
+                ->where(function ($query) use ($expense_array) {
+                    // Check VAT number if present
+                    if (strlen($expense_array['vendor']['vat_number']) > 2) {
+                        $query->orWhere('vat_number', $expense_array['vendor']['vat_number']);
+                    }
 
-            })->first();
-        
-        if(!$vendor)
-        {
+                    // Check ID number if present
+                    if (strlen($expense_array['vendor']['id_number']) > 2) {
+                        $query->orWhere('id_number', $expense_array['vendor']['id_number']);
+                    }
+
+                    // If no valid identifiers, force no results
+                    if (strlen($expense_array['vendor']['vat_number']) <= 2 && strlen($expense_array['vendor']['id_number']) <= 2) {
+                        $query->where('id', 0); // Forces no match
+                    }
+
+                })->first();
+
+        if (!$vendor) {
             $vendor_repo = new VendorRepository(new VendorContactRepository());
             $vendor = VendorFactory::create($company->id, $company->owner()->id);
             $vendor = $vendor_repo->save($expense_array['vendor'], $vendor);
@@ -146,9 +146,9 @@ class StorecoveExpense
 
         $expense = ExpenseFactory::create($vendor->company_id, $vendor->user_id);
         $expense->vendor_id = $vendor->id;
-        
+
         unset($expense_array['vendor']);
-       
+
         $expense = $expense_repo->save($expense_array, $expense);
 
         $fields = new \stdClass();

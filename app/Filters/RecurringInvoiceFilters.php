@@ -137,15 +137,15 @@ class RecurringInvoiceFilters extends QueryFilters
                     ->whereColumn('clients.id', 'recurring_invoices.client_id'), $dir);
         }
 
-        if($sort_col[0] == 'number') {
+        if ($sort_col[0] == 'number') {
             return $this->builder->orderByRaw("REGEXP_REPLACE(number,'[^0-9]+','')+0 " . $dir);
         }
 
-        if($sort_col[0] == 'status_id') {
+        if ($sort_col[0] == 'status_id') {
             return $this->builder->orderBy('status_id', $dir)->orderBy('last_sent_date', $dir);
         }
 
-        if($sort_col[0] == 'next_send_datetime') {
+        if ($sort_col[0] == 'next_send_datetime') {
             $sort_col[0] = 'next_send_date';
         }
 

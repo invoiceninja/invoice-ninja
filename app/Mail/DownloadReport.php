@@ -50,12 +50,11 @@ class DownloadReport extends Mailable
                 'greeting' => $this->company->present()->name(),
             ]);
 
-            foreach($this->files as $file)
-            {
-                $mailable->attachData(base64_decode($file['file']), $file['file_name'], ['mime' => $file['mime']]);
-            }
+        foreach ($this->files as $file) {
+            $mailable->attachData(base64_decode($file['file']), $file['file_name'], ['mime' => $file['mime']]);
+        }
 
-            return $mailable;
-            
+        return $mailable;
+
     }
 }

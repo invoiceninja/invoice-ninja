@@ -103,7 +103,7 @@ class PaymentEmailEngine extends BaseEmailEngine
 
             $template_in_use = false;
 
-            if($this->is_refund && \App\Models\Design::where('id', $this->decodePrimaryKey($this->payment->client->getSetting('payment_refund_design_id')))->where('is_template', true)->exists()) {
+            if ($this->is_refund && \App\Models\Design::where('id', $this->decodePrimaryKey($this->payment->client->getSetting('payment_refund_design_id')))->where('is_template', true)->exists()) {
                 $pdf = (new TemplateAction(
                     [$this->payment->hashed_id],
                     $this->payment->client->getSetting('payment_refund_design_id'),
@@ -120,7 +120,7 @@ class PaymentEmailEngine extends BaseEmailEngine
                 $this->setAttachments([['file' => base64_encode($pdf), 'name' => $file_name]]);
                 $template_in_use = true;
 
-            } elseif(!$this->is_refund && \App\Models\Design::where('id', $this->decodePrimaryKey($this->payment->client->getSetting('payment_receipt_design_id')))->where('is_template', true)->exists()) {
+            } elseif (!$this->is_refund && \App\Models\Design::where('id', $this->decodePrimaryKey($this->payment->client->getSetting('payment_receipt_design_id')))->where('is_template', true)->exists()) {
                 $pdf = (new TemplateAction(
                     [$this->payment->hashed_id],
                     $this->payment->client->getSetting('payment_receipt_design_id'),
@@ -141,7 +141,7 @@ class PaymentEmailEngine extends BaseEmailEngine
 
             $this->payment->invoices->each(function ($invoice) use ($template_in_use) {
 
-                if(!$template_in_use) {
+                if (!$template_in_use) {
                     $pdf = ((new CreateRawPdf($invoice->invitations->first()))->handle());
                     $file_name = $invoice->numberFormatter().'.pdf';
                     $this->setAttachments([['file' => base64_encode($pdf), 'name' => $file_name]]);
@@ -411,7 +411,7 @@ class PaymentEmailEngine extends BaseEmailEngine
 
         }
 
-        if(strlen($invoice_list) < 4) {
+        if (strlen($invoice_list) < 4) {
             $invoice_list = Number::formatMoney($this->payment->amount, $this->client) ?: '&nbsp;';
         }
 

@@ -295,7 +295,7 @@ class ProfitLoss
                                 if ($pivot->paymentable_type == 'invoices') {
                                     $invoice = Invoice::query()->withTrashed()->find($pivot->paymentable_id);
 
-                                    if(!$invoice) {
+                                    if (!$invoice) {
                                         continue;
                                     }
 
@@ -310,7 +310,7 @@ class ProfitLoss
 
                                 }
 
-                                if(!$invoice) {
+                                if (!$invoice) {
                                     continue;
                                 }
 
@@ -416,7 +416,7 @@ class ProfitLoss
         $csv->insertOne(['--------------------']);
         $csv->insertOne([ctrans('texts.expenses')]);
         $csv->insertOne(['--------------------']);
-        foreach($this->expenses as $expense) {
+        foreach ($this->expenses as $expense) {
             $csv->insertOne([$expense->currency, ($expense->total - $expense->foreign_tax_amount), $expense->foreign_tax_amount]);
         }
 

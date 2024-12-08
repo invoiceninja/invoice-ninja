@@ -218,8 +218,9 @@ class NordigenController extends BaseController
 
             $nordigen_account = $nordigen->getAccount($nordigenAccountId);
 
-            if(!$nordigen_account)
+            if (!$nordigen_account) {
                 continue;
+            }
 
             $existing_bank_integration = BankIntegration::withTrashed()->where('nordigen_account_id', $nordigen_account['id'])->where('company_id', $company->id)->where('is_deleted', 0)->first();
 

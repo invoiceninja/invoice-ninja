@@ -106,7 +106,7 @@ class ClientRepository extends BaseRepository
         if (array_key_exists('contacts', $contact_data) || $client->contacts()->count() == 0) {
             $this->contact_repo->save($contact_data, $client);
         }
-        
+
 
         return $client;
     }

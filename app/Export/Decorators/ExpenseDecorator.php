@@ -19,15 +19,15 @@ class ExpenseDecorator implements DecoratorInterface
     {
         $expense = false;
 
-        if($entity instanceof Expense) {
+        if ($entity instanceof Expense) {
             $expense = $entity;
-        } elseif($entity->expense) {
+        } elseif ($entity->expense) {
             $expense = $entity->expense;
         }
 
-        if($expense && method_exists($this, $key)) {
+        if ($expense && method_exists($this, $key)) {
             return $this->{$key}($expense);
-        } elseif($expense && ($expense->{$key} ?? false)) {
+        } elseif ($expense && ($expense->{$key} ?? false)) {
             return $expense->{$key};
         }
 

@@ -21,10 +21,11 @@ class ClientGatewayTokenRepository extends BaseRepository
     public function save(array $data, ClientGatewayToken $client_gateway_token): ClientGatewayToken
     {
         $client_gateway_token->fill($data);
-        
-        if(isset($data['company_gateway_id']))
+
+        if (isset($data['company_gateway_id'])) {
             $client_gateway_token->company_gateway_id = $data['company_gateway_id'];
-                    
+        }
+
         if (isset($data['is_default']) && !boolval($data['is_default'])) {
             $client_gateway_token->is_default = false;
         }

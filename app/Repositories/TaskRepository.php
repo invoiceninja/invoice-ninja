@@ -46,14 +46,14 @@ class TaskRepository extends BaseRepository
             $this->new_task = false;
         }
 
-        if(!is_numeric($task->rate) && !isset($data['rate'])) {
+        if (!is_numeric($task->rate) && !isset($data['rate'])) {
             $data['rate'] = 0;
         }
 
         $task->fill($data);
         $task->saveQuietly();
 
-        if(isset($data['assigned_user_id']) && $data['assigned_user_id'] != $task->assigned_user_id) {
+        if (isset($data['assigned_user_id']) && $data['assigned_user_id'] != $task->assigned_user_id) {
             TaskAssigned::dispatch($task, $task->company->db)->delay(2);
         }
 
@@ -63,7 +63,7 @@ class TaskRepository extends BaseRepository
             $task->status_id = $this->setDefaultStatus($task);
         }
 
-        if($this->new_task && (!$task->rate || $task->rate <= 0)) {
+        if ($this->new_task && (!$task->rate || $task->rate <= 0)) {
             $task->rate = $task->getRate();
         }
 
@@ -82,7 +82,7 @@ class TaskRepository extends BaseRepository
         if (! empty($data['time_details'])) {
             $timeLog = [];
             foreach ($data['time_details'] as $detail) {
-                $startTime = strtotime($detail['start_datetime']);
+                $startTime = strtotime($detail['start_datetime'] ?? now()->format('Y-m-d'));
                 $endTime = false;
                 if (! empty($detail['end_datetime'])) {
                     $endTime = strtotime($detail['end_datetime']);
@@ -119,13 +119,13 @@ class TaskRepository extends BaseRepository
 
         $key_values = array_column($time_log, 0);
 
-        if(count($key_values) > 0) {
+        if (count($key_values) > 0) {
             array_multisort($key_values, SORT_ASC, $time_log);
         }
 
-        foreach($time_log as $key => $value) {
+        foreach ($time_log as $key => $value) {
 
-            if(is_array($time_log[$key]) && count($time_log[$key]) >= 2) {
+            if (is_array($time_log[$key]) && count($time_log[$key]) >= 2) {
                 $time_log[$key][1] = $this->roundTimeLog($time_log[$key][0], $time_log[$key][1]);
             }
 
@@ -150,7 +150,7 @@ class TaskRepository extends BaseRepository
 
         $task->calculated_start_date = $this->harvestStartDate($time_log, $task);
 
-        if(isset(end($time_log)[1])) {
+        if (isset(end($time_log)[1])) {
             $task->is_running = end($time_log)[1] == 0;
         }
 
@@ -170,7 +170,7 @@ class TaskRepository extends BaseRepository
     private function harvestStartDate($time_log, $task)
     {
 
-        if(isset($time_log[0][0])) {
+        if (isset($time_log[0][0])) {
             return \Carbon\Carbon::createFromTimestamp((int)$time_log[0][0])->addSeconds($task->company->utc_offset());
         }
 
@@ -276,17 +276,17 @@ class TaskRepository extends BaseRepository
 
     public function roundTimeLog(int $start_time, int $end_time): int
     {
-        if(in_array($this->task_round_to_nearest, [0,1]) || $end_time == 0) {
+        if (in_array($this->task_round_to_nearest, [0,1]) || $end_time == 0) {
             return $end_time;
         }
 
         $interval = $end_time - $start_time;
 
-        if($this->task_round_up) {
+        if ($this->task_round_up) {
             return $start_time + (int)ceil($interval / $this->task_round_to_nearest) * $this->task_round_to_nearest;
         }
 
-        if($interval <= $this->task_round_to_nearest) {
+        if ($interval <= $this->task_round_to_nearest) {
             return $start_time;
         }
 
@@ -351,7 +351,7 @@ class TaskRepository extends BaseRepository
                 $task->number = $this->getNextTaskNumber($task);
                 $task->saveQuietly();
                 $this->completed = false;
-            } catch(QueryException $e) {
+            } catch (QueryException $e) {
                 $x++;
 
                 if ($x > 50) {
@@ -366,17 +366,17 @@ class TaskRepository extends BaseRepository
     private function calculateProjectDuration(Task $task)
     {
 
-        if($task->project) {
+        if ($task->project) {
 
             $duration = 0;
 
-            $task->project->tasks()->withTrashed()->where('is_deleted',0)->each(function ($task) use (&$duration) {
+            $task->project->tasks()->withTrashed()->where('is_deleted', 0)->each(function ($task) use (&$duration) {
 
-                if(is_iterable(json_decode($task->time_log))) {
+                if (is_iterable(json_decode($task->time_log))) {
 
-                    foreach(json_decode($task->time_log) as $log) {
+                    foreach (json_decode($task->time_log) as $log) {
 
-                        if(!is_array($log)) {
+                        if (!is_array($log)) {
                             continue;
                         }
 

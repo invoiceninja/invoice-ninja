@@ -45,7 +45,7 @@ class ConnectNordigenBankIntegrationRequest extends Request
 
         $context = $this->getTokenContent();
 
-        if(isset($context['institution_id'])) {
+        if (isset($context['institution_id'])) {
             $input['institution_id'] = $context['institution_id'];
         }
 

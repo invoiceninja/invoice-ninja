@@ -40,7 +40,7 @@ class UpdateCompanyUserRequest extends Request
     {
         $input = $this->all();
 
-        if(isset($input['company_user']['user'])) {
+        if (isset($input['company_user']['user'])) {
             unset($input['company_user']['user']);
         }
 

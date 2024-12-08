@@ -29,7 +29,7 @@ class PurchaseOrdersTable extends Component
     public $status = [];
 
     public $db;
-    
+
     public function mount()
     {
         MultiDB::setDb($this->db);

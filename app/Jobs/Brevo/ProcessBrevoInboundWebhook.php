@@ -28,7 +28,10 @@ use Illuminate\Queue\Middleware\WithoutOverlapping;
 
 class ProcessBrevoInboundWebhook implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public $tries = 1;
 
@@ -134,7 +137,7 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
 
             // match company
             $company = MultiDB::findAndSetDbByExpenseMailbox($recipient);
-            
+
             if (!$company) {
                 nlog('[ProcessBrevoInboundWebhook] unknown Expense Mailbox occured while handling an inbound email from brevo: ' . $recipient);
                 continue;
@@ -146,12 +149,12 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
 
             try { // important to save meta if something fails here to prevent spam
 
-                if(strlen($company->getSetting('brevo_secret') ?? '') < 2 && empty(config('services.brevo.secret'))){
+                if (strlen($company->getSetting('brevo_secret') ?? '') < 2 && empty(config('services.brevo.secret'))) {
                     nlog("No Brevo Configuration available for this company");
                     throw new \Error("[ProcessBrevoInboundWebhook] no brevo credenitals found, we cannot get the attachement");
                 }
-                
-                $company_brevo_secret = strlen($company->getSetting('brevo_secret') ?? '') < 2 ? $company->getSetting('brevo_secret') :  config('services.brevo.secret');
+
+                $company_brevo_secret = strlen($company->getSetting('brevo_secret') ?? '') < 2 ? $company->getSetting('brevo_secret') : config('services.brevo.secret');
 
                 // prepare data for ingresEngine
                 $inboundMail = new InboundMail();
@@ -168,8 +171,7 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
 
                     // @todo - i think this allows switching between client configured brevo AND system configured brevo
                     // download file and save to tmp dir
-                    if (!empty($company_brevo_secret)) 
-                    {
+                    if (!empty($company_brevo_secret)) {
 
                         try {
 
@@ -195,8 +197,9 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
                                     true // Mark it as test, since the file isn't from real HTTP POST.
                                 );
 
-                            } else
+                            } else {
                                 throw $e;
+                            }
                         }
 
                     } else {
@@ -223,10 +226,11 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
         }
 
         // document for spam => mark all recipients as handled emails with unmatched mailbox => otherwise dont do any
-        if (!$foundOneRecipient)
+        if (!$foundOneRecipient) {
             foreach ($this->input["Recipients"] as $recipient) {
                 $this->engine->saveMeta($this->input["From"]["Address"], $recipient, true);
             }
+        }
     }
 
     public function middleware()

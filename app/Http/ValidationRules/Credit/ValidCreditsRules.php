@@ -76,12 +76,12 @@ class ValidCreditsRules implements Rule
                 return false;
             }
 
-            if($cred->status_id == Credit::STATUS_DRAFT) {
+            if ($cred->status_id == Credit::STATUS_DRAFT) {
                 $cred->service()->markSent()->save();
                 $cred = $cred->fresh();
             }
 
-            if($cred->balance < $credit['amount']) {
+            if ($cred->balance < $credit['amount']) {
                 $this->error_msg = ctrans('texts.insufficient_credit_balance');
                 return false;
             }

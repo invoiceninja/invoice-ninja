@@ -20,7 +20,6 @@ use App\Services\Email\EmailObject;
 
 class SendEmail
 {
-
     public function __construct(public Quote $quote, public ?string $reminder_template = null, protected ?ClientContact $contact = null)
     {
     }
@@ -32,16 +31,16 @@ class SendEmail
     public function run()
     {
 
-        $this->reminder_template = $this->reminder_template ? "email_template_{$this->reminder_template}" : "email_template_".$this->quote->calculateTemplate('quote');
-        // if (! $this->reminder_template) {
-        //     $this->reminder_template = $this->quote->calculateTemplate('quote');
-        // }
+        if(in_array($this->reminder_template, ["email_quote_template_reminder1","reminder1"]))
+            $this->reminder_template = "email_quote_template_reminder1";
+        else    
+            $this->reminder_template = "email_template_".$this->quote->calculateTemplate('quote');
 
         $this->quote->service()->markSent()->save();
 
         $this->quote->invitations->each(function ($invitation) {
             if (! $invitation->contact->trashed() && $invitation->contact->email) {
-                
+
                 //@refactor 2024-11-10
                 $mo = new EmailObject();
                 $mo->entity_id = $invitation->quote_id;

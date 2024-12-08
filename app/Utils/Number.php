@@ -89,7 +89,7 @@ class Number
     public static function parseFloat($value)
     {
 
-        if(!$value) {
+        if (!$value) {
             return 0;
         }
 
@@ -99,17 +99,17 @@ class Number
         $decimal = strpos($value, '.');
         $comma = strpos($value, ',');
 
-        if($comma === false) { //no comma must be a decimal number already
+        if ($comma === false) { //no comma must be a decimal number already
             return (float) $value;
         }
 
-        if(!$decimal && substr($value, -3, 1) != ",") {
+        if (!$decimal && substr($value, -3, 1) != ",") {
             $value = $value.".00";
         }
 
         $decimal = strpos($value, '.');
 
-        if($decimal < $comma) { //decimal before a comma = euro
+        if ($decimal < $comma) { //decimal before a comma = euro
             $value = str_replace(['.',','], ['','.'], $value);
             return (float) $value;
         }
@@ -132,13 +132,13 @@ class Number
     public static function parseFloatXX($value)
     {
 
-        if(!$value) {
+        if (!$value) {
             return 0;
         }
 
         $multiplier = false;
 
-        if(substr($value, 0, 1) == '-') {
+        if (substr($value, 0, 1) == '-') {
             $multiplier = -1;
         }
 
@@ -152,7 +152,7 @@ class Number
 
         $s = str_replace('.', '', substr($s, 0, -3)).substr($s, -3);
 
-        if($multiplier) {
+        if ($multiplier) {
             $s = floatval($s) * -1;
         }
 
@@ -164,7 +164,7 @@ class Number
     public static function parseFloat2($value)
     {
 
-        if(!$value) {
+        if (!$value) {
             return 0;
         }
 
@@ -175,11 +175,11 @@ class Number
         $comma = strpos($value, ',');
 
         //check the 3rd last character
-        if(!in_array(substr($value, -3, 1), [".", ","])) {
+        if (!in_array(substr($value, -3, 1), [".", ","])) {
 
-            if($comma && (substr($value, -3, 1) != ".")) {
+            if ($comma && (substr($value, -3, 1) != ".")) {
                 $value .= ".00";
-            } elseif($decimal && (substr($value, -3, 1) != ",")) {
+            } elseif ($decimal && (substr($value, -3, 1) != ",")) {
                 $value .= ",00";
             }
 
@@ -188,11 +188,11 @@ class Number
         $decimal = strpos($value, '.');
         $comma = strpos($value, ',');
 
-        if($comma === false) { //no comma must be a decimal number already
+        if ($comma === false) { //no comma must be a decimal number already
             return (float) $value;
         }
 
-        if($decimal < $comma) { //decimal before a comma = euro
+        if ($decimal < $comma) { //decimal before a comma = euro
             $value = str_replace(['.',','], ['','.'], $value);
             return (float) $value;
         }
@@ -335,7 +335,7 @@ class Number
         }
 
         //04-04-2023 if currency = JPY override precision to 0
-        if($currency->code == 'JPY') {
+        if ($currency->code == 'JPY') {
             $precision = 0;
         }
 

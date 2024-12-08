@@ -41,7 +41,7 @@ class InvoicePay extends Component
         'client_postal_code' => 'postal_code',
         'client_country_id' => 'country_id',
 
-        'client_shipping_address_line_1' => 'shipping_address1',  
+        'client_shipping_address_line_1' => 'shipping_address1',
         'client_shipping_address_line_2' => 'shipping_address2',
         'client_shipping_city' => 'shipping_city',
         'client_shipping_state' => 'shipping_state',
@@ -178,7 +178,7 @@ class InvoicePay extends Component
                 }
             }
         }
-        
+
         if ($company_gateway->always_show_required_fields) {
             return $this->required_fields = true;
         }
@@ -212,7 +212,7 @@ class InvoicePay extends Component
         }
 
         return ProcessPayment::class;
-        
+
     }
 
     #[Computed()]
@@ -223,14 +223,14 @@ class InvoicePay extends Component
 
     public function mount()
     {
-        
+
         $this->resetContext();
 
         MultiDB::setDb($this->db);
 
         // @phpstan-ignore-next-line
         $invite = \App\Models\InvoiceInvitation::with('contact.client', 'company')->withTrashed()->find($this->invitation_id);
-        
+
         $client = $invite->contact->client;
         $settings = $client->getMergedSettings();
         $this->setContext('contact', $invite->contact); // $this->context['contact'] = $invite->contact;
@@ -238,16 +238,18 @@ class InvoicePay extends Component
         $this->setContext('db', $this->db); // $this->context['db'] = $this->db;
         $this->setContext('invitation_id', $this->invitation_id);
 
-        $this->invoices = Invoice::find($this->transformKeys($this->invoices));
+        $invoices = Invoice::withTrashed()
+                                    ->whereIn('id', $this->transformKeys($this->invoices))
+                                    ->where('is_deleted', 0)
+                                    ->get()
+                                    ->filter(function ($i) {
+                                        $i = $i->service()
+                                            ->markSent()
+                                            ->removeUnpaidGatewayFees()
+                                            ->save();
 
-        $invoices = $this->invoices->filter(function ($i) {
-            $i = $i->service()
-                ->markSent()
-                ->removeUnpaidGatewayFees()
-                ->save();
-
-            return $i->isPayable();
-        });
+                                        return $i->isPayable();
+                                    });
 
         //under-over / payment
 
@@ -260,7 +262,7 @@ class InvoicePay extends Component
         $this->setContext('variables', $this->variables); // $this->context['variables'] = $this->variables;
         $this->setContext('invoices', $invoices); // $this->context['invoices'] = $invoices;
         $this->setContext('settings', $settings); // $this->context['settings'] = $settings;
-        $this->setContext('invitation', $invite); // $this->context['invitation'] = $invite;
+        // $this->setContext('invitation', $invite->withoutRelations()); // $this->context['invitation'] = $invite;
 
         $payable_invoices = $invoices->map(function ($i) {
             /** @var \App\Models\Invoice $i */
@@ -271,7 +273,8 @@ class InvoicePay extends Component
                 'formatted_currency' => Number::formatMoney($i->partial > 0 ? $i->partial : $i->balance, $i->client),
                 'number' => $i->number,
                 'date' => $i->translateDate($i->date, $i->client->date_format(), $i->client->locale()),
-                'due_date' => $i->translateDate($i->due_date, $i->client->date_format(), $i->client->locale())
+                'due_date' => $i->translateDate($i->due_date, $i->client->date_format(), $i->client->locale()),
+                'terms' => $i->terms,
             ];
         })->toArray();
 
@@ -284,9 +287,9 @@ class InvoicePay extends Component
         return render('flow2.invoice-pay');
     }
 
-    public function exception($e, $stopPropagation) 
+    public function exception($e, $stopPropagation)
     {
-        
+
         app('sentry')->captureException($e);
         nlog($e->getMessage());
         $stopPropagation();

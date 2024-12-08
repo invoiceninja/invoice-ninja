@@ -34,7 +34,7 @@ class MutatorUtil
      * setPaymentMeans
      *
      * Sets the payment means - if it exists
-     * 
+     *
      * @param  bool $required
      * @return self
      */
@@ -42,9 +42,9 @@ class MutatorUtil
     {
         $peppol = $this->mutator->getPeppol();
 
-        if(isset($peppol->PaymentMeans)) {
+        if (isset($peppol->PaymentMeans)) {
             return $this;
-        } elseif($paymentMeans = $this->getSetting('Invoice.PaymentMeans')) {
+        } elseif ($paymentMeans = $this->getSetting('Invoice.PaymentMeans')) {
             $peppol->PaymentMeans = is_array($paymentMeans) ? $paymentMeans : [$paymentMeans];
             $this->mutator->setPeppol($peppol);
             return $this;
@@ -65,7 +65,7 @@ class MutatorUtil
     {
         return PropertyResolver::resolve($this->mutator->getClientSettings(), $property_path);
     }
-    
+
     /**
      * getCompanySetting
      *
@@ -88,11 +88,11 @@ class MutatorUtil
     public function getSetting(string $property_path): mixed
     {
 
-        if($prop_value = PropertyResolver::resolve($this->mutator->getPeppol(), $property_path)) {
+        if ($prop_value = PropertyResolver::resolve($this->mutator->getPeppol(), $property_path)) {
             return $prop_value;
-        } elseif($prop_value = PropertyResolver::resolve($this->mutator->getClientSettings(), $property_path)) {
+        } elseif ($prop_value = PropertyResolver::resolve($this->mutator->getClientSettings(), $property_path)) {
             return $prop_value;
-        } elseif($prop_value = PropertyResolver::resolve($this->mutator->getCompanySettings(), $property_path)) {
+        } elseif ($prop_value = PropertyResolver::resolve($this->mutator->getCompanySettings(), $property_path)) {
             return $prop_value;
         }
         return null;
@@ -127,14 +127,14 @@ class MutatorUtil
         $invoice = $this->mutator->getInvoice();
 
         //@phpstan-ignore-next-line
-        if(isset($peppol->AccountingCustomerParty->CustomerAssignedAccountID)) {
+        if (isset($peppol->AccountingCustomerParty->CustomerAssignedAccountID)) {
             return $this;
-        } elseif($customer_assigned_account_id = $this->getSetting('Invoice.AccountingCustomerParty.CustomerAssignedAccountID')) {
+        } elseif ($customer_assigned_account_id = $this->getSetting('Invoice.AccountingCustomerParty.CustomerAssignedAccountID')) {
 
             $peppol->AccountingCustomerParty->CustomerAssignedAccountID = $customer_assigned_account_id;
             $this->mutator->setPeppol($peppol);
             return $this;
-        } elseif(strlen($invoice->client->id_number ?? '') > 1) {
+        } elseif (strlen($invoice->client->id_number ?? '') > 1) {
 
             $customer_assigned_account_id = new CustomerAssignedAccountID();
             $customer_assigned_account_id->value = $invoice->client->id_number;

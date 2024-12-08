@@ -67,7 +67,7 @@ class GenericReportRequest extends Request
 
         $input['user_id'] = auth()->user()->id;
 
-        if(!$this->checkAuthority()) {
+        if (!$this->checkAuthority()) {
             $input['date_range'] = '';
             $input['start_date'] = '';
             $input['end_date'] = '';

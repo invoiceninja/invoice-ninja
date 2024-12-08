@@ -153,7 +153,7 @@ class CreditCard implements MethodInterface, LivewireMethodInterface
 
         return $data;
     }
-    
+
     public function paymentView($data, $livewire = false)
     {
         $data = $this->paymentData($data);
@@ -167,7 +167,7 @@ class CreditCard implements MethodInterface, LivewireMethodInterface
 
     public function livewirePaymentView(array $data): string
     {
-        return 'gateways.checkout.credit_card.pay_livewire'; 
+        return 'gateways.checkout.credit_card.pay_livewire';
     }
 
     public function paymentResponse(PaymentResponseRequest $request)
@@ -249,7 +249,7 @@ class CreditCard implements MethodInterface, LivewireMethodInterface
         try {
             $response = $this->checkout->gateway->getPaymentsClient()->requestPayment($paymentRequest);
 
-            if($this->checkout->company_gateway->update_details && isset($response['customer'])) {
+            if ($this->checkout->company_gateway->update_details && isset($response['customer'])) {
                 $this->checkout->updateCustomer($response['customer']['id'] ?? '');
             }
 

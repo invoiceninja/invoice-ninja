@@ -526,7 +526,7 @@ class PurchaseOrderController extends BaseController
             }, 'print.pdf', ['Content-Type' => 'application/pdf']);
         }
 
-        if($action == 'template' && $user->can('view', $purchase_orders->first())) {
+        if ($action == 'template' && $user->can('view', $purchase_orders->first())) {
 
             $hash_or_response = $request->boolean('send_email') ? 'email sent' : \Illuminate\Support\Str::uuid();
 

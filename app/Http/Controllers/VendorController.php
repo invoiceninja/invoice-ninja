@@ -587,15 +587,15 @@ class VendorController extends BaseController
     }
 
 
-     /**
-         * Update the specified resource in storage.
-         *
-         * @param PurgeVendorRequest $request
-         * @param Vendor $vendor
-         * @param string $mergeable_vendor
-         * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
-         *
-         */
+    /**
+        * Update the specified resource in storage.
+        *
+        * @param PurgeVendorRequest $request
+        * @param Vendor $vendor
+        * @param string $mergeable_vendor
+        * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
+        *
+        */
 
     public function merge(PurgeVendorRequest $request, Vendor $vendor, string $mergeable_vendor)
     {
@@ -611,7 +611,7 @@ class VendorController extends BaseController
             return response()->json(['message' => "Vendor not found"], 400);
         }
 
-        if($m_vendor->id == $vendor->id) {
+        if ($m_vendor->id == $vendor->id) {
             return response()->json(['message' => "Attempting to merge the same vendor is not possible."], 400);
         }
 

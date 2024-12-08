@@ -517,7 +517,7 @@ class PaymentController extends BaseController
             return response()->json(['message' => ctrans('texts.record_not_found')]);
         }
 
-        if($action == 'template' && $user->can('view', $payments->first())) {
+        if ($action == 'template' && $user->can('view', $payments->first())) {
 
             $hash_or_response = request()->boolean('send_email') ? 'email sent' : \Illuminate\Support\Str::uuid();
 

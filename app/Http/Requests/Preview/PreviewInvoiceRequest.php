@@ -76,7 +76,7 @@ class PreviewInvoiceRequest extends Request
         $input['balance'] = 0;
         $input['number'] = isset($input['number']) ? $input['number'] : ctrans('texts.live_preview').' #'.rand(0, 1000);
 
-        if($input['entity_id'] ?? false) {
+        if ($input['entity_id'] ?? false) {
             $input['entity_id'] = $this->decodePrimaryKey($input['entity_id'], true);
         }
 
@@ -90,7 +90,7 @@ class PreviewInvoiceRequest extends Request
         $invitation = false;
 
         /** @phpstan-ignore-next-line */
-        if(! $this->entity_id ?? false) {
+        if (! $this->entity_id ?? false) {
             return $this->stubInvitation();
         }
 
@@ -102,7 +102,7 @@ class PreviewInvoiceRequest extends Request
             default => $invitation = false,
         };
 
-        if($invitation) {
+        if ($invitation) {
             return $invitation;
         }
 
@@ -111,7 +111,7 @@ class PreviewInvoiceRequest extends Request
 
     public function getClient(): ?Client
     {
-        if(!$this->client) {
+        if (!$this->client) {
             $this->client = Client::query()->with('contacts', 'company', 'user')->withTrashed()->find($this->client_id);
         }
 

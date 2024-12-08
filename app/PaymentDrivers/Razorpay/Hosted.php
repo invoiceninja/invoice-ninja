@@ -163,15 +163,15 @@ class Hosted implements MethodInterface, LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.razorpay.hosted.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $order = $this->razorpay->gateway->order->create([
             'currency' => $this->razorpay->client->currency()->code,

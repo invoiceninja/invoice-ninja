@@ -100,7 +100,7 @@ class PaymentMeans implements PaymentMeansInterface
         '97' => 'Clearing between partners',
         'ZZZ' => 'Mutually defined',
     ];
-    
+
     public function run()
     {
     }

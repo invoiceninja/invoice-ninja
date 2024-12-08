@@ -62,7 +62,7 @@ class RefundPayment
 
     private function finalize(): self
     {
-        if($this->refund_failed) {
+        if ($this->refund_failed) {
             throw new PaymentRefundFailed($this->refund_failed_message);
         }
 
@@ -94,11 +94,11 @@ class RefundPayment
             if ($this->payment->company_gateway) {
                 $response = $this->payment->company_gateway->driver($this->payment->client)->refund($this->payment, $net_refund);
 
-                if($response['amount'] ?? false) {
+                if ($response['amount'] ?? false) {
                     $net_refund = $response['amount'];
                 }
 
-                if($response['voided'] ?? false) {
+                if ($response['voided'] ?? false) {
                     //When a transaction is voided - all invoices attached to the payment need to be reversed, this
                     //block prevents the edge case where a partial refund was attempted.
                     $this->refund_data['invoices'] = $this->payment->invoices->map(function ($invoice) {

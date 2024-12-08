@@ -252,21 +252,21 @@ class CreditCard implements LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.payfast.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $payfast_data = [
             'merchant_id' => $this->payfast->company_gateway->getConfigField('merchantId'),
             'merchant_key' => $this->payfast->company_gateway->getConfigField('merchantKey'),
-            'return_url' => route('client.invoice.show',['invoice' => $this->payfast->payment_hash->fee_invoice->hashed_id]), //route('client.payments.index'), 
-            'cancel_url' => route('client.invoice.show',['invoice' => $this->payfast->payment_hash->fee_invoice->hashed_id]), //route('client.payment_methods.index'),
+            'return_url' => route('client.invoice.show', ['invoice' => $this->payfast->payment_hash->fee_invoice->hashed_id]), //route('client.payments.index'),
+            'cancel_url' => route('client.invoice.show', ['invoice' => $this->payfast->payment_hash->fee_invoice->hashed_id]), //route('client.payment_methods.index'),
             'notify_url' => $this->payfast->genericWebhookUrl(),
             'm_payment_id' => $data['payment_hash'],
             'amount' => $data['amount_with_fee'],

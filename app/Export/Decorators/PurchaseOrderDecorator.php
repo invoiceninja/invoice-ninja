@@ -19,15 +19,15 @@ class PurchaseOrderDecorator extends Decorator implements DecoratorInterface
     {
         $purchase_order = false;
 
-        if($entity instanceof PurchaseOrder) {
+        if ($entity instanceof PurchaseOrder) {
             $purchase_order = $entity;
-        } elseif($entity->purchase_order) {
+        } elseif ($entity->purchase_order) {
             $purchase_order = $entity->purchase_order;
         }
 
-        if($purchase_order && method_exists($this, $key)) {
+        if ($purchase_order && method_exists($this, $key)) {
             return $this->{$key}($purchase_order);
-        } elseif($purchase_order->{$key} ?? false) {
+        } elseif ($purchase_order->{$key} ?? false) {
             return $purchase_order->{$key} ?? '';
         }
 

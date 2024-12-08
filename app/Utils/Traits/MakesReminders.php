@@ -29,16 +29,40 @@ trait MakesReminders
     {
         /** @var \App\Models\Invoice | \App\Models\Quote | \App\Models\RecurringInvoice  | \App\Models\Credit $this **/
         $offset = $this->client->timezone_offset();
+        $entity_send_time = $this->client->getSetting('entity_send_time');
 
         switch ($schedule_reminder) {
             case 'after_invoice_date':
-                return Carbon::parse($this->date)->addDays((int)$num_days_reminder)->startOfDay()->addSeconds($offset)->isSameDay(Carbon::now());
+                // return Carbon::parse($this->date)->addDays((int)$num_days_reminder)->startOfDay()->addSeconds($offset)->isSameDay(Carbon::now());
+
+                return Carbon::parse($this->date)
+                            ->addDays((int)$num_days_reminder)
+                            ->startOfDay()
+                            ->toDateString() ===
+                                ($entity_send_time === 0 ? now()->startOfDay()->toDateString() : now()->setTimezone($this->client->timezone()->name)->startOfDay()->toDateString());
+
             case 'before_due_date':
                 $partial_or_due_date = ($this->partial > 0 && isset($this->partial_due_date)) ? $this->partial_due_date : $this->due_date;
-                return Carbon::parse($partial_or_due_date)->subDays((int)$num_days_reminder)->startOfDay()->addSeconds($offset)->isSameDay(Carbon::now());
+                // return Carbon::parse($partial_or_due_date)->subDays((int)$num_days_reminder)->startOfDay()->addSeconds($offset)->isSameDay(Carbon::now());
+
+                return Carbon::parse($partial_or_due_date)
+                            ->subDays((int)$num_days_reminder)
+                            ->startOfDay()
+                            ->toDateString() ===
+                                ($entity_send_time === 0 ? now()->startOfDay()->toDateString() : now()->setTimezone($this->client->timezone()->name)->startOfDay()->toDateString());
+
+
             case 'after_due_date':
                 $partial_or_due_date = ($this->partial > 0 && isset($this->partial_due_date)) ? $this->partial_due_date : $this->due_date;
-                return Carbon::parse($partial_or_due_date)->addDays((int)$num_days_reminder)->startOfDay()->addSeconds($offset)->isSameDay(Carbon::now());
+                // return Carbon::parse($partial_or_due_date)->addDays((int)$num_days_reminder)->startOfDay()->addSeconds($offset)->isSameDay(Carbon::now());
+
+                return Carbon::parse($partial_or_due_date)
+                            ->addDays((int)$num_days_reminder)
+                            ->startOfDay()
+                            ->toDateString() === 
+                                ($entity_send_time === 0 ? now()->startOfDay()->toDateString() : now()->setTimezone($this->client->timezone()->name)->startOfDay()->toDateString());
+                                
+
             default:
                 return null;
         }
@@ -84,7 +108,7 @@ trait MakesReminders
     {
         $interval = $this->addTimeInterval($last_sent_date, $endless_reminder_frequency_id);
 
-        if(is_null($interval)) {
+        if (is_null($interval)) {
             return false;
         }
 

@@ -16,7 +16,6 @@ namespace App\DataMapper;
  */
 class BaseSettings
 {
-
     public static function setCasts($obj, $casts)
     {
         foreach ($casts as $key => $value) {

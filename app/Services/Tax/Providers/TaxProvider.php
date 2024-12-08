@@ -93,13 +93,13 @@ class TaxProvider
 
             $tax_data = $tax_provider->run();
 
-            if($tax_data) {
+            if ($tax_data) {
                 $this->company->origin_tax_data = $tax_data;
                 $this->company->saveQuietly();
                 $this->updated_client = true;
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: TaxProvider::" . $e->getMessage());
             nlog("Could not updated company tax data: " . $e->getMessage());
         }
@@ -145,7 +145,7 @@ class TaxProvider
 
         // nlog($tax_data);
 
-        if($tax_data) {
+        if ($tax_data) {
             $this->client->tax_data = $tax_data;
             $this->client->saveQuietly();
             $this->updated_client = true;
@@ -163,7 +163,7 @@ class TaxProvider
     private function taxShippingAddress(): bool
     {
 
-        if($this->client->shipping_country_id == "840" && strlen($this->client->shipping_postal_code) > 3) {
+        if ($this->client->shipping_country_id == "840" && strlen($this->client->shipping_postal_code) > 3) {
             return true;
         }
 
@@ -250,7 +250,7 @@ class TaxProvider
      */
     private function configureZipTax(): self
     {
-        if(!config('services.tax.zip_tax.key')) {
+        if (!config('services.tax.zip_tax.key')) {
             throw new \Exception("ZipTax API key not set in .env file");
         }
 

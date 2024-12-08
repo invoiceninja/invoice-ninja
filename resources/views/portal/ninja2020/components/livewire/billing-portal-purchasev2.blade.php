@@ -155,7 +155,6 @@
                               </div>
                             </div>
                             <div class="flex justify-between text-sm mt-1">
-                                @if(is_numeric($product->max_quantity))
                                 <p class="text-gray-500 w-3/4"></p>
                                 <div class="flex place-content-end">
                                     @if($this->subscription->use_inventory_management && $product->in_stock_quantity == 0)
@@ -174,7 +173,6 @@
                                         @endfor
                                     </select>
                                 </div>
-                                @endif
                             </div>
                           </div>
                         </li>
@@ -201,7 +199,6 @@
                               <p class="mt-1 text-sm text-gray-500"></p>
                             </div>
                             <div class="flex justify-between text-sm mt-1">
-                                @if(is_numeric($product->max_quantity))
                                 <p class="text-gray-500 w-3/4"></p>
                                 <div class="flex place-content-end">
                                     @if($this->subscription->use_inventory_management && $product->in_stock_quantity == 0)
@@ -216,8 +213,6 @@
                                         @endfor
                                     </select>
                                 </div>
-
-                                @endif
                             </div>
                           </div>
                         </li>

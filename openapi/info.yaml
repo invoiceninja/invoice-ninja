@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.0.1
 info:
   title: 'Invoice Ninja API Reference.'
   description: |
@@ -71,12 +71,13 @@ info:
   license:
     name: 'Elastic License'
     url: 'https://www.elastic.co/licensing/elastic-license'
-  version: 5.10.31
+  version: 5.10.53
+
 servers:
-  -  url: 'https://demo.invoiceninja.com'
-     description: |
-          ## Demo API endpoint 
-          You can use the demo API key `TOKEN` to test the endpoints from within this API spec
-  -  url: 'https://invoicing.co'
-     description: |
-          ## Production API endpoint
+  - url: 'https://demo.invoiceninja.com'
+    description: |
+      ## Demo API endpoint 
+      You can use the demo API key `TOKEN` to test the endpoints from within this API spec
+  - url: 'https://invoicing.co'
+    description: |
+      ## Production API endpoint

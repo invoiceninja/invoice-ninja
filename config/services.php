@@ -45,6 +45,13 @@ return [
         ],
     ],
 
+    'postmark-broadcast' => [
+        'token' => env('POSTMARK_BROADCAST_SECRET', ''),
+        'from' => [
+            'address' => env('POSTMARK_BROADCAST_FROM_ADDRESS', 'community@invoiceninja.com')
+        ],
+    ],
+
     'microsoft' => [
         'client_id' => env('MICROSOFT_CLIENT_ID'),
         'client_secret' => env('MICROSOFT_CLIENT_SECRET'),

@@ -111,7 +111,7 @@ class ResetPasswordController extends Controller
     {
         auth()->logout();
 
-        if(request()->has('react') || request()->hasHeader('X-React')) {
+        if (request()->has('react') || request()->hasHeader('X-React')) {
             return redirect(config('ninja.react_url').'/#/login');
         }
 
@@ -131,7 +131,7 @@ class ResetPasswordController extends Controller
             return new JsonResponse(['message' => trans($response)], 200);
         }
 
-        if($request->hasHeader('X-REACT') || $request->has('react')) {
+        if ($request->hasHeader('X-REACT') || $request->has('react')) {
             return redirect(config('ninja.react_url').'/#/login');
         } else {
             return redirect('/#/login');

@@ -51,7 +51,7 @@ class UpdateTaxData implements ShouldQueue
     {
         MultiDB::setDb($this->company->db);
 
-        if($this->company->account->isFreeHostedClient() || $this->client->country_id != 840) {
+        if ($this->company->account->isFreeHostedClient() || $this->client->country_id != 840) {
             return;
         }
 
@@ -69,7 +69,7 @@ class UpdateTaxData implements ShouldQueue
             }
 
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: UpdateTaxData::" . $e->getMessage());
             nlog("problem getting tax data => ".$e->getMessage());
         }

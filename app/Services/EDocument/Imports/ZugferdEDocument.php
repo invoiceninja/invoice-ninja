@@ -76,8 +76,9 @@ class ZugferdEDocument extends AbstractService
             $expense->save();
 
             $documents = [$this->file];
-            if ($this->file->getExtension() == "xml")
+            if ($this->file->getExtension() == "xml") {
                 array_push($documents, TempFile::UploadedFileFromRaw($visualizer->renderPdf(), $documentno . "_visualiser.pdf", "application/pdf"));
+            }
             $this->saveDocuments($documents, $expense);
 
             $expense->save();
@@ -109,16 +110,16 @@ class ZugferdEDocument extends AbstractService
 
             $vendor = Vendor::query()
                             ->where("company_id", $this->company->id)
-                            ->where(function ($q) use($taxid, $person_name, $contact_email){
-                                $q->when(!is_null($taxid), function ($when_query) use($taxid){
-                                    $when_query->orWhere('vat_number', $taxid); 
-                                }) 
+                            ->where(function ($q) use ($taxid, $person_name, $contact_email) {
+                                $q->when(!is_null($taxid), function ($when_query) use ($taxid) {
+                                    $when_query->orWhere('vat_number', $taxid);
+                                })
                                 ->orWhere("name", $person_name)
-                                ->orWhereHas('contacts', function ($qq) use ($contact_email){
-                                $qq->where("email", $contact_email);
+                                ->orWhereHas('contacts', function ($qq) use ($contact_email) {
+                                    $qq->where("email", $contact_email);
                                 });
                             })->first();
-                            
+
             if ($vendor) {
                 $expense->vendor_id = $vendor->id;
             } else {
@@ -138,8 +139,9 @@ class ZugferdEDocument extends AbstractService
                     /** @var \App\Models\Country $c */
                     return $c->iso_3166_2 == $country || $c->iso_3166_3 == $country;
                 });
-                if ($country)
+                if ($country) {
                     $vendor->country_id = $country->id;
+                }
 
                 $vendor_repo = new VendorRepository(new VendorContactRepository());
                 $vendor = $vendor_repo->save([], $vendor);
@@ -155,8 +157,8 @@ class ZugferdEDocument extends AbstractService
         }
 
         $expense_repo = new ExpenseRepository();
-        $expense = $expense_repo->save([],$expense);
-        
+        $expense = $expense_repo->save([], $expense);
+
         return $expense;
     }
 }

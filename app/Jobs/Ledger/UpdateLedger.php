@@ -54,7 +54,7 @@ class UpdateLedger implements ShouldQueue
 
         nlog($cl->company_ledgerable->company_ledger()->count());
 
-        if(!$cl) {
+        if (!$cl) {
             return;
         }
 

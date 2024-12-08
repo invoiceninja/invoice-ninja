@@ -30,7 +30,7 @@ class TwoFactorController extends BaseController
 
         if ($user->google_2fa_secret) {
             return response()->json(['message' => '2FA already enabled'], 400);
-        } elseif(Ninja::isSelfHost()) {
+        } elseif (Ninja::isSelfHost()) {
 
         } elseif (! $user->phone) {
             return response()->json(['message' => ctrans('texts.set_phone_for_two_factor')], 400);

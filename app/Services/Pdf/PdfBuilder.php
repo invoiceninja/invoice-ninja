@@ -133,7 +133,7 @@ class PdfBuilder
 
         }
 
-        foreach($contents as $key => $content) {
+        foreach ($contents as $key => $content) {
             $content->parentNode->replaceChild($replacements[$key], $content);
         }
 
@@ -367,15 +367,15 @@ class PdfBuilder
 
                 $this->payment_amount_total += $payment->pivot->amount;
 
-                if($payment->pivot->refunded > 0){
+                if ($payment->pivot->refunded > 0) {
 
                     $refund_date = $payment->date;
 
-                    if($payment->refund_meta && is_array($payment->refund_meta)){
+                    if ($payment->refund_meta && is_array($payment->refund_meta)) {
 
-                        $refund_array = collect($payment->refund_meta)->first(function ($meta) use($invoice){
-                            foreach($meta['invoices'] as $refunded_invoice){
-                                
+                        $refund_array = collect($payment->refund_meta)->first(function ($meta) use ($invoice) {
+                            foreach ($meta['invoices'] as $refunded_invoice) {
+
                                 if ($refunded_invoice['invoice_id'] == $invoice->id) {
                                     return true;
                                 }
@@ -431,9 +431,9 @@ class PdfBuilder
         ];
     }
 
-    public function statementUnappliedPaymentTableTotals():array
+    public function statementUnappliedPaymentTableTotals(): array
     {
-                
+
         if (is_null($this->service->options['unapplied']) || !$this->service->options['unapplied']->first()) {
             return [];
         }
@@ -486,10 +486,10 @@ class PdfBuilder
 
             $tbody[] = $element;
 
-            $this->unapplied_total += round($unapplied_payment->amount - $unapplied_payment->applied,2);
+            $this->unapplied_total += round($unapplied_payment->amount - $unapplied_payment->applied, 2);
 
         }
-            
+
         return [
             ['element' => 'thead', 'elements' => $this->buildTableHeader('statement_unapplied')],
             ['element' => 'tbody', 'elements' => $tbody],
@@ -1478,6 +1478,11 @@ class PdfBuilder
     {
         $variables = $this->service->config->pdf_variables['invoice_details'];
 
+        // $_v = $this->service->html_variables;
+
+        // $_v['labels']['$invoice.date_label'] = ctrans('text.date');
+        // $this->service->html_variables = $_v;
+
         $variables = array_filter($variables, function ($m) {
             return !in_array($m, ['$invoice.balance_due', '$invoice.total']);
         });
@@ -1586,7 +1591,7 @@ class PdfBuilder
 
         $elements = [
             ['element' => 'p', 'content' => ctrans('texts.shipping_address'), 'properties' => ['data-ref' => 'shipping_address-label', 'style' => 'font-weight: bold; text-transform: uppercase']],
-            ['element' => 'p', 'content' => $this->service->config->client->name, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.name']],
+            // ['element' => 'p', 'content' => $this->service->config->client->name, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.name']],
             ['element' => 'p', 'content' => $this->service->config->client->shipping_address1, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.shipping_address1']],
             ['element' => 'p', 'content' => $this->service->config->client->shipping_address2, 'show_empty' => false, 'properties' => ['data-ref' => 'shipping_address-client.shipping_address2']],
             ['element' => 'p', 'show_empty' => false, 'elements' => [

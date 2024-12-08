@@ -74,7 +74,7 @@ class DocumentController extends Controller
 
         $hash = Cache::pull($hash);
 
-        if(!$hash) {
+        if (!$hash) {
             abort(404);
         }
 

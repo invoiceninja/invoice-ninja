@@ -18,8 +18,9 @@ class QuickbooksSettingsCast implements CastsAttributes
 {
     public function get($model, string $key, $value, array $attributes)
     {
-        if (is_null($value)) 
+        if (is_null($value)) {
             return new QuickbooksSettings();
+        }
 
         $data = json_decode($value, true);
         return QuickbooksSettings::fromArray($data);

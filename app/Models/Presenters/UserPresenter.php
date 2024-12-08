@@ -73,7 +73,7 @@ class UserPresenter extends EntityPresenter
             return 'No First Name Available';
         }
 
-        return $this->entity->first_name ?? 'First Name';
+        return $this->entity->first_name ?? ' ';
 
     }
 

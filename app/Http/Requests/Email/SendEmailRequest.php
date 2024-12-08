@@ -85,7 +85,7 @@ class SendEmailRequest extends Request
             $input['template'] = '';
         }
 
-        if (! property_exists($settings, $input['template'])) {
+        if (is_string($input['template']) && ! property_exists($settings, $input['template'])) {
             unset($input['template']);
         }
 
@@ -98,7 +98,7 @@ class SendEmailRequest extends Request
             $input['entity'] = "App\Models\\".ucfirst(Str::camel($input['entity']));
         }
 
-        if(isset($input['cc_email'])) {
+        if (isset($input['cc_email'])) {
             $input['cc_email'] = collect(explode(",", $input['cc_email']))->map(function ($email) {
                 return trim($email);
             })->filter(function ($email) {
@@ -148,11 +148,10 @@ class SendEmailRequest extends Request
             /* Check object, check user and company id is same as users, and check user can edit the object */
             if ($entity_obj && ($company->id == $entity_obj->company_id) && $user->can('edit', $entity_obj)) {
                 return true;
-            }
-            else {
+            } else {
                 $this->error_message = "Invalid entity or entity_id";
             }
-        } 
+        }
 
         return true;
     }

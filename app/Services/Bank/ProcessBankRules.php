@@ -111,7 +111,7 @@ class ProcessBankRules extends AbstractService
     //         foreach ($bank_transaction_rule['rules'] as $rule) {
 
     //             $results = [];
-                
+
     //             $payments = Payment::query()
     //                                 ->withTrashed()
     //                                 ->whereIn('status_id', [1,4])
@@ -162,8 +162,8 @@ class ProcessBankRules extends AbstractService
     //                 $match_set[] = $results;
     //             }
     //         }
-            
-    //         if (($bank_transaction_rule['matches_on_all'] && $this->checkMatchSetForKey($match_set, $rule_count)) || (!$bank_transaction_rule['matches_on_all'] && count($match_set) > 0)) 
+
+    //         if (($bank_transaction_rule['matches_on_all'] && $this->checkMatchSetForKey($match_set, $rule_count)) || (!$bank_transaction_rule['matches_on_all'] && count($match_set) > 0))
     //         {
 
     //             $this->bank_transaction->status_id = BankTransaction::STATUS_MATCHED;
@@ -174,10 +174,10 @@ class ProcessBankRules extends AbstractService
 
     //             $invoice_id = false;
     //             $payment_id = false;
-    
+
     //             if($first_result[0] == Payment::class) {
     //                 $payment_id = $first_result[1][0];
-    //             }                
+    //             }
     //             elseif($first_result[0] == Invoice::class) {
     //                 $invoice_id = $first_result[1][0];
     //             }
@@ -237,7 +237,7 @@ class ProcessBankRules extends AbstractService
     // {
     //     return $payments->when($column != 'amount', function ($q) use ($rule, $column) {
     //         return $q->filter(function ($record) use ($rule, $column) {
-                
+
     //             $bool =  $this->matchStringOperator($this->bank_transaction->description, $record->{$column},  $rule['operator']);
     //             return $bool;
     //         });
@@ -297,7 +297,7 @@ class ProcessBankRules extends AbstractService
     //     return [Client::class, collect([])];
 
     // }
-    
+
     private function matchDebit()
     {
         $this->debit_rules = $this->bank_transaction->company->debit_rules();
@@ -408,9 +408,9 @@ class ProcessBankRules extends AbstractService
         $bt_value = strtolower(str_replace(" ", "", $bt_value));
         $rule_value = strtolower(str_replace(" ", "", $rule_value));
         $rule_length = iconv_strlen($rule_value);
-// nlog($bt_value);
-// nlog($rule_value);
-// nlog($rule_length);
+        // nlog($bt_value);
+        // nlog($rule_value);
+        // nlog($rule_length);
         return match ($operator) {
             'is' =>  $bt_value == $rule_value,
             'contains' => stripos($bt_value, $rule_value) !== false && strlen($rule_value) > 1,

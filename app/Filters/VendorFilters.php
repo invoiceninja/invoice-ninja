@@ -71,7 +71,7 @@ class VendorFilters extends QueryFilters
 
         $dir = ($sort_col[1] == 'asc') ? 'asc' : 'desc';
 
-        if($sort_col[0] == 'number') {
+        if ($sort_col[0] == 'number') {
             return $this->builder->orderByRaw("REGEXP_REPLACE(number,'[^0-9]+','')+0 " . $dir);
         }
 

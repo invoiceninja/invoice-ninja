@@ -100,9 +100,8 @@ class UpdateVendorRequest extends Request
 
         if (array_key_exists('country_id', $input) && is_null($input['country_id'])) {
             unset($input['country_id']);
-        }
-        elseif(!$this->vendor->country_id){
-            
+        } elseif (!$this->vendor->country_id) {
+
             /** @var \App\Models\User $user */
             $user = auth()->user();
 

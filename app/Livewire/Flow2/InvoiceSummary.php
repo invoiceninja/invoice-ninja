@@ -12,6 +12,7 @@
 
 namespace App\Livewire\Flow2;
 
+use App\Models\InvoiceInvitation;
 use App\Utils\Number;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -29,8 +30,8 @@ class InvoiceSummary extends Component
 
     public function mount()
     {
-       
-        $contact = $this->getContext()['contact'];
+
+        $contact = $this->getContext()['contact'] ?? auth()->guard('contact')->user();
         $this->invoices = $this->getContext()['payable_invoices'];
         $this->amount = Number::formatMoney($this->getContext()['amount'], $contact->client);
         $this->gateway_fee = isset($this->getContext()['gateway_fee']) ? Number::formatMoney($this->getContext()['gateway_fee'], $contact->client) : false;
@@ -41,18 +42,18 @@ class InvoiceSummary extends Component
     public function onContextUpdate(): void
     {
         // refactor logic for updating the price for eg if it changes with under/over pay
-        $contact = $this->getContext()['contact'];
+        $contact = $this->getContext()['contact'] ?? auth()->guard('contact')->user();
         $this->invoices = $this->getContext()['payable_invoices'];
         $this->amount = Number::formatMoney($this->getContext()['amount'], $contact->client);
         $this->gateway_fee = isset($this->getContext()['gateway_fee']) ? Number::formatMoney($this->getContext()['gateway_fee'], $contact->client) : false;
 
     }
 
-    #[On('payment-view-rendered')] 
+    #[On('payment-view-rendered')]
     public function handlePaymentViewRendered()
     {
-        
-        $contact = $this->getContext()['contact'];
+
+        $contact = $this->getContext()['contact'] ?? auth()->guard('contact')->user();
         $this->amount = Number::formatMoney($this->getContext()['amount'], $contact->client);
         $this->gateway_fee = isset($this->getContext()['gateway_fee']) ? Number::formatMoney($this->getContext()['gateway_fee'], $contact->client) : false;
 
@@ -61,15 +62,15 @@ class InvoiceSummary extends Component
     public function downloadDocument($invoice_hashed_id)
     {
 
-        $contact = $this->getContext()['contact'];
-        $_invoices = $this->getContext()['invoices'];
-        $i = $_invoices->first(function ($i) use($invoice_hashed_id){
-            return $i->hashed_id == $invoice_hashed_id;
-        });
+        $invitation_id = $this->getContext()['invitation_id'];
 
-        $file_name = $i->numberFormatter().'.pdf';
+        $db = $this->getContext()['db'];
+        
+        $invite = \App\Models\InvoiceInvitation::on($db)->withTrashed()->find($invitation_id);
 
-        $file = (new \App\Jobs\Entity\CreateRawPdf($i->invitations()->where('client_contact_id', $contact->id)->first()))->handle();
+        $file_name = $invite->invoice->numberFormatter().'.pdf';
+
+        $file = (new \App\Jobs\Entity\CreateRawPdf($invite))->handle();
 
         $headers = ['Content-Type' => 'application/pdf'];
 
@@ -81,11 +82,11 @@ class InvoiceSummary extends Component
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        $contact = $this->getContext()['contact'];
-        
+        $contact = $this->getContext()['contact'] ?? auth()->guard('contact')->user();
+
         return render('flow2.invoices-summary', [
             'client' => $contact->client,
         ]);
-        
+
     }
 }

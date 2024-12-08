@@ -55,12 +55,12 @@ class StripeConnectFailed extends Mailable
             view: 'email.einvoice.peppol_purchase_allocation_failed',
             text: 'email.einvoice.peppol_purchase_allocation_failed_text',
             with: [
-                
+
             ]
         );
     }
 
-    
+
     /**
      * Get the attachments for the message.
      *

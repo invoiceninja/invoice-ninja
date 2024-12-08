@@ -66,7 +66,7 @@ class General extends Component
 
     public function submit()
     {
-        
+
         $profile = $this->profile();
 
         if ($profile->email != $this->email) {

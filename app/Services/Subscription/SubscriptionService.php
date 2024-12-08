@@ -109,7 +109,8 @@ class SubscriptionService
 
             $recurring_invoice = $recurring_invoice_repo->save([], $recurring_invoice);
             $recurring_invoice->auto_bill = $this->subscription->auto_bill;
-
+            $recurring_invoice->auto_bill_enabled = ($this->subscription->auto_bill == 'always' || $this->subscription->auto_bill == 'optout') ? true : false;
+            
             /* Start the recurring service */
             $recurring_invoice->service()
                               ->start()
@@ -199,6 +200,7 @@ class SubscriptionService
         $recurring_invoice_repo = new RecurringInvoiceRepository();
         $recurring_invoice = $recurring_invoice_repo->save([], $recurring_invoice);
         $recurring_invoice->auto_bill = $this->subscription->auto_bill;
+        $recurring_invoice->auto_bill_enabled =  $this->setAutoBillFlag($recurring_invoice->auto_bill);
 
         /* Start the recurring service */
         $recurring_invoice->service()
@@ -253,7 +255,7 @@ class SubscriptionService
         // Redirects from here work just fine. Livewire will respect it.
         $client_contact = ClientContact::find($this->decodePrimaryKey($data['contact_id']));
 
-        if(is_string($data['client_id'])) {
+        if (is_string($data['client_id'])) {
             $data['client_id'] = $this->decodePrimaryKey($data['client_id']);
         }
 
@@ -987,7 +989,7 @@ class SubscriptionService
                             ->fillDefaults()
                             ->save();
 
-        if($invoice->fresh()->balance == 0) {
+        if ($invoice->fresh()->balance == 0) {
             $invoice->service()->markPaid()->save();
         }
 
@@ -1075,7 +1077,7 @@ class SubscriptionService
         $recurring_invoice->frequency_id = $this->subscription->frequency_id ?: RecurringInvoice::FREQUENCY_MONTHLY;
         $recurring_invoice->remaining_cycles = $this->subscription->remaining_cycles ?? -1;
         $recurring_invoice->date = now();
-        $recurring_invoice->auto_bill = $client->getSetting('auto_bill');
+        $recurring_invoice->auto_bill = $this->subscription->auto_bill ?? $client->getSetting('auto_bill');
         $recurring_invoice->auto_bill_enabled =  $this->setAutoBillFlag($recurring_invoice->auto_bill);
         $recurring_invoice->due_date_days = 'terms';
         $recurring_invoice->next_send_date = now()->format('Y-m-d');
@@ -1108,7 +1110,7 @@ class SubscriptionService
         $recurring_invoice->frequency_id = $this->subscription->frequency_id ?: RecurringInvoice::FREQUENCY_MONTHLY;
         $recurring_invoice->date = now()->addSeconds($client->timezone_offset());
         $recurring_invoice->remaining_cycles = $this->subscription->remaining_cycles ?? -1;
-        $recurring_invoice->auto_bill = $client->getSetting('auto_bill');
+        $recurring_invoice->auto_bill = $this->subscription->auto_bill ?? $client->getSetting('auto_bill');
         $recurring_invoice->auto_bill_enabled =  $this->setAutoBillFlag($recurring_invoice->auto_bill);
         $recurring_invoice->due_date_days = 'terms';
         $recurring_invoice->next_send_date = now()->addSeconds($client->timezone_offset())->format('Y-m-d');

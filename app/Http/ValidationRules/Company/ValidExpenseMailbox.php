@@ -21,7 +21,6 @@ use Symfony\Component\Validator\Constraints\EmailValidator;
  */
 class ValidExpenseMailbox implements Rule
 {
-
     private array $endings = [];
 
     public function __construct()
@@ -34,7 +33,7 @@ class ValidExpenseMailbox implements Rule
         if (empty($value) || !config('ninja.inbound_mailbox.expense_mailbox_endings')) {
             return true;
         }
-        
+
         foreach ($this->endings as $ending) {
             if (str_ends_with($value, $ending)) {
                 return true;

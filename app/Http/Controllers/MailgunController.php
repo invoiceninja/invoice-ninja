@@ -68,7 +68,7 @@ class MailgunController extends BaseController
     {
 
         $input = $request->all();
-        
+
         nlog($input);
 
         if (\abs(\time() - $request['signature']['timestamp']) > 15) {
@@ -136,12 +136,13 @@ class MailgunController extends BaseController
             nlog('Failed: Message could not be parsed, because required parameters are missing. Please ensure contacting this api-endpoint with a store & notify operation instead of a forward operation!');
             return response()->json(['message' => 'Failed. Missing Parameters. Use store and notify!'], 400);
         }
-        
+
         /** @var \App\Models\Company $company */
         $company = MultiDB::findAndSetDbByExpenseMailbox($input["recipient"]);
 
-        if(!$company)
-            return response()->json(['message' => 'Ok'], 200);  // Fail gracefully
+        if (!$company) {
+            return response()->json(['message' => 'Ok'], 200);
+        }  // Fail gracefully
 
         ProcessMailgunInboundWebhook::dispatch($input["sender"], $input["recipient"], $input["message-url"], $company)->delay(rand(2, 10));
 

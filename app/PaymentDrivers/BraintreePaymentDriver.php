@@ -248,7 +248,7 @@ class BraintreePaymentDriver extends BaseDriver
                 'transaction_reference' => $result->transaction->id,
                 'gateway_type_id' => GatewayType::CREDIT_CARD,
             ];
-            
+
             $this->confirmGatewayFee($data);
 
             $payment = $this->createPayment($data, Payment::STATUS_COMPLETED);
@@ -339,7 +339,7 @@ class BraintreePaymentDriver extends BaseDriver
             $ct = $this->init()->gateway->clientToken()->generate();
 
             return true;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
         }
 
@@ -351,7 +351,7 @@ class BraintreePaymentDriver extends BaseDriver
 
         try {
             return $this->init()->gateway->customer()->find($customer_id);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 
@@ -386,9 +386,9 @@ class BraintreePaymentDriver extends BaseDriver
 
         $this->client = $client;
 
-        foreach($cards as $card) {
+        foreach ($cards as $card) {
 
-            if($this->getToken($card->token, $card->customerId) || Carbon::createFromDate($card->expirationYear, $card->expirationMonth, '1')->lt(now())) { //@phpstan-ignore-line
+            if ($this->getToken($card->token, $card->customerId) || Carbon::createFromDate($card->expirationYear, $card->expirationMonth, '1')->lt(now())) { //@phpstan-ignore-line
                 continue;
             }
 
@@ -422,7 +422,7 @@ class BraintreePaymentDriver extends BaseDriver
         $b_shipping_address = count($customer->addresses) > 1 ? $customer->addresses[1] : false;
         $import_client_data = [];
 
-        if($b_business_address) {
+        if ($b_business_address) {
 
             $braintree_address =
             [
@@ -437,7 +437,7 @@ class BraintreePaymentDriver extends BaseDriver
             $import_client_data = array_merge($import_client_data, $braintree_address);
         }
 
-        if($b_shipping_address) {
+        if ($b_shipping_address) {
 
             $braintree_shipping_address =
             [
@@ -500,19 +500,19 @@ class BraintreePaymentDriver extends BaseDriver
     {
         $customers = $this->init()->gateway->customer()->all();
 
-        foreach($customers as $c) {
+        foreach ($customers as $c) {
 
             $customer = $this->find($c->id);
 
             // nlog(count($customer->creditCards). " Exists for {$c->id}");
 
-            if(!$customer) {
+            if (!$customer) {
                 continue;
             }
 
             $client = $this->findClient($customer->email);
 
-            if(!$this->findTokens($c->id) && !$client) {
+            if (!$this->findTokens($c->id) && !$client) {
                 //customer is not referenced in the system - create client
                 $client = $this->createNinjaClient($customer);
                 // nlog("Creating new Client");

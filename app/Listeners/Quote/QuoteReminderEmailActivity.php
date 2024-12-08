@@ -51,6 +51,7 @@ class QuoteReminderEmailActivity implements ShouldQueue
         $fields->user_id = $user_id;
         $fields->quote_id = $event->invitation->quote_id;
         $fields->company_id = $event->invitation->company_id;
+        $fields->account_id = $event->invitation->company->account_id;
         $fields->client_contact_id = $event->invitation->client_contact_id;
         $fields->client_id = $event->invitation->quote->client_id;
         $fields->activity_type_id = $reminder;

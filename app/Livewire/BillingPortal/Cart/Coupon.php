@@ -32,9 +32,9 @@ class Coupon extends Component
     public function mount()
     {
         $subscription = $this->subscription();
-        $this->showCouponCode = ($subscription->promo_discount > 0) && (!array_key_exists('valid_coupon',$this->context));
-        
-        if(isset($this->context['request_data']['coupon']) && $this->context['request_data']['coupon'] == $this->subscription()->promo_code){
+        $this->showCouponCode = ($subscription->promo_discount > 0) && (!array_key_exists('valid_coupon', $this->context));
+
+        if (isset($this->context['request_data']['coupon']) && $this->context['request_data']['coupon'] == $this->subscription()->promo_code) {
             $this->showCouponCode = false;
             $this->dispatch('purchase.context', property: "valid_coupon", value: $this->context['request_data']['coupon']);
         }
@@ -55,13 +55,12 @@ class Coupon extends Component
         ]);
 
         try {
-        
-            if($this->couponCode == $this->subscription()->promo_code) {
+
+            if ($this->couponCode == $this->subscription()->promo_code) {
                 $this->showCouponCode = false;
                 $this->dispatch('purchase.context', property: "valid_coupon", value: $this->couponCode);
                 $this->dispatch('summary.refresh');
-            }
-            else {
+            } else {
                 $this->addError('couponCode', ctrans('texts.invalid_coupon'));
             }
 

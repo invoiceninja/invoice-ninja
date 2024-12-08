@@ -69,7 +69,7 @@ class TaskExport extends BaseExport
                         ->withTrashed()
                         ->where('company_id', $this->company->id);
 
-        if(!$this->input['include_deleted'] ?? false) {
+        if (!$this->input['include_deleted'] ?? false) {
             $query->where('is_deleted', 0);
         }
 
@@ -77,13 +77,13 @@ class TaskExport extends BaseExport
 
         $clients = &$this->input['client_id'];
 
-        if($clients) {
+        if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
 
         $document_attachments = &$this->input['document_email_attachment'];
 
-        if($document_attachments) {
+        if ($document_attachments) {
             $this->queueDocuments($query);
         }
 
@@ -132,7 +132,7 @@ class TaskExport extends BaseExport
                     /** @var \App\Models\Task $resource*/
                     $this->buildRow($resource);
 
-                    foreach($this->storage_array as $row) {
+                    foreach ($this->storage_array as $row) {
                         $this->storage_item_array[] = $this->processMetaData($row, $resource);
                     }
 
@@ -233,7 +233,7 @@ class TaskExport extends BaseExport
                 $entity['task.item_notes'] = isset($item[2]) ? (string)$item[2] : '';
             }
 
-            
+
             $this->storage_array[] = $entity;
 
             $entity['task.start_date'] = '';

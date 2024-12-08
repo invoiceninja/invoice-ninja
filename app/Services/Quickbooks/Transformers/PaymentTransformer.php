@@ -22,7 +22,6 @@ use App\Models\Credit;
  */
 class PaymentTransformer extends BaseTransformer
 {
-
     public function qbToNinja(mixed $qb_data)
     {
         return $this->transform($qb_data);
@@ -36,23 +35,22 @@ class PaymentTransformer extends BaseTransformer
     {
 
         return [
-            'date' => data_get($qb_data, 'TxnDate', now()->format('Y-m-d')),  
-            'amount' => floatval(data_get($qb_data, 'TotalAmt', 0)), 
-            'applied' => data_get($qb_data, 'TotalAmt', 0) - data_get($qb_data, 'UnappliedAmt', 0), 
+            'date' => data_get($qb_data, 'TxnDate', now()->format('Y-m-d')),
+            'amount' => floatval(data_get($qb_data, 'TotalAmt', 0)),
+            'applied' => data_get($qb_data, 'TotalAmt', 0) - data_get($qb_data, 'UnappliedAmt', 0),
             'number' => data_get($qb_data, 'DocNumber', null),
             'private_notes' => data_get($qb_data, 'PrivateNote', null),
             'currency_id' => (string) $this->resolveCurrency(data_get($qb_data, 'CurrencyRef.value')),
-            'client_id' => $this->getClientId(data_get($qb_data, 'CustomerRef.value', null)),    
+            'client_id' => $this->getClientId(data_get($qb_data, 'CustomerRef.value', null)),
         ];
     }
- 
+
     public function buildPayment($qb_data): ?Payment
     {
         $ninja_payment_data = $this->transform($qb_data);
 
-        if($ninja_payment_data['client_id'])
-        {
-            $payment = PaymentFactory::create($this->company->id, $this->company->owner()->id,$ninja_payment_data['client_id']);
+        if ($ninja_payment_data['client_id']) {
+            $payment = PaymentFactory::create($this->company->id, $this->company->owner()->id, $ninja_payment_data['client_id']);
             $payment->amount = $ninja_payment_data['amount'];
             $payment->applied = $ninja_payment_data['applied'];
             $payment->status_id = 4;
@@ -61,14 +59,14 @@ class PaymentTransformer extends BaseTransformer
 
             $payment->client->service()->updatePaidToDate($payment->amount);
 
-            if($payment->amount == 0) {
+            if ($payment->amount == 0) {
                 //this is a credit memo, create a stub credit for this.
                 $payment = $this->createCredit($payment, $qb_data);
                 $payment->type_id = \App\Models\PaymentType::CREDIT;
                 $payment->save();
             }
 
-            
+
             return $payment;
 
         }
@@ -79,17 +77,18 @@ class PaymentTransformer extends BaseTransformer
     {
         $credit_line = null;
 
-        foreach($qb_data->Line as $item) {
-        
-            if(data_get($item, 'LinkedTxn.TxnType', null) == 'CreditMemo') {
+        foreach ($qb_data->Line as $item) {
+
+            if (data_get($item, 'LinkedTxn.TxnType', null) == 'CreditMemo') {
                 $credit_line = $item;
                 break;
             }
-        
+
         }
-         
-        if(!$credit_line) 
+
+        if (!$credit_line) {
             return $payment;
+        }
 
         $credit = \App\Factory\CreditFactory::create($this->company->id, $this->company->owner()->id);
         $credit->client_id = $payment->client_id;
@@ -123,10 +122,10 @@ class PaymentTransformer extends BaseTransformer
     {
         $invoices = [];
         $invoice = $this->getString($data, 'Line.LinkedTxn.TxnType');
-        if(is_null($invoice) || $invoice !== 'Invoice') {
+        if (is_null($invoice) || $invoice !== 'Invoice') {
             return $invoices;
         }
-        if(is_null(($invoice_id = $this->getInvoiceId($this->getString($data, 'Line.LinkedTxn.TxnId.value'))))) {
+        if (is_null(($invoice_id = $this->getInvoiceId($this->getString($data, 'Line.LinkedTxn.TxnId.value'))))) {
             return $invoices;
         }
 

@@ -87,33 +87,33 @@ class ExpenseExport extends BaseExport
                         ->where('company_id', $this->company->id);
 
 
-        if(!$this->input['include_deleted'] ?? false) { // @phpstan-ignore-line
+        if (!$this->input['include_deleted'] ?? false) { // @phpstan-ignore-line
             $query->where('is_deleted', 0);
         }
 
         $query = $this->addDateRange($query, 'expenses');
 
-        if($this->input['status'] ?? false) {
+        if ($this->input['status'] ?? false) {
             $query = $this->addExpenseStatusFilter($query, $this->input['status']);
         }
 
-        if(isset($this->input['clients'])) {
+        if (isset($this->input['clients'])) {
             $query = $this->addClientFilter($query, $this->input['clients']);
         }
 
-        if(isset($this->input['vendors'])) {
+        if (isset($this->input['vendors'])) {
             $query = $this->addVendorFilter($query, $this->input['vendors']);
         }
 
-        if(isset($this->input['projects'])) {
+        if (isset($this->input['projects'])) {
             $query = $this->addProjectFilter($query, $this->input['projects']);
         }
 
-        if(isset($this->input['categories'])) {
+        if (isset($this->input['categories'])) {
             $query = $this->addCategoryFilter($query, $this->input['categories']);
         }
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 
@@ -264,11 +264,11 @@ class ExpenseExport extends BaseExport
     {
         $precision = $expense->currency->precision ?? 2;
 
-        if($expense->calculate_tax_by_amount) {
+        if ($expense->calculate_tax_by_amount) {
 
             $total_tax_amount = round($expense->tax_amount1 + $expense->tax_amount2 + $expense->tax_amount3, $precision);
 
-            if($expense->uses_inclusive_taxes) {
+            if ($expense->uses_inclusive_taxes) {
                 $entity['expense.net_amount'] = round($expense->amount, $precision) - $total_tax_amount;
             } else {
                 $entity['expense.net_amount'] = round($expense->amount, $precision);
@@ -276,7 +276,7 @@ class ExpenseExport extends BaseExport
 
         } else {
 
-            if($expense->uses_inclusive_taxes) {
+            if ($expense->uses_inclusive_taxes) {
                 $total_tax_amount = ($this->calcInclusiveLineTax($expense->tax_rate1 ?? 0, $expense->amount, $precision)) + ($this->calcInclusiveLineTax($expense->tax_rate2 ?? 0, $expense->amount, $precision)) + ($this->calcInclusiveLineTax($expense->tax_rate3 ?? 0, $expense->amount, $precision));
                 $entity['expense.net_amount'] = round(($expense->amount - round($total_tax_amount, $precision)), $precision);
             } else {

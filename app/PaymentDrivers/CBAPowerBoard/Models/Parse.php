@@ -28,10 +28,10 @@ class Parse
     public function __construct()
     {
     }
-    
+
     public function encode($object_type, $document)
     {
-            
+
         $phpDocExtractor = new PhpDocExtractor();
         $reflectionExtractor = new ReflectionExtractor();
 

@@ -12,6 +12,7 @@
 namespace Tests\Unit\Tax;
 
 use App\DataMapper\CompanySettings;
+use App\DataMapper\Tax\BaseRule;
 use App\DataMapper\Tax\DE\Rule;
 use App\DataMapper\Tax\TaxModel;
 use App\DataMapper\Tax\ZipTax\Response;
@@ -45,6 +46,51 @@ class EuTaxTest extends TestCase
         $this->makeTestData();
     }
 
+
+    public function testEuToUkTaxCalculation()
+    {
+
+        $settings = CompanySettings::defaults();
+        $settings->country_id = '276'; // germany
+
+        $tax_data = new TaxModel();
+        $tax_data->seller_subregion = 'DE';
+        $tax_data->regions->EU->has_sales_above_threshold = false;
+        $tax_data->regions->EU->tax_all_subregions = true;
+        $tax_data->regions->US->tax_all_subregions = true;
+        $tax_data->regions->US->has_sales_above_threshold = true;
+
+        $company = Company::factory()->create([
+            'account_id' => $this->account->id,
+            'settings' => $settings,
+            'tax_data' => $tax_data,
+            'calculate_taxes' => true,
+        ]);
+
+        $client = Client::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $company->id,
+            'country_id' => 826,
+            'state' => 'CA',
+            'postal_code' => '90210',
+            'shipping_country_id' => 840,
+            'has_valid_vat_number' => false,
+            'is_tax_exempt' => false,
+           
+        ]);
+
+        $invoice = Invoice::factory()->create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'status_id' => 1,
+            'user_id' => $this->user->id,
+            'uses_inclusive_taxes' => false,
+        ]);
+
+        $br = new BaseRule();
+        $br->setEntity($invoice);
+        $this->assertFalse($br->isTaxableRegion());
+    }
 
     public function testEuToUsTaxCalculation()
     {

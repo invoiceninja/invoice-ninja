@@ -100,16 +100,17 @@
         "sprain/swiss-qr-bill": "^4.3",
         "square/square": "30.0.0.*",
         "stripe/stripe-php": "^12",
-        "symfony/brevo-mailer": "6.4",
-        "symfony/http-client": "^6.0",
-        "symfony/mailgun-mailer": "^6.1",
-        "symfony/postmark-mailer": "^6.1",
+        "symfony/brevo-mailer": "^7.1",
+        "symfony/http-client": "^7.0.3",
+        "symfony/mailgun-mailer": "^7.1",
+        "symfony/postmark-mailer": "^7.1",
         "turbo124/beacon": "^2",
         "twig/intl-extra": "^3.7",
         "twig/twig": "^3.14",
         "twilio/sdk": "^6.40",
         "wikimedia/composer-merge-plugin": "^2.1",
-        "wildbit/postmark-php": "^4.0"
+        "wildbit/postmark-php": "^4.0",
+        "symfony/mailer":"7.1.6"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.6",

@@ -19,7 +19,6 @@ use App\DataMapper\ClientSettings;
  */
 class ClientTransformer extends BaseTransformer
 {
-
     public function qbToNinja(mixed $qb_data)
     {
         return $this->transform($qb_data);
@@ -42,7 +41,7 @@ class ClientTransformer extends BaseTransformer
 
         $client = [
             'id' => data_get($data, 'Id.value', null),
-            'name' => data_get($data,'CompanyName', ''),
+            'name' => data_get($data, 'CompanyName', ''),
             'address1' => data_get($data, 'BillAddr.Line1', ''),
             'address2' => data_get($data, 'BillAddr.Line2', ''),
             'city' => data_get($data, 'BillAddr.City', ''),
@@ -62,13 +61,13 @@ class ClientTransformer extends BaseTransformer
             'is_tax_exempt' => !data_get($data, 'Taxable', false),
             'private_notes' => data_get($data, 'Notes', ''),
         ];
-        
-            $settings = ClientSettings::defaults();
-            $settings->currency_id = (string) $this->resolveCurrency(data_get($data, 'CurrencyRef.value'));
 
-            $client['settings'] = $settings;
+        $settings = ClientSettings::defaults();
+        $settings->currency_id = (string) $this->resolveCurrency(data_get($data, 'CurrencyRef.value'));
 
-            $new_client_merge = [];
+        $client['settings'] = $settings;
+
+        $new_client_merge = [];
 
         return [$client, $contact, $new_client_merge];
     }

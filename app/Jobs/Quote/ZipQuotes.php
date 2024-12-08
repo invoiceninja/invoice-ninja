@@ -38,7 +38,7 @@ class ZipQuotes implements ShouldQueue
     public $tries = 1;
 
     public $timeout = 3600;
-    
+
     public function __construct(protected mixed $quote_ids, protected Company $company, protected User $user)
     {
     }

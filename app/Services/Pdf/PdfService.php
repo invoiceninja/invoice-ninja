@@ -97,7 +97,7 @@ class PdfService
                 $pdf = $numbered_pdf;
             }
 
-            if($this->config->entity_string == "invoice" && $this->config->settings->enable_e_invoice) {
+            if ($this->config->entity_string == "invoice" && $this->config->settings->enable_e_invoice) {
                 $pdf = $this->checkEInvoice($pdf);
             }
 
@@ -180,7 +180,7 @@ class PdfService
      */
     private function checkEInvoice(string $pdf): string
     {
-        if(!$this->config->entity instanceof Invoice) {
+        if (!$this->config->entity instanceof Invoice) {
             return $pdf;
         }
 

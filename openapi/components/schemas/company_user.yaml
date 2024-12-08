@@ -1,7 +1,7 @@
     CompanyUser:
       properties:
         permissions:
-          description: 'The user permissionsfor this company in a comma separated list'
+          description: 'The user permissions for this company in a comma separated list'
           type: string
           example: 'create_invoice,create_client,view_client'
         settings:
@@ -47,7 +47,7 @@
     CompanyUserRef:
       properties:
         permissions:
-          description: 'The user permissionsfor this company in a comma separated list'
+          description: 'The user permissions for this company in a comma separated list'
           type: string
           example: 'create_invoice,create_client,view_client'
         settings:

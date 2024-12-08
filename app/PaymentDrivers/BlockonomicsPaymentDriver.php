@@ -12,18 +12,19 @@
 
 namespace App\PaymentDrivers;
 
-use App\Utils\Traits\MakesHash;
-use App\Models\PaymentHash;
-use App\Models\GatewayType;
-use App\PaymentDrivers\Blockonomics\Blockonomics;
-use App\Models\SystemLog;
-use App\Models\Payment;
-use App\Models\Gateway;
 use App\Models\Client;
-use App\Exceptions\PaymentFailed;
-use App\Models\PaymentType;
-use App\Http\Requests\Payments\PaymentWebhookRequest;
+use App\Models\Gateway;
 use App\Models\Invoice;
+use App\Models\Payment;
+use App\Models\SystemLog;
+use App\Models\GatewayType;
+use App\Models\PaymentHash;
+use App\Models\PaymentType;
+use App\Utils\Traits\MakesHash;
+use App\Exceptions\PaymentFailed;
+use Illuminate\Support\Facades\Http;
+use App\PaymentDrivers\Blockonomics\Blockonomics;
+use App\Http\Requests\Payments\PaymentWebhookRequest;
 
 class BlockonomicsPaymentDriver extends BaseDriver
 {
@@ -80,7 +81,7 @@ class BlockonomicsPaymentDriver extends BaseDriver
 
     public function processPaymentResponse($request)
     {
-        
+
         $this->init();
 
         return $this->payment_method->paymentResponse($request);
@@ -88,7 +89,7 @@ class BlockonomicsPaymentDriver extends BaseDriver
 
     public function processWebhookRequest(PaymentWebhookRequest $request)
     {
-        
+
         $company = $request->getCompany();
 
         $url_callback_secret = $request->secret;
@@ -102,12 +103,12 @@ class BlockonomicsPaymentDriver extends BaseDriver
         $value = $request->value;
         $status = $request->status;
         $addr = $request->addr;
-                
+
         $payment = Payment::query()
                             ->where('company_id', $company->id)
                             ->where('transaction_reference', $txid)
                             ->firstOrFail();
-        
+
         if (!$payment) {
             return response()->json([], 200);
             // TODO: Implement logic to create new payment in case user sends payment to the address after closing the payment page
@@ -127,7 +128,7 @@ class BlockonomicsPaymentDriver extends BaseDriver
                 break;
         }
 
-        if($payment->status_id == $statusId) {
+        if ($payment->status_id == $statusId) {
             return response()->json([], 200);
         } else {
             $payment->status_id = $statusId;
@@ -142,5 +143,23 @@ class BlockonomicsPaymentDriver extends BaseDriver
     {
         $this->setPaymentMethod(GatewayType::CRYPTO);
         return $this->payment_method->refund($payment, $amount); //this is your custom implementation from here
+    }
+
+    public function auth(): bool
+    {
+        try {
+        
+            $api_key = $this->company_gateway->getConfigField('apiKey');
+            $url = $this->NEW_ADDRESS_URL . '?reset=1';
+            $response = Http::withToken($api_key)
+                ->post($url, []);
+            if($response->successful()) {
+                return true;
+            }
+            return false;
+        } catch (\Exception $e) {
+            return false;
+        }
+
     }
 }

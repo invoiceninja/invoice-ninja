@@ -174,7 +174,7 @@ class PaymentController extends Controller
             $payment_hash->payment_id = $payment->id;
             $payment_hash->save();
         }
-
+        $payment->type_id = PaymentType::CREDIT;
         $payment = $payment->service()->applyCredits($payment_hash)->save();
 
         /** @var \Illuminate\Database\Eloquent\Collection<\App\Models\Invoice> $invoices */

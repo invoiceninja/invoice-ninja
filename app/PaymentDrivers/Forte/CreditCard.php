@@ -75,7 +75,7 @@ class CreditCard implements LivewireMethodInterface
         $response = $this->forte->stubRequest()
             ->post("{$this->forte->baseUri()}/organizations/{$this->forte->getOrganisationId()}/locations/{$this->forte->getLocationId()}/customers/{$cst}/paymethods", $data);
 
-        if($response->successful()){
+        if ($response->successful()) {
 
             $token = $response->object();
 
@@ -134,7 +134,7 @@ class CreditCard implements LivewireMethodInterface
         $response = $this->forte->stubRequest()
             ->post("{$this->forte->baseUri()}/organizations/{$this->forte->getOrganisationId()}/locations/{$this->forte->getLocationId()}/customers/{$cst}/paymethods", $data);
 
-        if($response->successful()){
+        if ($response->successful()) {
 
             $token = $response->object();
 
@@ -159,7 +159,7 @@ class CreditCard implements LivewireMethodInterface
     public function paymentView(array $data)
     {
         $data = $this->paymentData($data);
-        
+
         return render('gateways.forte.credit_card.pay', $data);
     }
 
@@ -168,17 +168,17 @@ class CreditCard implements LivewireMethodInterface
 
         $payment_hash = PaymentHash::where('hash', $request->input('payment_hash'))->firstOrFail();
 
-        if(strlen($request->token ?? '') > 3){
+        if (strlen($request->token ?? '') > 3) {
 
 
             $cgt = \App\Models\ClientGatewayToken::find($this->decodePrimaryKey($request->token));
 
             $payment = $this->forte->tokenBilling($cgt, $payment_hash);
-           
+
             return redirect()->route('client.payments.show', ['payment' => $payment->hashed_id]);
 
         }
-        
+
         $amount_with_fee = $payment_hash->data->total->amount_with_fee;
         $invoice_totals = $payment_hash->data->total->invoice_totals;
         $fee_total = null;
@@ -282,7 +282,7 @@ class CreditCard implements LivewireMethodInterface
         ];
         $payment = $this->forte->createPayment($data, Payment::STATUS_COMPLETED);
 
-        if($request->store_card) {
+        if ($request->store_card) {
             $this->createPaymentToken($request);
         }
 
@@ -293,15 +293,15 @@ class CreditCard implements LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
-        return 'gateways.forte.credit_card.pay_livewire';        
+        return 'gateways.forte.credit_card.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $this->forte->payment_hash->data = array_merge((array) $this->forte->payment_hash->data, $data);
         $this->forte->payment_hash->save();

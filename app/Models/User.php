@@ -11,6 +11,8 @@
 
 namespace App\Models;
 
+use App\Casts\AsReferralEarningCollection;
+use App\DataMapper\Referral\ReferralEarning;
 use App\Jobs\Mail\NinjaMailer;
 use App\Jobs\Mail\NinjaMailerJob;
 use App\Jobs\Mail\NinjaMailerObject;
@@ -78,6 +80,7 @@ use Laracasts\Presenter\PresentableTrait;
  * @property Carbon|null $oauth_user_token_expiry
  * @property string|null $sms_verification_code
  * @property bool $verified_phone_number
+ * @property array|null $referral_earnings
  * @property-read \App\Models\Account $account
  * @property-read \App\Models\Company $company
  * @property-read mixed $hashed_id
@@ -173,6 +176,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'google_2fa_phone',
         'remember_2fa_token',
         'slack_webhook_url',
+        'referral_earnings',
     ];
 
     protected $casts = [
@@ -183,6 +187,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'deleted_at'       => 'timestamp',
         'oauth_user_token_expiry' => 'datetime',
         'referral_meta' => 'object',
+        'referral_earnings' => AsReferralEarningCollection::class,
     ];
 
     public function name()
@@ -671,7 +676,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $locale = $this->language->locale ?? null;
 
-        if($locale) {
+        if ($locale) {
             App::setLocale($locale);
         }
 
@@ -681,6 +686,66 @@ class User extends Authenticatable implements MustVerifyEmail
     public function translate_entity()
     {
         return ctrans('texts.user');
+    }
+
+
+
+    ////////////////////// Referral earnings ////////////////////////////////////
+
+
+
+    /**
+     * addEntity
+     *
+     * @param  ReferralEarning $entity
+     * @return void
+     */
+    public function addReferral(ReferralEarning $entity)
+    {
+        $entities = $this->referral_earnings;
+
+        if (is_array($entities)) {
+            $entities[] = $entity;
+        } else {
+            $entities = [$entity];
+        }
+
+        $this->referral_earnings = $entities;
+
+        $this->save();
+
+    }
+
+    public function findLatestReferral(string $account_key)
+    {
+
+        return collect($this->referral_earnings)
+                    ->filter(function ($earning) use ($account_key) {
+                        return $earning->account_key === $account_key;
+                    })
+                    ->sortByDesc('period_ending')
+                    ->first();
+
+    }
+
+    public function updateReferral(ReferralEarning $entity)
+    {
+        
+        $earnings = collect($this->referral_earnings);
+
+        $updated_earnings = $earnings->map(function ($earning) use ($entity) {
+            if ($earning->account_key === $entity->account_key &&
+                $earning->period_ending === $entity->period_ending) {
+                return $entity;
+            }
+
+            return $earning;
+        })->toArray();
+
+        $this->referral_earnings = $updated_earnings;
+
+        $this->save();
+
     }
 
 }

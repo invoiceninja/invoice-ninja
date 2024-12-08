@@ -924,9 +924,9 @@ class BaseController extends Controller
                 if ($this->entity_type == BankIntegration::class && !$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction','edit_bank_transaction','view_bank_transaction'])) {
                     $query->exclude(["balance"]);
                 } //allows us to selective display bank integrations back to the user if they can view / create bank transactions but without the bank balance being present in the response
-                elseif($this->entity_type == TaxRate::class && $user->hasIntersectPermissions(['create_invoice','edit_invoice','create_quote','edit_quote','create_purchase_order','edit_purchase_order'])) {
+                elseif ($this->entity_type == TaxRate::class && $user->hasIntersectPermissions(['create_invoice','edit_invoice','create_quote','edit_quote','create_purchase_order','edit_purchase_order'])) {
                     // need to show tax rates if the user has the ability to create documents.
-                } elseif($this->entity_type == ExpenseCategory::class && $user->hasPermission('create_expense')) {
+                } elseif ($this->entity_type == ExpenseCategory::class && $user->hasPermission('create_expense')) {
                     // need to show expense categories if the user has the ability to create expenses.
                 } else {
                     $query->where('user_id', '=', $user->id);
@@ -994,9 +994,9 @@ class BaseController extends Controller
 
                 $response_data = Statics::company($user->getCompany()->getLocale());
 
-                if(request()->has('einvoice')) {
+                if (request()->has('einvoice')) {
 
-                    if(class_exists(Schema::class)) {
+                    if (class_exists(Schema::class)) {
                         $ro = new Schema();
                         $response_data['einvoice_schema'] = $ro('Peppol');
                     }
@@ -1223,7 +1223,7 @@ class BaseController extends Controller
         return response()->json(['message' => 'Upgrade to a paid plan for this feature.'], 403);
     }
 
-        
+
     /**
      * GetEncodedFilename
      *

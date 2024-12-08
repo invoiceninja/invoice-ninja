@@ -78,23 +78,23 @@ class InvoiceItemFactory
         }
 
 
-            $item = self::create();
-            $item->quantity = rand(1, 10);
-            $item->cost = $faker->randomFloat(2, 1, 1000);
-            $item->line_total = $item->quantity * $item->cost;
-            $item->is_amount_discount = true;
-            $item->discount = rand(1, 10);
-            $item->notes = str_replace(['"',"'"], ['',""], $faker->realText(20));
-            $item->product_key = $faker->word();
-            // $item->custom_value1 = $faker->realText(10);
-            // $item->custom_value2 = $faker->realText(10);
-            // $item->custom_value3 = $faker->realText(10);
-            // $item->custom_value4 = $faker->realText(10);
-            $item->tax_name1 = 'GST';
-            $item->tax_rate1 = 10.00;
-            $item->type_id = '2';
+        $item = self::create();
+        $item->quantity = rand(1, 10);
+        $item->cost = $faker->randomFloat(2, 1, 1000);
+        $item->line_total = $item->quantity * $item->cost;
+        $item->is_amount_discount = true;
+        $item->discount = rand(1, 10);
+        $item->notes = str_replace(['"',"'"], ['',""], $faker->realText(20));
+        $item->product_key = $faker->word();
+        // $item->custom_value1 = $faker->realText(10);
+        // $item->custom_value2 = $faker->realText(10);
+        // $item->custom_value3 = $faker->realText(10);
+        // $item->custom_value4 = $faker->realText(10);
+        $item->tax_name1 = 'GST';
+        $item->tax_rate1 = 10.00;
+        $item->type_id = '2';
 
-            $data[] = $item;
+        $data[] = $item;
 
 
         return $data;

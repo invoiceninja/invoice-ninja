@@ -11,20 +11,22 @@
 
 namespace App\Jobs\Invoice;
 
-use App\Jobs\Mail\NinjaMailerJob;
-use App\Jobs\Mail\NinjaMailerObject;
-use App\Jobs\Util\UnlinkFile;
-use App\Libraries\MultiDB;
-use App\Mail\DownloadInvoices;
+use App\Models\User;
 use App\Models\Company;
 use App\Models\Invoice;
-use App\Models\User;
+use App\Libraries\MultiDB;
+use App\Jobs\Util\UnlinkFile;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Mail\DownloadInvoices;
+use App\Jobs\Mail\NinjaMailerJob;
+use Illuminate\Support\Facades\App;
+use App\Jobs\Mail\NinjaMailerObject;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use App\Events\Socket\DownloadAvailable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 
 class ZipInvoices implements ShouldQueue
 {
@@ -34,7 +36,7 @@ class ZipInvoices implements ShouldQueue
     use SerializesModels;
 
     public $tries = 1;
-    
+
     public $timeout = 3600;
 
     /**
@@ -55,10 +57,9 @@ class ZipInvoices implements ShouldQueue
     public function handle(): void
     {
         MultiDB::setDb($this->company->db);
-
+        App::setLocale($this->company->locale());
+        
         $settings = $this->company->settings;
-
-        nlog(count($this->invoices));
 
         $this->invoices = Invoice::withTrashed()
                                 ->where('company_id', $this->company->id)
@@ -70,7 +71,7 @@ class ZipInvoices implements ShouldQueue
         $zipFile = new \PhpZip\ZipFile();
         $file_name = date('Y-m-d').'_'.str_replace(' ', '_', trans('texts.invoices')).'.zip';
         $invitation = $this->invoices->first()->invitations->first();
-        
+
         if (!$invitation) {
             nlog("no Invoice Invitations");
             return;
@@ -86,8 +87,7 @@ class ZipInvoices implements ShouldQueue
                     try {
                         $xml = $invoice->service()->getEDocument();
                         $zipFile->addFromString($invoice->getFileName("xml"), $xml);
-                    }
-                    catch(\Exception $e) {
+                    } catch (\Exception $e) {
                         nlog("could not create e invoice for {$invoice->id}");
                         nlog($e->getMessage());
                     }
@@ -100,9 +100,10 @@ class ZipInvoices implements ShouldQueue
             }
 
             Storage::put($path.$file_name, $zipFile->outputAsString());
+            $storage_url = Storage::url($path.$file_name);
 
             $nmo = new NinjaMailerObject();
-            $nmo->mailable = new DownloadInvoices(Storage::url($path.$file_name), $this->company);
+            $nmo->mailable = new DownloadInvoices($storage_url, $this->company);
             $nmo->to_user = $this->user;
             $nmo->settings = $settings;
             $nmo->company = $this->company;
@@ -110,6 +111,11 @@ class ZipInvoices implements ShouldQueue
             NinjaMailerJob::dispatch($nmo);
 
             UnlinkFile::dispatch(config('filesystems.default'), $path.$file_name)->delay(now()->addHours(1));
+
+            $message = count($this->invoices). " ". ctrans('texts.invoices');
+            $message = ctrans('texts.download_ready', ['message' => $message]);
+
+            broadcast(new DownloadAvailable($storage_url, $message, $this->user));
 
         } catch (\PhpZip\Exception\ZipException $e) {
             nlog('could not make zip => '.$e->getMessage());

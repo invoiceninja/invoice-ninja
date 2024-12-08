@@ -329,8 +329,9 @@ class BaseDriver extends AbstractPaymentDriver
         $client_contact = $this->getContact();
         $client_contact_id = $client_contact ? $client_contact->id : $this->client->contacts()->first()->id;
 
-        if(isset($data['idempotency_key']))
+        if (isset($data['idempotency_key'])) {
             $payment->idempotency_key = $data['idempotency_key'];
+        }
 
         $payment->amount = $data['amount'];
         $payment->type_id = $data['payment_type'];
@@ -397,25 +398,26 @@ class BaseDriver extends AbstractPaymentDriver
         /*Fee charged at gateway*/
         $fee_total = $this->payment_hash->fee_total;
 
-        if(!$fee_total || $fee_total == 0)
+        if (!$fee_total || $fee_total == 0) {
             return;
+        }
 
         $invoice = $this->payment_hash->fee_invoice;
 
         $fee_count = collect($invoice->line_items)
-                        ->map(function ($item){
+                        ->map(function ($item) {
                             $item->gross_line_total = round($item->gross_line_total, 2);
                             return $item;
                         })
                         ->whereIn('type_id', ['3','4'])
                         ->count();
 
-        if($invoice && $fee_count == 0){
-            
+        if ($invoice && $fee_count == 0) {
+
             nlog("apparently no fee, so injecting here!");
 
-            if(!$invoice->uses_inclusive_taxes){ //must account for taxes! ? line item taxes also
-                $fee_total = round($fee_total/(1 + (($invoice->tax_rate1+$invoice->tax_rate2+$invoice->tax_rate3)/100)),2);
+            if (!$invoice->uses_inclusive_taxes) { //must account for taxes! ? line item taxes also
+                $fee_total = round($fee_total / (1 + (($invoice->tax_rate1 + $invoice->tax_rate2 + $invoice->tax_rate3) / 100)), 2);
             }
 
             $balance = $invoice->balance;
@@ -432,7 +434,7 @@ class BaseDriver extends AbstractPaymentDriver
             $invoice_item->quantity = 1;
             $invoice_item->cost = (float)$fee_total;
 
-            if($invoice->discount > 0 && !$invoice->is_amount_discount){
+            if ($invoice->discount > 0 && !$invoice->is_amount_discount) {
                 $invoice_item->discount = -1 * $invoice->discount;
                 $invoice_item->is_amount_discount = false;
             }
@@ -458,17 +460,16 @@ class BaseDriver extends AbstractPaymentDriver
             $new_balance = $invoice->balance;
 
             if (floatval($new_balance) - floatval($balance) != 0) {
-                $adjustment = $new_balance - $balance; 
+                $adjustment = $new_balance - $balance;
                 $invoice->client->service()->calculateBalance();
             }
 
+        } else {
+
+            $invoice->service()->toggleFeesPaid()->save();
+
         }
-        else {
-            
-            $invoice->service()->toggleFeesPaid()->save();              
-            
-        }
-            
+
     }
 
     /**
@@ -480,8 +481,9 @@ class BaseDriver extends AbstractPaymentDriver
      */
     public function unWindGatewayFees(PaymentHash $payment_hash)
     {
-        if($payment_hash->fee_invoice)
+        if ($payment_hash->fee_invoice) {
             $payment_hash->fee_invoice->service()->removeUnpaidGatewayFees();
+        }
     }
 
     /**
@@ -621,7 +623,7 @@ class BaseDriver extends AbstractPaymentDriver
         $error = array_key_exists('error', $response) ? $response['error'] : 'Undefined Error';
         $error_code = array_key_exists('error_code', $response) ? $response['error_code'] : 'Undefined Error Code';
 
-        if($this->payment_hash) {
+        if ($this->payment_hash) {
             $this->unWindGatewayFees($this->payment_hash);
         }
 
@@ -632,7 +634,7 @@ class BaseDriver extends AbstractPaymentDriver
         $nmo->company = $this->client->company;
         $nmo->settings = $this->client->company->settings;
 
-        if($this->payment_hash) {
+        if ($this->payment_hash) {
             $invoices = Invoice::query()->whereIn('id', $this->transformKeys(array_column($this->payment_hash->invoices(), 'invoice_id')))->withTrashed()->get();
 
             $invoices->first()->invitations->each(function ($invitation) use ($nmo) {
@@ -662,14 +664,14 @@ class BaseDriver extends AbstractPaymentDriver
         }
     }
 
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return $this->payment_method->livewirePaymentView($data);
     }
 
     public function processPaymentViewData(array $data): array
     {
-        return $this->payment_method->paymentData($data); 
+        return $this->payment_method->paymentData($data);
     }
 
     public function checkRequirements()
@@ -829,7 +831,7 @@ class BaseDriver extends AbstractPaymentDriver
         $company_name = $this->client->company->present()->name();
         $company_name = str_replace(["*","<",">","'",'"'], "-", $company_name);
 
-        if(ctype_digit(substr($company_name, 0, 1))) {
+        if (ctype_digit(substr($company_name, 0, 1))) {
             $company_name = "I" . $company_name;
         }
 
@@ -856,7 +858,7 @@ class BaseDriver extends AbstractPaymentDriver
         $invoices_string = \implode(', ', collect($this->payment_hash->invoices())->pluck('invoice_number')->toArray()) ?: null;
         $amount = Number::formatMoney($this->payment_hash?->amount_with_fee() ?? 0, $this->client); // @phpstan-ignore-line
 
-        if($abbreviated && $invoices_string) {
+        if ($abbreviated && $invoices_string) {
             return $invoices_string;
         } elseif ($abbreviated || ! $invoices_string) {
             return ctrans('texts.gateway_payment_text_no_invoice', [

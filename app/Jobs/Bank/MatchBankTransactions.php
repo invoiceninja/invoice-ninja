@@ -332,8 +332,8 @@ class MatchBankTransactions implements ShouldQueue
             return;
         }
 
-        
-nlog("post");
+
+        nlog("post");
 
         /* Create Payment */
         $payment = PaymentFactory::create($this->invoice->company_id, $this->invoice->user_id);
@@ -391,7 +391,7 @@ nlog("post");
 
         $hashed_keys = [];
 
-        foreach($this->attachable_invoices as $attachable_invoice) { //@phpstan-ignore-line
+        foreach ($this->attachable_invoices as $attachable_invoice) { //@phpstan-ignore-line
             $hashed_keys[] = $this->encodePrimaryKey($attachable_invoice['id']);
         }
 
@@ -400,7 +400,7 @@ nlog("post");
         $this->bt->payment_id = $payment->id;
         $this->bt->save();
 
-nlog($this->bt->toArray());
+        nlog($this->bt->toArray());
 
     }
 

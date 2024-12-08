@@ -4,7 +4,11 @@
 <meta name="btc_amount" content="{{ $btc_amount }}" />
 <meta name="btc_address" content="{{ $btc_address }}" />
 <meta name="currency" content="{{ $currency }}" />
+<meta name="error" content="{{ $error }}" />
 
+    @if ($error)
+        <div class="alert alert-danger my-10 mx-4">{!! $error !!}</div>
+    @else
     <div class="alert alert-failure mb-4" hidden id="errors"></div>
     <div class="blockonomics-payment-wrapper">
         <div class="initial-state">
@@ -43,6 +47,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <form action="{{ route('client.payments.response') }}" method="post" id="server-response">
         @csrf

@@ -8,7 +8,12 @@
         label: php
         source: |
           $ninja = new InvoiceNinja("your_token");
-          $invoices = $ninja->clients->all();
+          $invoices = $ninja->clients->all([
+              'balance' => 'lt:10', // get all clients with a balance less than 10
+              'per_page' => 10, // return 10 results per page
+              'page' => 2, // paginate to page 2
+              'include' => 'documents', // include the documents relationship
+          ]);
       - lang: curl
         label: curl
         source: |
@@ -60,63 +65,145 @@
         - $ref: "#/components/parameters/updated_at"
         - $ref: "#/components/parameters/is_deleted"
         - $ref: "#/components/parameters/filter_deleted_clients"
-        - $ref: "#/components/parameters/vendor_id"
         - name: name
           in: query
-          description: Filter by client name
+          description: |
+            Filter by client name  
+
+            ```html
+            ?name=bob
+            ```
           required: false
           schema:
             type: string
           example: bob
         - name: balance
           in: query
-          description: Filter by client balance, format uses an operator and value separated by a colon. lt,lte, gt, gte, eq
+          description: |
+            Filter by client balance, format uses an operator and value separated by a colon. lt,lte, gt, gte, eq
+
+            ```html
+            ?balance=lt:10
+            ```
+
+            ie all clients whose balance is less than 10
           required: false
           schema:
             type: string
           example: lt:10
         - name: between_balance
           in: query
-          description: Filter between client balances, format uses two values separated by a colon
+          description: |
+            Filter between client balances, format uses two values separated by a colon
+
+            ```html
+            ?between_balance=10:100
+            ```
           required: false
           schema:
             type: string
           example: 10:100
         - name: email
           in: query
-          description: Filter by client email
+          description: |
+            Filter by client email
+
+            ```html
+            ?email=bob@gmail.com
+            ```
           required: false
           schema:
             type: string
           example: bob@gmail.com
         - name: id_number
           in: query
-          description: Filter by client id_number
+          description: |
+            Filter by client id_number
+
+            ```html
+            ?id_number=0001
+            ```
           required: false
           schema:
             type: string
           example: a1039883
         - name: number
           in: query
-          description: Filter by client number
+          description: |
+            Filter by client number
+
+            ```html
+            ?number=0002
+            ```
           required: false
           schema:
             type: string
           example: a1039883
         - name: filter
           in: query
-          description: Filters clients on columns - name, id_number, contact.first_name contact.last_name, contact.email, custom_value1-4
+          description: |
+            Broad filter which targets multiple client columns:
+              
+              ```html
+                name, 
+                id_number, 
+                contact.first_name 
+                contact.last_name, 
+                contact.email, 
+                contact.phone
+                custom_value1,
+                custom_value2,
+                custom_value3,
+                custom_value4,
+              ```
+
+              ```html
+              ?filter=Bobby
+              ```
           required: false
           schema:
             type: string
           example: a1039883
         - name: sort
           in: query
-          description: Returns the list sorted by column in ascending or descending order.
+          description: |
+            Returns the list sorted by column in ascending or descending order.
+
+            Ensure you use column | direction, ie.
+
+            ```html
+              ?sort=id|desc
+            ```
           required: false
           schema:
             type: string
           example: id|desc name|desc balance|asc 
+
+        - name: group
+          in: query
+          description: |
+            Returns the list of clients assigned to {group_id}
+
+            ```html
+              ?group=X89sjd8
+            ```
+          required: false
+          schema:
+            type: string
+          example: X89sjd8
+
+        - name: client_id
+          in: query
+          description: |
+            Returns the list of clients with {client_id} - proxy call to retrieve a client_id wrapped in an array
+
+            ```html
+              ?client_id=X89sjd8
+            ```
+          required: false
+          schema:
+            type: string
+          example: X89sjd8
 
       responses:
         200:
@@ -149,12 +236,58 @@
       description: |
             Adds a client to a company
               
+            > 🚨 Important    
             When creating (or updating) a client you must include the child contacts with all mutating requests. Client contacts cannot be modified in isolation.
-
+      x-codeSamples:
+        - lang: php
+          label: php
+          source: |
+            $ninja = new InvoiceNinja("YOUR-TOKEN");
+            
+            $client = $ninja->clients->create([
+                'name' => 'Client Name',
+                'contacts' => [
+                    [
+                        'first_name' => 'John',
+                        'last_name' => 'Smith',
+                        'email' => 'john@example.com',
+                        'phone' => '555-0123'
+                    ]
+                ],
+                'address1' => '123 Main St',
+                'city' => 'New York',
+                'state' => 'NY',
+                'postal_code' => '10001',
+                'country_id' => '1'
+            ]);
+        - lang: curl
+          label: curl
+          source: |
+            curl -X POST https://demo.invoiceninja.com/api/v1/clients \
+              -H "X-API-TOKEN: YOUR-TOKEN" \
+              -H "Content-Type: application/json" \
+              -H "X-Requested-With: XMLHttpRequest" \
+              -d '{
+                "name": "Client Name",
+                "contacts": [
+                  {
+                    "first_name": "John",
+                    "last_name": "Smith",
+                    "email": "john@example.com",
+                    "phone": "555-0123"
+                  }
+                ],
+                "address1": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "postal_code": "10001",
+                "country_id": "1"
+              }'
       operationId: storeClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
       requestBody:
         description: Client object that needs to be added to the company
@@ -193,10 +326,24 @@
         - clients
       summary: 'Show client'
       description: 'Displays a client by id'
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $client = $ninja->clients->show('clientId123');
+      - lang: curl
+        label: php
+        source: |
+          curl -X GET https://demo.invoiceninja.com/api/v1/clients/clientId123 \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest"
+
       operationId: showClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -234,11 +381,50 @@
       tags:
         - clients
       summary: 'Update client'
-      description: 'Handles the updating of a client by id'
+      description: |
+        Handles the updating of a client by id
+
+        > 🚨 Important    
+        When creating (or updating) a client you must include the child contacts with all mutating requests. Client contacts cannot be modified in isolation.
+      
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $client = $ninja->clients->update('clientId123', [
+              'name' => 'Updated Name',
+              'contacts' => [
+                  [
+                      'first_name' => 'John',
+                      'last_name' => 'Smith',
+                      'email' => 'john@example.com'
+                  ]
+              ]
+          ]);
+      - lang: curl
+        label: curl
+        source: |
+          curl -X PUT https://demo.invoiceninja.com/api/v1/clients/clientId123 \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -d '{
+              "name": "Updated Name",
+              "contacts": [
+                {
+                  "first_name": "John",
+                  "last_name": "Smith",
+                  "email": "john@example.com"
+                }
+              ]
+            }'
+
       operationId: updateClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -283,11 +469,32 @@
       tags:
         - clients
       summary: 'Delete client'
-      description: 'Handles the deletion of a client by id'
+      description: |
+        Handles the deletion of a client by id
+
+        > ❗ Note
+        Deleting a client does not purge the client from the system. The delete action will remove the clients data from all 
+        views in the application but keep it all on file. A Client can be laterrestored reversing this action.  To permanently wipe a client and
+        all of their records from the system, use the /purge route
+
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->delete('clientId123');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X DELETE https://demo.invoiceninja.com/api/v1/clients/clientId123 \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest"
+
       operationId: deleteClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -327,7 +534,8 @@
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
           description: 'The Client Hashed ID'
@@ -370,6 +578,7 @@
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
       responses:
         200:
@@ -436,12 +645,33 @@
         - custom_value2
         - custom_value3
         - custom_value4
-
+      
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->bulk([
+              'action' => 'archive',
+              'ids' => ['clientId1', 'clientId2']
+          ]);
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/bulk \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -d '{
+              "action": "archive",
+              "ids": ["clientId1", "clientId2"]
+            }'
       operationId: bulkClients
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
         - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
       requestBody:
         description: 'Bulk action array'
         required: true
@@ -480,10 +710,26 @@
         - clients
       summary: 'Add client document'
       description: 'Handles the uploading of a document to a client, please note due to a quirk in REST you will need to use a _method parameter with value of POST'
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->upload('clientId123', '/path/to/document.pdf');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/clientId123/upload \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -F "_method=POST" \
+            -F "documents[]=@/path/to/document.pdf"
+
       operationId: uploadClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -503,10 +749,24 @@
                 _method:
                   type: string
                   example: POST
-                documents:
+                documents[]:
                   type: array
+                  description: |
+                    Array of files to upload. The files should be sent with the key name 'documents[]'.
+                    
+                    Supported file types:
+                    - PDF (.pdf)
+                    - Word (.doc, .docx)
+                    - Excel (.xls, .xlsx)
+                    - Images (.jpg, .jpeg, .png)
+                    - Text (.txt)
+                    
+                    Maximum file size: 20MB per file
                   items:
+                    type: string
                     format: binary
+                    description: The file contents
+                  example: "@/path/to/document.pdf"
       responses:
         200:
           description: 'Returns the client object'
@@ -539,15 +799,28 @@
       description: |
             Handles purging a client.
 
-            Please note this is a destructive action.
-
+            > ❗ Note
+            This is a destructive action.
             This action will remove all data associated with the client and cannot be undone.
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->purge('clientId123');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/clientId123/purge \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -H "X-API-PASSWORD: YOUR-PASSWORD"
+
       operationId: purgeClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
         - $ref: '#/components/parameters/X-API-PASSWORD'
-        - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
           description: 'The Client Hashed ID'
@@ -587,12 +860,30 @@
             The id parameter is the client that will be the primary client after the merge has completed. 
 
             The mergeable_client_hashed_id is the client that will be merged into the primary client, this clients records will be updated and associated with the primary client.
+
+            > 🚨 **Important**    
+            This action requires elevated permissions, please note the X-API-PASSWORD header requirements for this route.
+            
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->merge('primaryClientId', 'mergeableClientId');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/primaryClientId/mergeableClientId/merge \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest"
+
       operationId: mergeClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/client_include'
         - $ref: '#/components/parameters/X-API-PASSWORD'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
           description: 'The Client Hashed ID'
@@ -636,10 +927,37 @@
       summary: 'Client statement PDF'
       description: 'Return a PDF of the client statement'
       operationId: clientStatement
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $statement = $ninja->clients->statement([
+              'client_id' => 'clientId123',
+              'start_date' => '2024-01-01',
+              'end_date' => '2024-12-31',
+              'show_payments_table' => true,
+              'show_aging_table' => true
+          ]);
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/client_statement \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -d '{
+              "client_id": "clientId123",
+              "start_date": "2024-01-01",
+              "end_date": "2024-12-31",
+              "show_payments_table": true,
+              "show_aging_table": true
+            }'
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
       requestBody:
         description: 'Statement Options'
         required: true
@@ -702,7 +1020,8 @@
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: bounce_id
           in: path
           description: 'The postmark Bounce ID reference'
@@ -745,7 +1064,8 @@
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: client
           in: path
           description: 'The Client Hashed ID reference'

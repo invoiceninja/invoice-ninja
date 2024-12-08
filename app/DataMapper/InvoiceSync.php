@@ -20,12 +20,12 @@ use Illuminate\Contracts\Database\Eloquent\Castable;
 class InvoiceSync implements Castable
 {
     public string $qb_id;
-    
+
     public function __construct(array $attributes = [])
     {
-        
+
         $this->qb_id = $attributes['qb_id'] ?? '';
-        
+
     }
 
     /**

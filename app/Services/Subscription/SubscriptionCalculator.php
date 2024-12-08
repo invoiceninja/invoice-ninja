@@ -49,7 +49,7 @@ class SubscriptionCalculator
         $invoice->number = "####" . ctrans('texts.subscription') . "_" . now()->format('Y-m-d') . "_" . rand(0, 100000);
         $invoice->line_items = $this->buildItems($context);
 
-        if(isset($context['valid_coupon']) && $context['valid_coupon']) {
+        if (isset($context['valid_coupon']) && $context['valid_coupon']) {
             $invoice->discount = $this->subscription->promo_discount;
             $invoice->is_amount_discount = $this->subscription->is_amount_discount;
         }
@@ -75,9 +75,9 @@ class SubscriptionCalculator
 
         $items = [];
 
-        foreach($recurring as $item) {
+        foreach ($recurring as $item) {
 
-            if($item['quantity'] < 1) {
+            if ($item['quantity'] < 1) {
                 continue;
             }
 
@@ -91,9 +91,9 @@ class SubscriptionCalculator
 
         }
 
-        foreach($one_time as $item) {
+        foreach ($one_time as $item) {
 
-            if($item['quantity'] < 1) {
+            if ($item['quantity'] < 1) {
                 continue;
             }
 

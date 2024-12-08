@@ -61,7 +61,7 @@ class RecurringInvoiceExport extends BaseExport
                         })
                         ->where('company_id', $this->company->id);
 
-        if(!$this->input['include_deleted'] ?? false) {
+        if (!$this->input['include_deleted'] ?? false) {
             $query->where('is_deleted', 0);
         }
 
@@ -69,7 +69,7 @@ class RecurringInvoiceExport extends BaseExport
 
         $clients = &$this->input['client_id'];
 
-        if($clients) {
+        if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
 
@@ -137,14 +137,15 @@ class RecurringInvoiceExport extends BaseExport
 
             if (is_array($parts) && $parts[0] == 'recurring_invoice' && array_key_exists($parts[1], $transformed_invoice)) {
                 $entity[$key] = $transformed_invoice[$parts[1]];
-            } elseif($parts[0] == 'item') {
+            } elseif ($parts[0] == 'item') {
                 $entity[$key] = '';
             } else {
                 $entity[$key] = $this->decorator->transform($key, $invoice);
             }
 
-            if (is_float($entity[$key])) 
+            if (is_float($entity[$key])) {
                 $entity[$key] = \App\Utils\Number::formatValue($entity[$key], $currency);
+            }
 
         }
 

@@ -215,7 +215,7 @@ class CheckoutComPaymentDriver extends BaseDriver
     {
         $this->init();
 
-        if($this->company_gateway->update_details) {
+        if ($this->company_gateway->update_details) {
             $this->updateCustomer();
         }
 
@@ -334,7 +334,7 @@ class CheckoutComPaymentDriver extends BaseDriver
     public function updateCustomer($customer_id = null)
     {
 
-        if(!$customer_id) {
+        if (!$customer_id) {
             return;
         }
 
@@ -406,7 +406,7 @@ class CheckoutComPaymentDriver extends BaseDriver
             $response = $this->gateway->getPaymentsClient()->requestPayment($paymentRequest);
 
             if ($response['status'] == 'Authorized') {
-                
+
                 $data = [
                     'payment_method' => $response['source']['id'],
                     'payment_type' => PaymentType::parseCardType(strtolower($response['source']['scheme'])),
@@ -491,7 +491,7 @@ class CheckoutComPaymentDriver extends BaseDriver
         header('Content-Type: text/plain');
         $webhook_payload = file_get_contents('php://input');
 
-        if($request->header('cko-signature') == hash_hmac('sha256', $webhook_payload, $this->company_gateway->company->company_key)) {
+        if ($request->header('cko-signature') == hash_hmac('sha256', $webhook_payload, $this->company_gateway->company->company_key)) {
             CheckoutWebhook::dispatch($request->all(), $request->company_key, $this->company_gateway->id)->delay(10);
         } else {
             nlog("Hash Mismatch = {$request->header('cko-signature')} ".hash_hmac('sha256', $webhook_payload, $this->company_gateway->company->company_key));
@@ -543,7 +543,7 @@ class CheckoutComPaymentDriver extends BaseDriver
         try {
             $this->init()->gateway->getCustomersClient('x');
             return true;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
         }
         return false;
@@ -576,13 +576,13 @@ class CheckoutComPaymentDriver extends BaseDriver
              ->cursor()
              ->each(function ($client) {
 
-                 if(!str_contains($client->present()->email(), "@")) {
+                 if (!str_contains($client->present()->email(), "@")) {
                      return;
                  }
 
                  try {
                      $customer = $this->gateway->getCustomersClient()->get($client->present()->email());
-                 } catch(\Exception $e) {
+                 } catch (\Exception $e) {
                      nlog("Checkout: Customer not found");
                      return;
                  }
@@ -591,8 +591,8 @@ class CheckoutComPaymentDriver extends BaseDriver
 
                  nlog($customer['instruments']);
 
-                 foreach($customer['instruments'] as $card) {
-                     if(
+                 foreach ($customer['instruments'] as $card) {
+                     if (
                          $card['type'] != 'card' ||
                          Carbon::createFromDate($card['expiry_year'], $card['expiry_month'], '1')->lt(now()) || //@phpstan-ignore-line
                          $this->getToken($card['id'], $customer['id'])
@@ -619,7 +619,7 @@ class CheckoutComPaymentDriver extends BaseDriver
 
              });
     }
-    
+
     public function livewirePaymentView(array $data): string
     {
         return $this->payment_method->livewirePaymentView($data);

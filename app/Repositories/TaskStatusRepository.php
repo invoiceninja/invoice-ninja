@@ -66,10 +66,10 @@ class TaskStatusRepository extends BaseRepository
                     ->cursor()
                     ->each(function ($ts, $key) use ($task_status) {
 
-                        if($ts->status_order < $task_status->status_order) {
+                        if ($ts->status_order < $task_status->status_order) {
                             $ts->status_order--;
                             $ts->save();
-                        } elseif($ts->status_order >= $task_status->status_order) {
+                        } elseif ($ts->status_order >= $task_status->status_order) {
                             $ts->status_order++;
                             $ts->save();
                         } else {

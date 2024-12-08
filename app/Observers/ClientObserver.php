@@ -65,7 +65,7 @@ class ClientObserver
         }
 
         /** Check VAT records for client */
-        if(in_array($client->country_id, $this->eu_country_codes) && $client->company->calculate_taxes) {
+        if (in_array($client->country_id, $this->eu_country_codes) && $client->company->calculate_taxes) {
             CheckVat::dispatch($client, $client->company);
         }
 
@@ -88,12 +88,12 @@ class ClientObserver
     {
 
         /** Monitor postal code changes for US based clients for tax calculations */
-        if(($client->getOriginal('shipping_postal_code') != $client->shipping_postal_code || $client->getOriginal('postal_code') != $client->postal_code) && $client->country_id == 840 && $client->company->calculate_taxes && !$client->company->account->isFreeHostedClient()) {
+        if (($client->getOriginal('shipping_postal_code') != $client->shipping_postal_code || $client->getOriginal('postal_code') != $client->postal_code) && $client->country_id == 840 && $client->company->calculate_taxes && !$client->company->account->isFreeHostedClient()) {
             UpdateTaxData::dispatch($client, $client->company);
         }
 
         /** Monitor vat numbers for EU based clients for tax calculations */
-        if($client->getOriginal('vat_number') != $client->vat_number && in_array($client->country_id, $this->eu_country_codes) && $client->company->calculate_taxes) {
+        if ($client->getOriginal('vat_number') != $client->vat_number && in_array($client->country_id, $this->eu_country_codes) && $client->company->calculate_taxes) {
             CheckVat::dispatch($client, $client->company);
         }
 

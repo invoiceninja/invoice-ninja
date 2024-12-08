@@ -132,7 +132,7 @@ class IncomeTransformer implements BankRevenueInterface
             }
 
             //some object do no store amounts ignore these
-            if(!property_exists($transaction, 'amount')) {
+            if (!property_exists($transaction, 'amount')) {
                 continue;
             }
 

@@ -238,7 +238,7 @@ class InvoiceFilters extends QueryFilters
 
             try {
                 $date = Carbon::parse($date);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 return $this->builder;
             }
         }
@@ -289,7 +289,7 @@ class InvoiceFilters extends QueryFilters
 
         }
 
-        if($sort_col[0] == 'number') {
+        if ($sort_col[0] == 'number') {
             return $this->builder->orderByRaw("REGEXP_REPLACE(invoices.number,'[^0-9]+','')+0 " . $dir);
         }
 

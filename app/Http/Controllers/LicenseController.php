@@ -88,14 +88,14 @@ class LicenseController extends BaseController
         nlog("License Check::");
         nlog(config('ninja.environment'));
         nlog(request()->has('license_key'));
-        nlog(request()->input('license_key','No License Found'));
+        nlog(request()->input('license_key', 'No License Found'));
 
         /* Catch claim license requests */
         if (config('ninja.environment') == 'selfhost' && request()->has('license_key')) {
             $license_key = trim(request()->input('license_key'));
             $product_id = 3;
 
-            if(substr($license_key, 0, 3) == 'v5_') {
+            if (substr($license_key, 0, 3) == 'v5_') {
                 return $this->v5ClaimLicense($license_key, $product_id);
             }
 
@@ -165,7 +165,7 @@ class LicenseController extends BaseController
     {
         $this->checkLicense();
 
-        /* Catch claim license requests */ 
+        /* Catch claim license requests */
         if (config('ninja.environment') == 'selfhost') {
 
             nlog("Claiming v5 license");

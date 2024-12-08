@@ -20,7 +20,7 @@ use Livewire\Attributes\Computed;
 class OneTimeProducts extends Component
 {
     use MakesHash;
-    
+
     public array $context;
 
     public string $subscription_id;

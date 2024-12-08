@@ -34,7 +34,7 @@ class TemplatePreviewController extends BaseController
 
         $report = Storage::disk(config('filesystems.default'))->exists($this->path_prefix.$hash.$this->path_suffix);
 
-        if(!$report) {
+        if (!$report) {
             return response()->json(['message' => 'Still working.....'], 409);
         }
 

@@ -51,6 +51,112 @@ class InvoiceTest extends TestCase
         $this->invoice_calc = new InvoiceSum($this->invoice);
     }
 
+
+    public function testInvoiceItemRoundingWithDiscountIsPercent()
+    {
+
+        $c = \App\Models\Client::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+        ]);
+
+        // $item = InvoiceItemFactory::create();
+        // $item->quantity = 1;
+        // $item->cost = 21.00;
+        // $item->tax_name1 = 'mwst';
+        // $item->tax_rate1 = 19;
+        // $item->type_id = '1';
+        // $item->tax_id = '1';
+        // $line_items[] = $item;
+
+        $item = InvoiceItemFactory::create();
+        $item->quantity = 1.75;
+        $item->cost = 49.58;
+        $item->tax_name1 = 'mwst';
+        $item->tax_rate1 = 19;
+        $item->type_id = '1';
+        $item->tax_id = '1';
+        $line_items[] = $item;
+
+
+        $i = Invoice::factory()->create([
+            'discount' => 0,
+            'tax_name1' => '',
+            'tax_name2' => '',
+            'tax_name3' => '',
+            'tax_rate1' => 0,
+            'tax_rate2' => 0,
+            'tax_rate3' => 0,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'client_id' => $c->id,
+            'line_items' => $line_items,
+            'status_id' => 1,
+            'uses_inclusive_taxes' => false,
+            'is_amount_discount' => false
+        ]);
+
+        $invoice_calc = new InvoiceSum($i);
+        $ii = $invoice_calc->build()->getInvoice();
+        $ii = $ii->service()->markSent()->save();
+
+        $this->assertEquals(86.77, $ii->calc()->getSubTotal());
+        $this->assertEquals(16.49, $ii->total_taxes);
+    }
+
+    public function testInvoiceItemRoundingWithDiscountIsAmount()
+    {
+
+        $c = \App\Models\Client::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+        ]);
+
+        // $item = InvoiceItemFactory::create();
+        // $item->quantity = 1;
+        // $item->cost = 21.00;
+        // $item->tax_name1 = 'mwst';
+        // $item->tax_rate1 = 19;
+        // $item->type_id = '1';
+        // $item->tax_id = '1';
+        // $line_items[] = $item;
+
+        $item = InvoiceItemFactory::create();
+        $item->quantity = 1.75;
+        $item->cost = 49.58;
+        $item->tax_name1 = 'mwst';
+        $item->tax_rate1 = 19;
+        $item->type_id = '1';
+        $item->tax_id = '1';
+        $line_items[] = $item;
+
+
+        $i = Invoice::factory()->create([
+            'discount' => 0,
+            'tax_name1' => '',
+            'tax_name2' => '',
+            'tax_name3' => '',
+            'tax_rate1' => 0,
+            'tax_rate2' => 0,
+            'tax_rate3' => 0,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'client_id' => $c->id,
+            'line_items' => $line_items,
+            'status_id' => 1,
+            'uses_inclusive_taxes' => false,
+            'is_amount_discount' => true
+        ]);
+
+        $invoice_calc = new InvoiceSum($i);
+        $ii = $invoice_calc->build()->getInvoice();
+        $ii = $ii->service()->markSent()->save();
+
+        $this->assertEquals(86.77, $ii->calc()->getSubTotal());
+        $this->assertEquals(16.49, $ii->total_taxes);
+    }
+
+
     public function testDeletingCancelledAndTrashedInvoicePayment()
     {
         
@@ -706,7 +812,7 @@ class InvoiceTest extends TestCase
 
         $invoice = $invoice->calc()->getInvoice();
 
-        $this->assertEquals(100, $invoice->amount);
+        $this->assertEquals(99.99, $invoice->amount);
 
     }
 

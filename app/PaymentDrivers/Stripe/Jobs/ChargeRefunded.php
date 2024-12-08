@@ -59,7 +59,7 @@ class ChargeRefunded implements ShouldQueue
 
         $payment_hash_key = $source['metadata']['payment_hash'] ?? null;
 
-        if(is_null($payment_hash_key)){
+        if (is_null($payment_hash_key)) {
             nlog("charge.refunded not found");
             return;
         }
@@ -79,7 +79,7 @@ class ChargeRefunded implements ShouldQueue
                          ->first();
 
         //don't touch if already refunded
-        if(!$payment || $payment->status_id == Payment::STATUS_REFUNDED || $payment->is_deleted){
+        if (!$payment || $payment->status_id == Payment::STATUS_REFUNDED || $payment->is_deleted) {
             return;
         }
 
@@ -94,79 +94,79 @@ class ChargeRefunded implements ShouldQueue
             return;
         }
 
-        usleep(rand(200000,300000));
+        usleep(rand(200000, 300000));
         $payment = $payment->fresh();
 
-        if($payment->status_id == Payment::STATUS_PARTIALLY_REFUNDED){
+        if ($payment->status_id == Payment::STATUS_PARTIALLY_REFUNDED) {
             //determine the delta in the refunded amount - how much has already been refunded and only apply the delta.
-            
-            if(floatval($payment->refunded) >= floatval($amount_refunded))
+
+            if (floatval($payment->refunded) >= floatval($amount_refunded)) {
                 return;
+            }
 
             $amount_refunded -= $payment->refunded;
 
         }
-        
+
+        $invoice_collection = $payment->paymentables
+                    ->where('paymentable_type', 'invoices')
+                    ->map(function ($pivot) {
+                        return [
+                            'invoice_id' => $pivot->paymentable_id,
+                            'amount' => $pivot->amount - $pivot->refunded
+                        ];
+                    });
+
+        if ($invoice_collection->count() == 1 && $invoice_collection->first()['amount'] >= $amount_refunded) {
+            //If there is only one invoice- and we are refunding _less_ than the amount of the invoice, we can just refund the payment
+
             $invoice_collection = $payment->paymentables
-                        ->where('paymentable_type', 'invoices')
-                        ->map(function ($pivot) {
-                            return [
-                                'invoice_id' => $pivot->paymentable_id,
-                                'amount' => $pivot->amount - $pivot->refunded
-                            ];
-                        });
+                    ->where('paymentable_type', 'invoices')
+                    ->map(function ($pivot) use ($amount_refunded) {
+                        return [
+                            'invoice_id' => $pivot->paymentable_id,
+                            'amount' => $amount_refunded
+                        ];
+                    });
 
-            if($invoice_collection->count() == 1 && $invoice_collection->first()['amount'] >= $amount_refunded) {
-                //If there is only one invoice- and we are refunding _less_ than the amount of the invoice, we can just refund the payment
+        } elseif ($invoice_collection->sum('amount') != $amount_refunded) {
 
-                $invoice_collection = $payment->paymentables
-                        ->where('paymentable_type', 'invoices')
-                        ->map(function ($pivot) use ($amount_refunded) {
-                            return [
-                                'invoice_id' => $pivot->paymentable_id,
-                                'amount' => $amount_refunded
-                            ];
-                        });
+            $refund_text = "A partial refund was processed for Payment #{$payment_hash->payment->number}. <br><br> This payment is associated with multiple invoices, so you will need to manually apply the refund to the correct invoice/s.";
 
-            }
-            elseif($invoice_collection->sum('amount') != $amount_refunded) {
-                
-                $refund_text = "A partial refund was processed for Payment #{$payment_hash->payment->number}. <br><br> This payment is associated with multiple invoices, so you will need to manually apply the refund to the correct invoice/s.";
+            App::setLocale($payment_hash->payment->company->getLocale());
 
-                App::setLocale($payment_hash->payment->company->getLocale());
+            $mo = new EmailObject();
+            $mo->subject = "Refund processed in Stripe for multiple invoices, action required.";
+            $mo->body = $refund_text;
+            $mo->text_body = $refund_text;
+            $mo->company_key = $payment_hash->payment->company->company_key;
+            $mo->html_template = 'email.template.generic';
+            $mo->to = [new Address($payment_hash->payment->company->owner()->email, $payment_hash->payment->company->owner()->present()->name())];
 
-                $mo = new EmailObject();
-                $mo->subject = "Refund processed in Stripe for multiple invoices, action required.";
-                $mo->body = $refund_text;
-                $mo->text_body = $refund_text;
-                $mo->company_key = $payment_hash->payment->company->company_key;
-                $mo->html_template = 'email.template.generic';
-                $mo->to = [new Address($payment_hash->payment->company->owner()->email, $payment_hash->payment->company->owner()->present()->name())];
+            Email::dispatch($mo, $payment_hash->payment->company);
+            return;
 
-                Email::dispatch($mo, $payment_hash->payment->company);
-                return;
+        }
 
-            }
+        $invoices = $invoice_collection->toArray();
 
-            $invoices = $invoice_collection->toArray();
+        $data = [
+            'id' => $payment->id,
+            'amount' => $amount_refunded,
+            'invoices' => $invoices,
+            'date' => now()->format('Y-m-d'),
+            'gateway_refund' => false,
+            'email_receipt' => false,
+            'via_webhook' => true,
+        ];
 
-            $data = [
-                'id' => $payment->id,
-                'amount' => $amount_refunded,
-                'invoices' => $invoices,
-                'date' => now()->format('Y-m-d'),
-                'gateway_refund' => false,
-                'email_receipt' => false,
-                'via_webhook' => true,
-            ];
+        nlog($data);
 
-            nlog($data);
+        $payment->refund($data);
 
-            $payment->refund($data);
+        $payment->private_notes .= 'Refunded via Stripe  ';
 
-            $payment->private_notes .= 'Refunded via Stripe  ';
-
-            $payment->saveQuietly();
+        $payment->saveQuietly();
 
     }
 

@@ -64,6 +64,38 @@ class ArrayFiltersTest extends TestCase
         parent::setUp();
     }
 
+    public function testPayPalHurtsMySoul()
+    {
+
+        $payload = [
+            "id" => "WH-x-67976317FL4543714",
+            "create_time" => "2016-08-01T21:41:28Z",
+            "resource_type" => "merchant-onboarding",
+            "event_type" => "MERCHANT.ONBOARDING.COMPLETED",
+            "resource" => [
+                "partner_client_id" => "hurts_my_soul",
+                "links" => [
+                    [
+                        "href" => "https://uri.paypal.com/v1/customer/partners/QX4A9KG89BHLN/merchant-integrations/Y7MGFXVS8VHYU",
+                        "rel" => "self",
+                        "method" => "GET",
+                        "description" => "Get the merchant status information of merchants onboarded by this partner"
+                    ]
+                ],
+                "merchant_id" => "ELAMYJUN78D6G"
+            ],
+            "links" => []
+        ];
+
+
+
+        $href = $payload['resource']['links'][0]['href'];
+
+        $this->assertEquals("Y7MGFXVS8VHYU", basename($href));
+        $this->assertEquals("Y7MGFXVS8VHYU", last(explode('/', $href)));
+
+    }
+
     public function testPaymentFilterFactory()
     {
         $p = Payment::factory()->make()->toArray();

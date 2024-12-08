@@ -113,11 +113,11 @@ class PayPalBalanceAffecting
     {
         $this->cleanUp();
 
-        foreach($this->import_row as $key => $value) {
+        foreach ($this->import_row as $key => $value) {
 
             $prop = $this->key_map[$key] ?? false;
 
-            if($prop) {
+            if ($prop) {
 
                 echo "Setting {$prop} to {$value}".PHP_EOL;
                 $this->{$prop} = $value;
@@ -131,7 +131,7 @@ class PayPalBalanceAffecting
     private function cleanUp(): self
     {
 
-        foreach($this->key_map as $value) {
+        foreach ($this->key_map as $value) {
             echo "Setting {$value} to null".PHP_EOL;
             $this->{$value} = null;
         }
@@ -175,7 +175,7 @@ class PayPalBalanceAffecting
     {
         $name_parts = explode(" ", $this->name ?? '');
 
-        if(count($name_parts) == 2) {
+        if (count($name_parts) == 2) {
             $contact['first_name'] = $name_parts[0];
             $contact['last_name'] = $name_parts[1];
         } else {
@@ -202,13 +202,13 @@ class PayPalBalanceAffecting
 
     private function returnShippingAddress(): array
     {
-        if(strlen($this->shippingAddress ?? '') < 3) {
+        if (strlen($this->shippingAddress ?? '') < 3) {
             return [];
         }
 
         $ship_parts = explode(",", $this->shippingAddress);
 
-        if(count($ship_parts) != 7) {
+        if (count($ship_parts) != 7) {
             return [];
         }
 

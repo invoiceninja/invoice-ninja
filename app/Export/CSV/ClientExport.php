@@ -129,13 +129,13 @@ class ClientExport extends BaseExport
                                 ->withTrashed()
                                 ->where('company_id', $this->company->id);
 
-        if(!$this->input['include_deleted'] ?? false) {
+        if (!$this->input['include_deleted'] ?? false) {
             $query->where('is_deleted', 0);
         }
 
         $query = $this->addDateRange($query, ' clients');
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 
@@ -208,7 +208,7 @@ class ClientExport extends BaseExport
             $clean_row[$key]['value'] = $row[$column_key];
             $clean_row[$key]['identifier'] = $value;
 
-            if(in_array($clean_row[$key]['id'], ['paid_to_date', 'balance', 'credit_balance','payment_balance'])) {
+            if (in_array($clean_row[$key]['id'], ['paid_to_date', 'balance', 'credit_balance','payment_balance'])) {
                 $clean_row[$key]['display_value'] = Number::formatMoney($row[$column_key], $resource);
             } else {
                 $clean_row[$key]['display_value'] = $row[$column_key];

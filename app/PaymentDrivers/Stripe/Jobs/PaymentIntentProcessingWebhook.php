@@ -246,7 +246,7 @@ class PaymentIntentProcessingWebhook implements ShouldQueue
             }
 
             $driver->storeGatewayToken($data, $additional_data);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("failed to import payment methods");
             nlog($e->getMessage());
         }

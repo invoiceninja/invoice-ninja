@@ -32,7 +32,7 @@ class SdkWrapper
 
     private function init(): self
     {
-        
+
         $this->setNinjaAccessToken($this->company->quickbooks);
 
         return $this;
@@ -53,7 +53,7 @@ class SdkWrapper
     {
         return $this->accessToken()->getRefreshToken();
     }
-    
+
     public function company()
     {
         return $this->sdk->getCompanyInfo();
@@ -79,7 +79,7 @@ class SdkWrapper
 
         return $this->accessToken();
     }
-        
+
     /**
      * Set Stored NinjaAccessToken
      *
@@ -104,13 +104,13 @@ class SdkWrapper
 
         $this->setAccessToken($token);
 
-        if($token_object->accessTokenExpiresAt != 0 && $token_object->accessTokenExpiresAt < time()){
+        if ($token_object->accessTokenExpiresAt != 0 && $token_object->accessTokenExpiresAt < time()) {
             $this->refreshToken($token_object->refresh_token);
         }
-        
+
         return $this;
     }
-    
+
 
     public function refreshToken(string $refresh_token): self
     {
@@ -169,14 +169,14 @@ class SdkWrapper
     }
 
     public function fetchById(string $entity, $id)
-    {   
+    {
         return $this->sdk->FindById($entity, $id);
     }
 
     public function fetchRecords(string $entity, int $max = 100000): array
     {
 
-        if(!in_array($entity, $this->entities)) {
+        if (!in_array($entity, $this->entities)) {
             return [];
         }
 
@@ -193,7 +193,7 @@ class SdkWrapper
                 $limit = min(self::MAXRESULTS, $total - $start);
 
                 $recordsChunk = $this->queryData("select * from $entity", $start, $limit);
-                if(empty($recordsChunk)) {
+                if (empty($recordsChunk)) {
                     break;
                 }
 
@@ -201,7 +201,7 @@ class SdkWrapper
                 $start += $limit;
 
             } while ($start < $total);
-            if(empty($records)) {
+            if (empty($records)) {
                 throw new \Exception("No records retrieved!");
             }
 

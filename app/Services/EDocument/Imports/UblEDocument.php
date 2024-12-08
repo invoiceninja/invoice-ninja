@@ -19,7 +19,6 @@ use App\Factory\VendorFactory;
 use App\Factory\ExpenseFactory;
 use App\Services\AbstractService;
 use Illuminate\Http\UploadedFile;
-
 use InvoiceNinja\EInvoice\EInvoice;
 use App\Utils\Traits\SavesDocuments;
 use App\Factory\VendorContactFactory;
@@ -50,13 +49,13 @@ class UblEDocument extends AbstractService
         return $this->buildAndSaveExpense($invoice);
 
     }
-    
+
     /**
      * extractInvoiceUbl
      *
      * If the <Invoice object is nested, this method will
      * extract and return only the <Invoice> document.
-     * 
+     *
      * @param  string $xml
      * @return string
      */
@@ -64,7 +63,7 @@ class UblEDocument extends AbstractService
     {
 
         $xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml);
-        nlog($xml);                
+        nlog($xml);
 
         $dom = new \DOMDocument();
         $dom->loadXML($xml);
@@ -116,7 +115,7 @@ class UblEDocument extends AbstractService
         $payment_means[] = data_get($invoice, 'PaymentTerms.0.Note', false);
 
         $private_notes = collect($payment_means)
-                                ->reject(function ($means){
+                                ->reject(function ($means) {
                                     return $means === false;
                                 })->implode("\n");
 
@@ -124,15 +123,14 @@ class UblEDocument extends AbstractService
 
         $items = [];
 
-        foreach($invoice_items as $key => $item)
-        {
+        foreach ($invoice_items as $key => $item) {
             $items[$key]['name'] = data_get($item, 'Item.Name', false);
             $items[$key]['description'] = data_get($item, 'Item.Description', false);
         }
 
-        $public_notes = collect($items)->reject(function ($item){
+        $public_notes = collect($items)->reject(function ($item) {
             return $item['name'] === false && $item['description'] === false;
-        })->map(function ($item){
+        })->map(function ($item) {
             return $item['name'] ?? ' ' . ' ## '. $item['description'] ?? ' '; //@phpstan-ignore-line
         })->implode("\n");
 
@@ -145,34 +143,33 @@ class UblEDocument extends AbstractService
         $expense->private_notes = $private_notes;
         $expense->public_notes = $public_notes;
 
-            $tax_level = 1;
+        $tax_level = 1;
 
-            foreach ($tax_sub_totals as $key => $sub_tax) {
-                $amount = data_get($sub_tax, 'TaxAmount.amount', 0);
-                $taxable_amount = data_get($sub_tax, 'TaxableAmount.amount', 0);
-                $tax_rate = data_get($sub_tax, 'TaxCategory.Percent', 0);
-                $id = data_get($sub_tax, 'TaxCategory.ID.value', '');
-                $tax_name = data_get($sub_tax, 'TaxCategory.TaxScheme.ID.value', '');
+        foreach ($tax_sub_totals as $key => $sub_tax) {
+            $amount = data_get($sub_tax, 'TaxAmount.amount', 0);
+            $taxable_amount = data_get($sub_tax, 'TaxableAmount.amount', 0);
+            $tax_rate = data_get($sub_tax, 'TaxCategory.Percent', 0);
+            $id = data_get($sub_tax, 'TaxCategory.ID.value', '');
+            $tax_name = data_get($sub_tax, 'TaxCategory.TaxScheme.ID.value', '');
 
-                if (!$this->company->calculate_expense_tax_by_amount && $tax_rate > 0) {
+            if (!$this->company->calculate_expense_tax_by_amount && $tax_rate > 0) {
 
-                    $expense->{"tax_rate{$tax_level}"} = $tax_rate;
-                    $expense->{"tax_name{$tax_level}"} = $tax_name;
-                    $expense->calculate_tax_by_amount = false;
+                $expense->{"tax_rate{$tax_level}"} = $tax_rate;
+                $expense->{"tax_name{$tax_level}"} = $tax_name;
+                $expense->calculate_tax_by_amount = false;
 
-                }
-                else {
-                    $expense->calculate_tax_by_amount = true;
-                    $expense->{"tax_amount{$tax_level}"} = $amount; //@phpstan-ignore-line
+            } else {
+                $expense->calculate_tax_by_amount = true;
+                $expense->{"tax_amount{$tax_level}"} = $amount; //@phpstan-ignore-line
 
-                }
-
-                $tax_level++;
-
-                if ($tax_level == 4) {
-                    break;
-                }
             }
+
+            $tax_level++;
+
+            if ($tax_level == 4) {
+                break;
+            }
+        }
 
 
         $expense->save();
@@ -181,7 +178,7 @@ class UblEDocument extends AbstractService
 
         $data = [];
         $data['documents'][] = $this->file;
-        
+
         $expense = $repo->save($data, $expense);
 
         return $expense;
@@ -191,7 +188,7 @@ class UblEDocument extends AbstractService
 
     private function resolveCurrencyId(string $currency_code): int
     {
-        
+
         /** @var \Illuminate\Support\Collection<\App\Models\Currency> */
         $currencies = app('currencies');
 
@@ -203,7 +200,7 @@ class UblEDocument extends AbstractService
     private function findOrCreateVendor(\InvoiceNinja\EInvoice\Models\Peppol\Invoice $invoice): Vendor
     {
         $asp = $invoice->AccountingSupplierParty;
-        
+
         $vat_number = $this->resolveVendorVat($invoice);
         $id_number = $this->resolveVendorIdNumber($invoice);
         $routing_id = data_get($invoice, 'AccountingSupplierParty.Party.EndpointID.value', false);
@@ -211,18 +208,18 @@ class UblEDocument extends AbstractService
 
         $vendor = Vendor::query()
                     ->where('company_id', $this->company->id)
-                    ->where(function ($q) use ($vat_number, $routing_id, $id_number, $vendor_name){
+                    ->where(function ($q) use ($vat_number, $routing_id, $id_number, $vendor_name) {
 
-                        $q->when($routing_id, function ($q) use ($routing_id){
+                        $q->when($routing_id, function ($q) use ($routing_id) {
                             $q->where('routing_id', $routing_id);
                         })
-                        ->when(strlen($vat_number) > 1, function ($q) use ($vat_number){
+                        ->when(strlen($vat_number) > 1, function ($q) use ($vat_number) {
                             $q->orWhere('vat_number', $vat_number);
                         })
-                        ->when(strlen($id_number) > 1, function ($q) use ($id_number){
+                        ->when(strlen($id_number) > 1, function ($q) use ($id_number) {
                             $q->orWhere('id_number', $id_number);
                         })
-                        ->when(strlen($vendor_name) > 1, function ($q) use ($vendor_name){
+                        ->when(strlen($vendor_name) > 1, function ($q) use ($vendor_name) {
                             $q->orWhere('name', $vendor_name);
                         });
 
@@ -233,7 +230,7 @@ class UblEDocument extends AbstractService
 
     private function resolveSupplierName(\InvoiceNinja\EInvoice\Models\Peppol\Invoice $invoice): string
     {
-        if(data_get($invoice, 'AccountingSupplierParty.Party.PartyName', false)){
+        if (data_get($invoice, 'AccountingSupplierParty.Party.PartyName', false)) {
             $party_name = data_get($invoice, 'AccountingSupplierParty.Party.PartyName', false);
             return data_get($party_name[0], 'Name', '');
         }
@@ -242,22 +239,22 @@ class UblEDocument extends AbstractService
             $ple = data_get($invoice, 'AccountingSupplierParty.Party.PartyName', false);
             return data_get($ple[0], 'RegistrationName', '');
         }
-        
+
         return '';
     }
 
-    private function resolveVendorIdNumber(\InvoiceNinja\EInvoice\Models\Peppol\Invoice $invoice):string
+    private function resolveVendorIdNumber(\InvoiceNinja\EInvoice\Models\Peppol\Invoice $invoice): string
     {
-         
+
         $pts = data_get($invoice, 'AccountingSupplierParty.Party.PartyIdentification', false);
 
         return $pts ? data_get($pts[0], 'ID.value', '') : '';
 
     }
 
-    private function resolveVendorVat(\InvoiceNinja\EInvoice\Models\Peppol\Invoice $invoice):string
+    private function resolveVendorVat(\InvoiceNinja\EInvoice\Models\Peppol\Invoice $invoice): string
     {
-         
+
         $pts = data_get($invoice, 'AccountingSupplierParty.Party.PartyTaxScheme', false);
 
         return $pts ? data_get($pts[0], 'CompanyID.value', '') : '';
@@ -268,31 +265,30 @@ class UblEDocument extends AbstractService
     {
         $vendor = VendorFactory::create($this->company->id, $this->company->owner()->id);
 
-    
+
         $data = [
             'name' => $this->resolveSupplierName($invoice),
             'routing_id' => data_get($invoice, 'AccountingSupplierParty.Party.EndpointID.value', ''),
             'vat_number' => $this->resolveVendorVat($invoice),
             'id_number' => $this->resolveVendorIdNumber($invoice),
-            'address1' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.StreetName',''),
-            'address2' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.AdditionalStreetName',''),
-            'city' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.CityName',''),
-            'state' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.CountrySubentity',''),
-            'postal_code' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.PostalZone',''),
-            'country_id' => $this->resolveCountry(data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.Country.IdentificationCode.value','')),
+            'address1' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.StreetName', ''),
+            'address2' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.AdditionalStreetName', ''),
+            'city' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.CityName', ''),
+            'state' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.CountrySubentity', ''),
+            'postal_code' => data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.PostalZone', ''),
+            'country_id' => $this->resolveCountry(data_get($invoice, 'AccountingSupplierParty.Party.PostalAddress.Country.IdentificationCode.value', '')),
             'currency_id' => $this->resolveCurrencyId(data_get($invoice, 'DocumentCurrencyCode.value', $this->company->currency()->code)),
         ];
 
         $vendor->fill($data);
         $vendor->save();
-        
+
         $vendor->service()->applyNumber();
 
-        if(data_get($invoice, 'AccountingSupplierParty.Party.Contact',false))
-        {
+        if (data_get($invoice, 'AccountingSupplierParty.Party.Contact', false)) {
             $vc = VendorContactFactory::create($this->company->id, $this->company->owner()->id);
             $vc->vendor_id = $vendor->id;
-            $vc->first_name = data_get($invoice, 'AccountingSupplierParty.Party.Contact.Name','');
+            $vc->first_name = data_get($invoice, 'AccountingSupplierParty.Party.Contact.Name', '');
             $vc->phone = data_get($invoice, 'AccountingSupplierParty.Party.Contact.Telephone', '');
             $vc->email = data_get($invoice, 'AccountingSupplierParty.Party.Contact.ElectronicMail', '');
             $vc->save();

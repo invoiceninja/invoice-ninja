@@ -132,14 +132,14 @@ class CreditCard implements MethodInterface, LivewireMethodInterface
 
             $body = json_decode($response->getBody());
 
-            if($request->store_card) {
+            if ($request->store_card) {
                 $this->createCard($body->payment->id);
             }
 
             return $this->processSuccessfulPayment($response);
         }
 
-        if(is_array($response)) {
+        if (is_array($response)) {
             nlog("square");
             nlog($response);
         }
@@ -239,15 +239,15 @@ class CreditCard implements MethodInterface, LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.square.credit_card.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $data['gateway'] = $this->square_driver;
         $data['amount'] = $this->square_driver->payment_hash->data->amount_with_fee;

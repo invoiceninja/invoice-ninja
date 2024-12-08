@@ -41,7 +41,8 @@ class SendEmail extends AbstractService
         });
 
         if ($this->invoice->invitations->count() >= 1) {
-            event(new InvoiceWasEmailed($this->invoice->invitations->first(), $this->invoice->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), $this->reminder_template ?? 'invoice'));
+            // event(new InvoiceWasEmailed($this->invoice->invitations->first(), $this->invoice->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), $this->reminder_template ?? 'invoice'));
+            $this->invoice->entityEmailEvent($this->invoice->invitations->first(), $this->reminder_template ?? 'invoice');
             $this->invoice->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
 
         }

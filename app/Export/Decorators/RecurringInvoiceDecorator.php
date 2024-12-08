@@ -19,15 +19,15 @@ class RecurringInvoiceDecorator extends Decorator implements DecoratorInterface
     {
         $recurring_invoice = false;
 
-        if($entity instanceof RecurringInvoice) {
+        if ($entity instanceof RecurringInvoice) {
             $recurring_invoice = $entity;
-        } elseif($entity->recurring_invoice) {
+        } elseif ($entity->recurring_invoice) {
             $recurring_invoice = $entity->recurring_invoice;
         }
 
-        if($recurring_invoice && method_exists($this, $key)) {
+        if ($recurring_invoice && method_exists($this, $key)) {
             return $this->{$key}($recurring_invoice);
-        } elseif($recurring_invoice->{$key} ?? false) {
+        } elseif ($recurring_invoice->{$key} ?? false) {
             return $recurring_invoice->{$key} ?? '';
         }
 

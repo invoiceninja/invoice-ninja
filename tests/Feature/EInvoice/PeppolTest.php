@@ -162,6 +162,78 @@ class PeppolTest extends TestCase
         return compact('company', 'client', 'invoice');
     }
 
+    public function testInvoiceValidationWithSmallDiscount()    
+    {
+        $scenario = [
+            'company_vat' => 'DE923356489',
+            'company_country' => 'DE',
+            'client_country' => 'DE',
+            'client_vat' => 'DE923256489',
+            'client_id_number' => '123456789',
+            'classification' => 'business',
+            'has_valid_vat' => true,
+            'over_threshold' => true,
+            'legal_entity_id' => 290868,
+            'is_tax_exempt' => false,
+        ];
+
+        
+        $entity_data = $this->setupTestData($scenario);
+
+        $invoice = $entity_data['invoice'];
+
+        $invoice->is_amount_discount = true;
+        $invoice->discount = 0;
+        $invoice->uses_inclusive_taxes = false;
+        
+        $item = new InvoiceItem();
+        $item->quantity = 1;
+        $item->cost = 10000;
+        $item->product_key = 'test'; 
+        $item->notes = 'Description';
+        $item->is_amount_discount = true;
+        $item->discount = 1;
+        $item->tax_id = '1';
+
+        $invoice->line_items = [$item];
+
+        $ii = $invoice->calc()->getInvoice();
+
+        $this->assertEquals(floatval(11898.81), $ii->amount);
+
+        $company = $entity_data['company'];
+        $settings = $company->settings;
+
+        $settings->address1 = 'some address';
+        $settings->city = 'some city';
+        $settings->postal_code = '102394';
+
+        $company->settings = $settings;
+        $company->save();
+
+        $data = [
+            'entity' => 'invoices',
+            'entity_id' => $invoice->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/einvoice/validateEntity', $data);
+
+        if($response->getStatusCode() !== 200){
+
+            $p = new Peppol($invoice);
+            nlog($p->run()->toXml());
+            nlog($invoice->withoutRelations()->toArray());
+            nlog($response->json());
+        }
+
+        $response->assertStatus(200);
+
+    }
+
+
     public function testEntityValidationFailsForInvoiceViaInvoice()       
     {
         $scenario = [
@@ -310,7 +382,7 @@ class PeppolTest extends TestCase
     }
 
 
-    public function testEntityValidation()
+    public function testEntityValidationShouldFailForFRBusiness()
     {
         $scenario = [
             'company_vat' => 'DE923356489',
@@ -319,6 +391,57 @@ class PeppolTest extends TestCase
             'client_vat' => 'FRAA123456789',
             'client_id_number' => '123456789',
             'classification' => 'business',
+            'has_valid_vat' => true,
+            'over_threshold' => true,
+            'legal_entity_id' => 290868,
+            'is_tax_exempt' => false,
+        ];
+
+        
+        $entity_data = $this->setupTestData($scenario);
+
+        $invoice = $entity_data['invoice'];
+        $company = $entity_data['company'];
+        $settings = $company->settings;
+
+        $settings->address1 = 'some address';
+        $settings->city = 'some city';
+        $settings->postal_code = '102394';
+
+        $company->settings = $settings;
+        $company->save();
+
+        $data = [
+            'entity' => 'invoices',
+            'entity_id' => $invoice->hashed_id
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/einvoice/validateEntity', $data);
+
+        if($response->getStatusCode() !== 422){
+
+            $p = new Peppol($invoice);
+            nlog($p->run()->toXml());
+            nlog($invoice->withoutRelations()->toArray());
+            nlog($response->json());
+        }
+
+        $response->assertStatus(422);
+
+    }
+
+    public function testEntityValidation()
+    {
+        $scenario = [
+            'company_vat' => 'DE923356489',
+            'company_country' => 'DE',
+            'client_country' => 'FR',
+            'client_vat' => 'FRAA123456789',
+            'client_id_number' => '123456789',
+            'classification' => 'government',
             'has_valid_vat' => true,
             'over_threshold' => true,
             'legal_entity_id' => 290868,
@@ -1871,6 +1994,9 @@ class PeppolTest extends TestCase
 
         $this->assertCount(0, $errors);
 
-        // nlog(json_encode($fe, JSON_PRETTY_PRINT));
     }
+
+
+    
+
 }

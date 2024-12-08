@@ -18,7 +18,6 @@ use App\Services\Payment\PaymentService;
 use App\Utils\Ninja;
 use App\Utils\Number;
 use App\Utils\Traits\Inviteable;
-use App\Utils\Traits\MakesDates;
 use App\Utils\Traits\MakesHash;
 use App\Utils\Traits\Payment\Refundable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -97,7 +96,6 @@ class Payment extends BaseModel
 {
     use MakesHash;
     use Filterable;
-    use MakesDates;
     use SoftDeletes;
     use Refundable;
     use Inviteable;
@@ -325,7 +323,7 @@ class Payment extends BaseModel
                 return '<h6><span class="badge badge-danger">'.ctrans('texts.payment_status_3').'</span></h6>';
             case self::STATUS_COMPLETED:
 
-                if($this->amount > $this->applied) {
+                if ($this->amount > $this->applied) {
                     return '<h6><span class="badge badge-info">' . ctrans('texts.partially_unapplied') . '</span></h6>';
                 }
 

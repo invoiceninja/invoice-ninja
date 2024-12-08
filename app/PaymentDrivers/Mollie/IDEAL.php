@@ -182,7 +182,7 @@ class IDEAL implements MethodInterface, LivewireMethodInterface
                     ->where('transaction_reference', $payment->id)
                     ->first();
 
-        if($p) {
+        if ($p) {
             $p->status_id = Payment::STATUS_COMPLETED;
             $p->save();
 
@@ -194,7 +194,7 @@ class IDEAL implements MethodInterface, LivewireMethodInterface
             'amount' => array_sum(array_column($this->mollie->payment_hash->invoices(), 'amount')) + $this->mollie->payment_hash->fee_total,
             'payment_type' => PaymentType::IDEAL,
             'transaction_reference' => $payment->id,
-            'idempotency_key' => substr("{$payment->id}{$this->mollie->payment_hash}",0,64)
+            'idempotency_key' => substr("{$payment->id}{$this->mollie->payment_hash}", 0, 64)
         ];
 
         $payment_record = $this->mollie->createPayment(
@@ -224,21 +224,21 @@ class IDEAL implements MethodInterface, LivewireMethodInterface
     {
         return $this->processSuccessfulPayment($payment, 'open');
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         // Doesn't support, it's offsite payment method.
 
         return '';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $this->paymentView($data);
 

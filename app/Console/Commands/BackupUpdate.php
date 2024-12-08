@@ -56,7 +56,7 @@ class BackupUpdate extends Command
     {
         //always return state to first DB
 
-        if(Ninja::isSelfHost()) {
+        if (Ninja::isSelfHost()) {
             return;
         }
 
@@ -175,7 +175,7 @@ class BackupUpdate extends Command
 
                     try {
                         $doc_bin = $document->getFile();
-                    } catch(\Exception $e) {
+                    } catch (\Exception $e) {
                         nlog("Exception:: BackupUpdate::" . $e->getMessage());
                     }
 

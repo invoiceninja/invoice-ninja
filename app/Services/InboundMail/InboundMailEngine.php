@@ -30,12 +30,14 @@ use Illuminate\Queue\SerializesModels;
 
 class InboundMailEngine
 {
-    use SerializesModels, MakesHash;
-    use GeneratesCounter, SavesDocuments;
+    use SerializesModels;
+    use MakesHash;
+    use GeneratesCounter;
+    use SavesDocuments;
 
     private array $globalBlacklist;
 
-    private array $globalWhitelist; 
+    private array $globalWhitelist;
 
     public function __construct(private Company $company)
     {
@@ -49,8 +51,9 @@ class InboundMailEngine
      */
     public function handleExpenseMailbox(InboundMail $email)
     {
-        if ($this->isInvalidOrBlocked($email->from, $email->to))
+        if ($this->isInvalidOrBlocked($email->from, $email->to)) {
             return;
+        }
 
 
         // check if company plan matches requirements
@@ -144,8 +147,9 @@ class InboundMailEngine
     //@todo - refactor
     public function saveMeta(string $from, string $to, bool $isUnknownRecipent = false)
     {
-        if(Ninja::isHosted())
+        if (Ninja::isHosted()) {
             return;
+        }
 
         Cache::add('inboundMailCountSender:' . $from, 0, now()->addHours(12));
         Cache::increment('inboundMailCountSender:' . $from);
@@ -195,8 +199,9 @@ class InboundMailEngine
                 $expense = (new ParseEDocument($document, $this->company))->run();
 
                 // check if expense was already matched within this job and skip if true
-                if (array_search($expense->id, $parsed_expense_ids))
+                if (array_search($expense->id, $parsed_expense_ids)) {
                     continue;
+                }
 
                 array_push($parsed_expense_ids, $expense->id);
 
@@ -212,36 +217,44 @@ class InboundMailEngine
             }
 
             // populate missing data with data from email
-            if (!$expense)
+            if (!$expense) {
                 $expense = ExpenseFactory::create($this->company->id, $this->company->owner()->id);
+            }
 
             $is_imported_by_parser = array_search($expense->id, $parsed_expense_ids);
 
-            if ($is_imported_by_parser)
+            if ($is_imported_by_parser) {
                 $expense->public_notes = $expense->public_notes . $email->subject;
+            }
 
-            if ($is_imported_by_parser)
+            if ($is_imported_by_parser) {
                 $expense->private_notes = $expense->private_notes . $email->text_body;
+            }
 
-            if (!$expense->date)
+            if (!$expense->date) {
                 $expense->date = $email->date;
+            }
 
-            if (!$expense->vendor_id && $expense_vendor)
+            if (!$expense->vendor_id && $expense_vendor) {
                 $expense->vendor_id = $expense_vendor->id;
+            }
 
-            if ($is_imported_by_parser)
+            if ($is_imported_by_parser) {
                 $expense->saveQuietly();
-            else
+            } else {
                 $expense->save();
+            }
 
             // save document only, when not imported by parser
             $documents = [];
-            if (!$is_imported_by_parser)
+            if (!$is_imported_by_parser) {
                 array_push($documents, $document);
+            }
 
             // email document
-            if ($email->body_document !== null)
+            if ($email->body_document !== null) {
                 array_push($documents, $email->body_document);
+            }
 
             $this->saveDocuments($documents, $expense);
 
@@ -252,8 +265,9 @@ class InboundMailEngine
     private function processHtmlBodyToDocument(InboundMail $email)
     {
 
-        if (!is_null($email->body))
+        if (!is_null($email->body)) {
             $email->body_document = TempFile::UploadedFileFromRaw($email->body, "E-Mail.html", "text/html");
+        }
 
     }
     private function validateExpenseSender(InboundMail $email)
@@ -263,31 +277,39 @@ class InboundMailEngine
 
         // whitelists
         $whitelist = explode(",", $this->company->inbound_mailbox_whitelist);
-        if (is_array($whitelist) && in_array($email->from, $whitelist))
+        if (is_array($whitelist) && in_array($email->from, $whitelist)) {
             return true;
-        if (is_array($whitelist) && in_array($domain, $whitelist))
+        }
+        if (is_array($whitelist) && in_array($domain, $whitelist)) {
             return true;
+        }
         $blacklist = explode(",", $this->company->inbound_mailbox_blacklist);
-        if (is_array($blacklist) && in_array($email->from, $blacklist))
+        if (is_array($blacklist) && in_array($email->from, $blacklist)) {
             return false;
-        if (is_array($blacklist) && in_array($domain, $blacklist))
+        }
+        if (is_array($blacklist) && in_array($domain, $blacklist)) {
             return false;
+        }
 
         // allow unknown
-        if ($this->company->inbound_mailbox_allow_unknown)
+        if ($this->company->inbound_mailbox_allow_unknown) {
             return true;
+        }
 
         // own users
-        if ($this->company->inbound_mailbox_allow_company_users && $this->company->users()->where("email", $email->from)->exists())
+        if ($this->company->inbound_mailbox_allow_company_users && $this->company->users()->where("email", $email->from)->exists()) {
             return true;
+        }
 
         // from vendors
-        if ($this->company->inbound_mailbox_allow_vendors && VendorContact::where("company_id", $this->company->id)->where("email", $email->from)->exists())
+        if ($this->company->inbound_mailbox_allow_vendors && VendorContact::where("company_id", $this->company->id)->where("email", $email->from)->exists()) {
             return true;
+        }
 
         // from clients
-        if ($this->company->inbound_mailbox_allow_clients && ClientContact::where("company_id", $this->company->id)->where("email", $email->from)->exists())
+        if ($this->company->inbound_mailbox_allow_clients && ClientContact::where("company_id", $this->company->id)->where("email", $email->from)->exists()) {
             return true;
+        }
 
         // denie
         return false;

@@ -60,7 +60,7 @@ class Piste
     {
         $response = Http::asForm()->post($this->oauthUrl(), $this->oauthHeaders());
 
-        if($response->successful()) {
+        if ($response->successful()) {
             return $response->json()['access_token'];
         }
 

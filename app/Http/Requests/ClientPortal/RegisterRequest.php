@@ -11,12 +11,13 @@
 
 namespace App\Http\Requests\ClientPortal;
 
-use App\Libraries\MultiDB;
+use App\Utils\Ninja;
 use App\Models\Account;
 use App\Models\Company;
-use App\Utils\Ninja;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Libraries\MultiDB;
 use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
+use App\Http\ValidationRules\Turnstile\Turnstile;
 
 class RegisterRequest extends FormRequest
 {
@@ -58,6 +59,8 @@ class RegisterRequest extends FormRequest
         if ($this->company()->settings->client_portal_terms || $this->company()->settings->client_portal_privacy_policy) {
             $rules['terms'] = ['required'];
         }
+
+        $rules['cf-turnstile-response'] = ['sometimes', new Turnstile];
 
         return $rules;
     }

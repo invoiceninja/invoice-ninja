@@ -68,7 +68,7 @@ class SendTestEmails extends Command
             });
 
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->info("Error sending email: " . $e->getMessage());
         }
     }

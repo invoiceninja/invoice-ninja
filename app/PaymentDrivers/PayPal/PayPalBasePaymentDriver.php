@@ -81,7 +81,7 @@ class PayPalBasePaymentDriver extends BaseDriver
             })->toArray();
 
         /** Parse funding options and remove card option if advanced cards is enabled. */
-        if(in_array(1, $funding_options) && in_array(29, $funding_options)) {
+        if (in_array(1, $funding_options) && in_array(29, $funding_options)) {
 
             if (($key = array_search(1, $funding_options)) !== false) {
                 unset($funding_options[$key]);
@@ -115,17 +115,16 @@ class PayPalBasePaymentDriver extends BaseDriver
 
         $this->api_endpoint_url = $this->company_gateway->getConfigField('testMode') ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
-        if(\App\Utils\Ninja::isHosted() && $this->company_gateway->gateway_key != '80af24a6a691230bbec33e930ab40665') {
-                $secret = config('ninja.paypal.secret');
-                $client_id = config('ninja.paypal.client_id');
-        }
-        else {
+        if (\App\Utils\Ninja::isHosted() && $this->company_gateway->gateway_key != '80af24a6a691230bbec33e930ab40665') {
+            $secret = config('ninja.paypal.secret');
+            $client_id = config('ninja.paypal.client_id');
+        } else {
 
             $secret = $this->company_gateway->getConfigField('secret');
             $client_id = $this->company_gateway->getConfigField('clientId');
         }
 
-        if($this->access_token && $this->token_expiry && $this->token_expiry->isFuture()) {
+        if ($this->access_token && $this->token_expiry && $this->token_expiry->isFuture()) {
             return $this;
         }
 
@@ -134,7 +133,7 @@ class PayPalBasePaymentDriver extends BaseDriver
                                     ->withQueryParameters(['grant_type' => 'client_credentials'])
                                     ->post("{$this->api_endpoint_url}/v1/oauth2/token");
 
-        if($response->successful()) {
+        if ($response->successful()) {
             $this->access_token = $response->json()['access_token'];
             $this->token_expiry = now()->addSeconds($response->json()['expires_in'] - 60);
         } else {
@@ -175,9 +174,9 @@ class PayPalBasePaymentDriver extends BaseDriver
 
         $funding_options = '';
 
-        foreach($this->company_gateway->fees_and_limits as $key => $value) {
+        foreach ($this->company_gateway->fees_and_limits as $key => $value) {
 
-            if($value->is_enabled) {
+            if ($value->is_enabled) {
 
                 $funding_options .= $enums[$key].',';
 
@@ -198,7 +197,7 @@ class PayPalBasePaymentDriver extends BaseDriver
         $cgt = ClientGatewayToken::where('company_gateway_id', $this->company_gateway->id)
                                  ->where('client_id', $this->client->id)
                                  ->first();
-        if(!$cgt) {
+        if (!$cgt) {
             return '';
         }
 
@@ -212,7 +211,7 @@ class PayPalBasePaymentDriver extends BaseDriver
                                    ->withQueryParameters(['grant_type' => 'client_credentials','response_type' => 'id_token', 'target_customer_id' => $client_reference])
                                    ->post("{$this->api_endpoint_url}/v1/oauth2/token");
 
-        if($response->successful()) {
+        if ($response->successful()) {
 
             $data = $response->json();
 
@@ -283,7 +282,7 @@ class PayPalBasePaymentDriver extends BaseDriver
     public function getPaymentSource(): array
     {
         //@todo - roll back here for advanced payments vs hosted card fields.
-        if($this->gateway_type_id == GatewayType::PAYPAL_ADVANCED_CARDS) {
+        if ($this->gateway_type_id == GatewayType::PAYPAL_ADVANCED_CARDS) {
 
             return [
                 "card" => [
@@ -324,7 +323,7 @@ class PayPalBasePaymentDriver extends BaseDriver
         ];
 
         /** If we have a complete address, add it to the order, otherwise leave it blank! */
-        if(
+        if (
             strlen($this->client->shipping_address1 ?? '') > 2 &&
             strlen($this->client->shipping_city ?? '') > 2 &&
             strlen($this->client->shipping_state ?? '') >= 2 &&
@@ -339,7 +338,7 @@ class PayPalBasePaymentDriver extends BaseDriver
                     "postal_code" => $this->client->shipping_postal_code,
                     "country_code" => $this->client->present()->shipping_country_code(),
             ];
-        } elseif(
+        } elseif (
             strlen($this->client->address1 ?? '') > 2 &&
             strlen($this->client->city ?? '') > 2 &&
             strlen($this->client->state ?? '') >= 2 &&
@@ -368,7 +367,7 @@ class PayPalBasePaymentDriver extends BaseDriver
      */
     public function setPaymentMethod($payment_method_id): self
     {
-        if(!$payment_method_id) {
+        if (!$payment_method_id) {
             return $this;
         }
 
@@ -410,7 +409,7 @@ class PayPalBasePaymentDriver extends BaseDriver
                 ->withHeaders($this->getHeaders($headers))
                 ->{$verb}("{$this->api_endpoint_url}{$uri}", $data);
 
-        if($r->status() <= 422) {
+        if ($r->status() <= 422) {
             // if($r->successful()) {
             return $r;
         }
@@ -450,11 +449,11 @@ class PayPalBasePaymentDriver extends BaseDriver
         switch ($response['name']) {
             case 'NOT_AUTHORIZED':
                 throw new PaymentFailed("There was a permissions issue processing this payment, please contact the merchant. ", 401);
-               
+
 
             default:
                 throw new PaymentFailed("Unknown error occurred processing payment. Please contact merchant.", 500);
-               
+
         }
     }
 
@@ -492,7 +491,7 @@ class PayPalBasePaymentDriver extends BaseDriver
 
         $r = $this->gatewayRequest('/v1/identity/generate-token', 'post', ['body' => '']);
 
-        if($r->successful()) {
+        if ($r->successful()) {
             return $r->json()['client_token'];
         }
 
@@ -506,7 +505,7 @@ class PayPalBasePaymentDriver extends BaseDriver
         try {
             $this->init()->getClientToken();
             return true;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
         }
 
@@ -524,14 +523,13 @@ class PayPalBasePaymentDriver extends BaseDriver
         $this->init();
 
         PayPalWebhook::dispatch($request->all(), $request->headers->all(), $this->access_token);
-        
+
     }
 
     public function createNinjaPayment($request, $response)
     {
 
-        if(isset($response['purchase_units'][0]['payments']['captures'][0]['status']) && in_array($response['purchase_units'][0]['payments']['captures'][0]['status'], ['COMPLETED', 'PENDING']))
-        {
+        if (isset($response['purchase_units'][0]['payments']['captures'][0]['status']) && in_array($response['purchase_units'][0]['payments']['captures'][0]['status'], ['COMPLETED', 'PENDING'])) {
 
             $payment_status = $response['purchase_units'][0]['payments']['captures'][0]['status'] == 'COMPLETED' ? \App\Models\Payment::STATUS_COMPLETED : \App\Models\Payment::STATUS_PENDING;
 
@@ -547,7 +545,7 @@ class PayPalBasePaymentDriver extends BaseDriver
             if ($request->has('store_card') && $request->input('store_card') === true) {
                 $payment_source = $response->json()['payment_source'] ?? false;
 
-                if(isset($payment_source['card']) && ($payment_source['card']['attributes']['vault']['status'] ?? false) && $payment_source['card']['attributes']['vault']['status'] == 'VAULTED') {
+                if (isset($payment_source['card']) && ($payment_source['card']['attributes']['vault']['status'] ?? false) && $payment_source['card']['attributes']['vault']['status'] == 'VAULTED') {
 
                     $last4 = $payment_source['card']['last_digits'];
                     $expiry = $payment_source['card']['expiry']; //'2025-01'
@@ -588,9 +586,9 @@ class PayPalBasePaymentDriver extends BaseDriver
         }
 
         SystemLogger::dispatch($response, SystemLog::CATEGORY_GATEWAY_RESPONSE, SystemLog::EVENT_GATEWAY_FAILURE, SystemLog::TYPE_PAYPAL, $this->client, $this->client->company);
-        
+
         $error = isset($response['purchase_units'][0]['payments']['captures'][0]['status_details'][0]) ? $response['purchase_units'][0]['payments']['captures'][0]['status_details'][0] : $response['purchase_units'][0]['payments']['captures'][0]['status'];
- 
+
         return response()->json(['message' => $error], 400);
 
     }

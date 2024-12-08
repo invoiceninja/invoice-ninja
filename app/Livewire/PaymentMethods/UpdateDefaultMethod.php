@@ -36,9 +36,9 @@ class UpdateDefaultMethod extends Component
 
     public function makeDefault(): void
     {
-        
+
         MultiDB::setDb($this->db);
-        
+
 
         if ($this->token()->is_default) {
             return;

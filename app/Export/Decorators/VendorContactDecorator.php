@@ -19,15 +19,15 @@ class VendorContactDecorator implements DecoratorInterface
     {
         $contact = false;
 
-        if($entity instanceof VendorContact) {
+        if ($entity instanceof VendorContact) {
             $contact = $entity;
-        } elseif($entity->contacts) {
+        } elseif ($entity->contacts) {
             $contact = $entity->contacts()->first();
         }
 
-        if($contact && method_exists($this, $key)) {
+        if ($contact && method_exists($this, $key)) {
             return $this->{$key}($contact);
-        } elseif($contact && ($contact->{$key} ?? false)) {
+        } elseif ($contact && ($contact->{$key} ?? false)) {
             return $contact->{$key} ?? '';
         }
 

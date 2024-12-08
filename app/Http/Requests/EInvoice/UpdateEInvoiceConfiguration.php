@@ -129,7 +129,7 @@ class UpdateEInvoiceConfiguration extends Request
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        return match($this->entity){
+        return match($this->entity) {
             'company' => $user->company(),
             'invoice' => Invoice::class,
             'client' => Client::class,

@@ -71,7 +71,7 @@ class ProjectFilters extends QueryFilters
                     ->whereColumn('clients.id', 'projects.client_id'), $dir);
         }
 
-        if($sort_col[0] == 'number') {
+        if ($sort_col[0] == 'number') {
             return $this->builder->orderByRaw("REGEXP_REPLACE(number,'[^0-9]+','')+0 " . $dir);
         }
 

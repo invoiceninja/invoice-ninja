@@ -81,11 +81,11 @@ class StripeConnectController extends BaseController
 
         }
 
-        if(!$response) {
+        if (!$response) {
             return view('auth.connect.access_denied');
         }
 
-        if(!$request->getTokenContent()) {
+        if (!$request->getTokenContent()) {
             return view('auth.connect.session_expired');
         }
 
@@ -127,16 +127,16 @@ class StripeConnectController extends BaseController
             $stripe = $company_gateway->driver()->init();
             $a = \Stripe\Account::retrieve($response->stripe_user_id, $stripe->stripe_connect_auth);
 
-            if($a->business_name ?? false) {
+            if ($a->business_name ?? false) {
                 $company_gateway->label = substr("Stripe - {$a->business_name}", 0, 250);
                 $company_gateway->save();
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: StripeConnectController::" . $e->getMessage());
             nlog("could not harvest stripe company name");
         }
 
-        if(isset($request->getTokenContent()['is_react']) && $request->getTokenContent()['is_react']) {
+        if (isset($request->getTokenContent()['is_react']) && $request->getTokenContent()['is_react']) {
             $redirect_uri = config('ninja.react_url').'/#/settings/online_payments';
         } else {
             $redirect_uri = config('ninja.app_url');

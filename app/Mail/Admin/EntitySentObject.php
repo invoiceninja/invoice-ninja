@@ -108,7 +108,7 @@ class EntitySentObject
 
     private function setTemplate()
     {
-
+        
         switch ($this->template) {
             case 'invoice':
                 $this->template_subject = 'texts.notification_invoice_sent_subject';
@@ -127,11 +127,16 @@ class EntitySentObject
                 $this->template_body = 'texts.notification_invoice_sent';
                 break;
             case 'reminder_endless':
+            case 'endless_reminder':
                 $this->template_subject = 'texts.notification_invoice_reminder_endless_sent_subject';
                 $this->template_body = 'texts.notification_invoice_sent';
                 break;
             case 'quote':
                 $this->template_subject = 'texts.notification_quote_sent_subject';
+                $this->template_body = 'texts.notification_quote_sent';
+                break;
+            case 'email_quote_template_reminder1':
+                $this->template_subject = 'texts.notification_quote_reminder1_sent_subject';
                 $this->template_body = 'texts.notification_quote_sent';
                 break;
             case 'credit':

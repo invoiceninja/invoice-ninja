@@ -8,7 +8,7 @@ class Transformer
 {
     public function transform(array $items, string $type): Collection
     {
-        if(!method_exists($this, ($method = "transform{$type}s"))) {
+        if (!method_exists($this, ($method = "transform{$type}s"))) {
             throw new \InvalidArgumentException("Unknown type: $type");
         }
 

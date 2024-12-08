@@ -130,7 +130,7 @@ class WebhookSingle implements ShouldQueue
                 $this->resolveClient(),
                 $this->company
             ))->handle();
-        } catch(\GuzzleHttp\Exception\ConnectException $e) {
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
             nlog("connection problem");
             nlog($e->getCode());
             nlog($e->getMessage());

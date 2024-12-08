@@ -31,7 +31,6 @@ use App\Services\Template\TemplateService;
 
 class Ubl2Pdf extends AbstractService
 {
-
     /**
      * @throws \Throwable
      */
@@ -41,7 +40,7 @@ class Ubl2Pdf extends AbstractService
 
     public function run()
     {
-                
+
         App::forgetInstance('translator');
         $t = app('translator');
         App::setLocale($this->company->locale());
@@ -63,7 +62,7 @@ class Ubl2Pdf extends AbstractService
         ];
 
         $ts = new TemplateService();
-        
+
         $ts_instance = $ts->setCompany($this->company)
                     ->setData($data)
                     ->setRawTemplate($template)
@@ -84,7 +83,7 @@ class Ubl2Pdf extends AbstractService
             'details' => ctrans('texts.details'),
             'number' => ctrans('texts.number'),
             'tax' => ctrans('texts.tax'),
-            
+
             // 'from' => ctrans('texts.from'),
             // 'from' => ctrans('texts.from'),
             // 'from' => ctrans('texts.from'),
@@ -102,13 +101,14 @@ class Ubl2Pdf extends AbstractService
     private function processValues(array $array): array
     {
 
-        foreach($array as $key => $value)
-        {
-            if($value === null || $value === '')
+        foreach ($array as $key => $value) {
+            if ($value === null || $value === '') {
                 unset($array[$key]);
+            }
 
-            if($value instanceof \DateTime)
+            if ($value instanceof \DateTime) {
                 $array[$key] = $value->format($this->company->date_format());
+            }
         }
 
         return $array;
@@ -118,17 +118,17 @@ class Ubl2Pdf extends AbstractService
     private function clientDetails(): array
     {
         return $this->processValues([
-            ctrans('texts.name') => data_get($this->invoice, 'AccountingCustomerParty.Party.PartyName.0.Name',''),
-            ctrans('texts.address1') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.StreetName',''),
-            ctrans('texts.address2') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.AdditionalStreetName',''),
-            ctrans('texts.city') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.CityName',''),
-            ctrans('texts.state') => data_get($this->invoice, 'AccountingSupplierParty.Party.PostalAddress.CountrySubentity',''),
-            ctrans('texts.postal_code') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.PostalZone',''),
-            ctrans('texts.country_id') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.Country.IdentificationCode.value',''),
-            ctrans('texts.vat_number') => data_get($this->invoice, 'AccountingCustomerParty.Party.PartyTaxScheme.0.CompanyID.value',''),
-            ctrans('texts.contact_name') => data_get($this->invoice, 'AccountingCustomerParty.Party.Contact.Name',''),
-            ctrans('texts.phone') => data_get($this->invoice, 'AccountingCustomerParty.Party.Contact.Telephone',''),
-            ctrans('texts.email') => data_get($this->invoice, 'AccountingCustomerParty.Party.Contact.ElectronicMail',''),
+            ctrans('texts.name') => data_get($this->invoice, 'AccountingCustomerParty.Party.PartyName.0.Name', ''),
+            ctrans('texts.address1') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.StreetName', ''),
+            ctrans('texts.address2') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.AdditionalStreetName', ''),
+            ctrans('texts.city') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.CityName', ''),
+            ctrans('texts.state') => data_get($this->invoice, 'AccountingSupplierParty.Party.PostalAddress.CountrySubentity', ''),
+            ctrans('texts.postal_code') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.PostalZone', ''),
+            ctrans('texts.country_id') => data_get($this->invoice, 'AccountingCustomerParty.Party.PostalAddress.Country.IdentificationCode.value', ''),
+            ctrans('texts.vat_number') => data_get($this->invoice, 'AccountingCustomerParty.Party.PartyTaxScheme.0.CompanyID.value', ''),
+            ctrans('texts.contact_name') => data_get($this->invoice, 'AccountingCustomerParty.Party.Contact.Name', ''),
+            ctrans('texts.phone') => data_get($this->invoice, 'AccountingCustomerParty.Party.Contact.Telephone', ''),
+            ctrans('texts.email') => data_get($this->invoice, 'AccountingCustomerParty.Party.Contact.ElectronicMail', ''),
         ]);
     }
 
@@ -178,7 +178,7 @@ class Ubl2Pdf extends AbstractService
         ]);
 
         $data['line_items'] = $this->invoiceLines();
-            
+
         return $data;
     }
 
@@ -242,8 +242,7 @@ class Ubl2Pdf extends AbstractService
 
         $taxes = [];
 
-        foreach(data_get($this->invoice, 'TaxTotal.0.TaxSubtotal', []) as $tax_subtotal)
-        {
+        foreach (data_get($this->invoice, 'TaxTotal.0.TaxSubtotal', []) as $tax_subtotal) {
             $taxes[] = [
                 'subtotal' => data_get($tax_subtotal, 'TaxAmount.amount', 0),
                 'tax_name' => data_get($tax_subtotal, 'TaxCategory.TaxScheme.ID.value', ''),
@@ -262,23 +261,23 @@ class Ubl2Pdf extends AbstractService
         ];
     }
 
-//     private function resolveCountry(?string $iso_country_code): int
-//     {
-//         return Country::query()
-//                         ->where('iso_3166_2', $iso_country_code)
-//                         ->orWhere('iso_3166_3', $iso_country_code)
-//                         ->first()?->id ?? (int)$this->company->settings->country_id;
-//     }
+    //     private function resolveCountry(?string $iso_country_code): int
+    //     {
+    //         return Country::query()
+    //                         ->where('iso_3166_2', $iso_country_code)
+    //                         ->orWhere('iso_3166_3', $iso_country_code)
+    //                         ->first()?->id ?? (int)$this->company->settings->country_id;
+    //     }
 
 
-//     private function resolveCurrencyId(string $currency_code): int
-//     {
-        
-//         /** @var \Illuminate\Support\Collection<\App\Models\Currency> */
-//         $currencies = app('currencies');
+    //     private function resolveCurrencyId(string $currency_code): int
+    //     {
 
-//         return $currencies->first(function (Currency $c) use ($currency_code) {
-//             return $c->code === $currency_code;
-//         })?->id ?? (int) $this->company->settings->currency_id;
-//     }
+    //         /** @var \Illuminate\Support\Collection<\App\Models\Currency> */
+    //         $currencies = app('currencies');
+
+    //         return $currencies->first(function (Currency $c) use ($currency_code) {
+    //             return $c->code === $currency_code;
+    //         })?->id ?? (int) $this->company->settings->currency_id;
+    //     }
 }

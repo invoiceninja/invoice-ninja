@@ -82,11 +82,13 @@ class PaymentFailedMailer implements ShouldQueue
 
         $amount = 0;
         $invoice = false;
+        $invitation = false;
 
         if ($this->payment_hash) {
-            
+
             $amount = $this->payment_hash?->amount_with_fee() ?: 0;
-            $invoice = Invoice::query()->whereIn('id', $this->transformKeys(array_column($this->payment_hash->invoices(), 'invoice_id')))->withTrashed()->first();
+            $invoice = Invoice::query()->with('invitations')->whereIn('id', $this->transformKeys(array_column($this->payment_hash->invoices(), 'invoice_id')))->withTrashed()->first();
+            $invitation = $invoice->invitations->first();
         }
 
         //iterate through company_users
@@ -96,6 +98,8 @@ class PaymentFailedMailer implements ShouldQueue
             //if mail is a method type -fire mail!!
             if (($key = array_search('mail', $methods)) !== false) {
                 unset($methods[$key]);
+
+                $invitation = $invoice->invitations->first();
 
                 $mail_obj = (new PaymentFailureObject($this->client, $this->error, $this->company, $amount, $this->payment_hash, $company_user->portalType()))->build();
 
@@ -121,6 +125,10 @@ class PaymentFailedMailer implements ShouldQueue
             $nmo->company = $this->company;
             $nmo->to_user = $contact;
             $nmo->settings = $settings;
+            
+            if ($invitation) {
+                $nmo->invitation = $invitation->withoutRelations();
+            }
 
             NinjaMailerJob::dispatch($nmo);
         }

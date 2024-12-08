@@ -175,7 +175,7 @@ class ACH implements LivewireMethodInterface
 
         $payment = $this->forte->createPayment($data, Payment::STATUS_COMPLETED);
         // return redirect('client/invoices')->withSuccess('Invoice paid.');
-    
+
         return redirect()->route('client.payments.show', ['payment' => $payment->hashed_id]);
 
     }
@@ -183,15 +183,15 @@ class ACH implements LivewireMethodInterface
     /**
      * @inheritDoc
      */
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.forte.ach.pay_livewire';
     }
-    
+
     /**
      * @inheritDoc
      */
-    public function paymentData(array $data): array 
+    public function paymentData(array $data): array
     {
         $this->forte->payment_hash->data = array_merge((array) $this->forte->payment_hash->data, $data);
         $this->forte->payment_hash->save();

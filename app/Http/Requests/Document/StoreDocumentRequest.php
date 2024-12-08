@@ -40,7 +40,7 @@ class StoreDocumentRequest extends Request
     {
         $input = $this->all();
 
-        if(isset($input['is_public'])) {
+        if (isset($input['is_public'])) {
             $input['is_public'] = $this->toBoolean($input['is_public']);
         }
 

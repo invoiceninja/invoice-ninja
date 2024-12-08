@@ -59,7 +59,7 @@ class StaticController extends BaseController
 
         $response_data = Statics::company($user->getLocale() ?? $user->company()->getLocale());
 
-        if(request()->has('einvoice')) {
+        if (request()->has('einvoice')) {
 
             $schema = new Schema();
             $response_data['einvoice_schema'] = $schema('Peppol');

@@ -150,10 +150,9 @@ class PaymentMethodController extends Controller
             $payment_method->save();
 
 
-            $def_cgt = auth()->guard('contact')->user()->client->gateway_tokens()->orderBy('id','desc')->first();
-            
-            if($def_cgt)
-            {
+            $def_cgt = auth()->guard('contact')->user()->client->gateway_tokens()->orderBy('id', 'desc')->first();
+
+            if ($def_cgt) {
                 $def_cgt->is_default = true;
                 $def_cgt->save();
             }

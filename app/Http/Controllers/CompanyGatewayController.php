@@ -217,8 +217,8 @@ class CompanyGatewayController extends BaseController
 
         $fees_and_limits = $company_gateway->fees_and_limits;
 
-        foreach($gateway_types as $key => $gateway_type) {
-            if(!property_exists($fees_and_limits, $key)) {
+        foreach ($gateway_types as $key => $gateway_type) {
+            if (!property_exists($fees_and_limits, $key)) {
                 $fees_and_limits->{$key} = new FeesAndLimits();
             }
         }
@@ -237,7 +237,7 @@ class CompanyGatewayController extends BaseController
                 CheckoutSetupWebhook::dispatch($company_gateway->company->company_key, $company_gateway->id);
                 break;
 
-            case $this->forte_key:                
+            case $this->forte_key:
                 dispatch(function () use ($company_gateway) {
                     MultiDB::setDb($company_gateway->company->db);
                     $company_gateway->driver()->updateFees();
@@ -245,7 +245,7 @@ class CompanyGatewayController extends BaseController
 
                 break;
 
-            case $this->cbapowerboard_key:               
+            case $this->cbapowerboard_key:
                 dispatch(function () use ($company_gateway) {
                     MultiDB::setDb($company_gateway->company->db);
                     $company_gateway->driver()->init()->settings()->updateSettings();
@@ -262,7 +262,7 @@ class CompanyGatewayController extends BaseController
             default:
                 # code...
                 break;
-        
+
         }
 
         return $this->itemResponse($company_gateway);
@@ -434,8 +434,8 @@ class CompanyGatewayController extends BaseController
 
         $fees_and_limits = $company_gateway->fees_and_limits;
 
-        foreach($gateway_types as $key => $gateway_type) {
-            if(!property_exists($fees_and_limits, $key)) {
+        foreach ($gateway_types as $key => $gateway_type) {
+            if (!property_exists($fees_and_limits, $key)) {
                 $fees_and_limits->{$key} = new FeesAndLimits();
             }
         }
@@ -443,9 +443,9 @@ class CompanyGatewayController extends BaseController
         $company_gateway->fees_and_limits = $fees_and_limits;
         $company_gateway->save();
 
-        if($company_gateway->gateway_key == $this->checkout_key) {
+        if ($company_gateway->gateway_key == $this->checkout_key) {
             CheckoutSetupWebhook::dispatch($company_gateway->company->company_key, $company_gateway->fresh()->id);
-        } elseif($company_gateway->gateway_key == $this->forte_key) {
+        } elseif ($company_gateway->gateway_key == $this->forte_key) {
 
             dispatch(function () use ($company_gateway) {
                 MultiDB::setDb($company_gateway->company->db);

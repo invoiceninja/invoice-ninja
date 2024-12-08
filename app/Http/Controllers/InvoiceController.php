@@ -175,7 +175,7 @@ class InvoiceController extends BaseController
         $invoice->custom_surcharge_tax2 = $company->custom_surcharge_taxes2;
         $invoice->custom_surcharge_tax3 = $company->custom_surcharge_taxes3;
         $invoice->custom_surcharge_tax4 = $company->custom_surcharge_taxes4;
-        
+
         return $this->itemResponse($invoice);
     }
 
@@ -508,7 +508,7 @@ class InvoiceController extends BaseController
             return response(['message' => ctrans('texts.email_quota_exceeded_subject')], 400);
         }
 
-        if(in_array($request->action, ['auto_bill', 'mark_paid']) && $user->cannot('create', \App\Models\Payment::class)) {
+        if (in_array($request->action, ['auto_bill', 'mark_paid']) && $user->cannot('create', \App\Models\Payment::class)) {
             return response(['message' => ctrans('texts.not_authorized'), 'errors' => ['ids' => [ctrans('texts.not_authorized')]]], 422);
         }
 
@@ -553,7 +553,7 @@ class InvoiceController extends BaseController
             }, 'print.pdf', ['Content-Type' => 'application/pdf']);
         }
 
-        if($action == 'template' && $user->can('view', $invoices->first())) {
+        if ($action == 'template' && $user->can('view', $invoices->first())) {
 
             $hash_or_response = $request->boolean('send_email') ? 'email sent' : \Illuminate\Support\Str::uuid();
 
@@ -571,10 +571,10 @@ class InvoiceController extends BaseController
             return response()->json(['message' => $hash_or_response], 200);
         }
 
-        if($action == 'set_payment_link' && $request->has('subscription_id')) {
+        if ($action == 'set_payment_link' && $request->has('subscription_id')) {
 
             $invoices->each(function ($invoice) use ($user, $request) {
-                if($user->can('edit', $invoice)) {
+                if ($user->can('edit', $invoice)) {
                     $invoice->service()->setPaymentLink($request->subscription_id)->save();
                 }
             });
@@ -582,11 +582,11 @@ class InvoiceController extends BaseController
             return $this->listResponse(Invoice::withTrashed()->whereIn('id', $this->transformKeys($ids))->company());
         }
 
-        if(in_array($action, ['email','send_email'])) {
-            
+        if (in_array($action, ['email','send_email'])) {
+
             $invoice = $invoices->first();
 
-            if($user->can('edit', $invoice)){
+            if ($user->can('edit', $invoice)) {
 
                 $template = $request->input('email_type', $invoice->calculateTemplate('invoice'));
 
@@ -837,7 +837,7 @@ class InvoiceController extends BaseController
         if (request()->input('inline') == 'true') {
             $headers = array_merge($headers, ['Content-Disposition' => 'inline']);
         }
-       
+
         return response()->streamDownload(function () use ($file) {
             echo $file;
         }, $file_name, $headers);

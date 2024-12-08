@@ -19,20 +19,20 @@ class ContactDecorator implements DecoratorInterface
     {
         $contact = false;
 
-        if($entity instanceof ClientContact) {
+        if ($entity instanceof ClientContact) {
             $contact = $entity;
-        } elseif($entity->contacts) {
+        } elseif ($entity->contacts) {
             $contact = $entity->contacts()->first();
-        } elseif($entity->client) {
+        } elseif ($entity->client) {
             $contact = $entity->client->primary_contact->first() ?? $entity->client->contacts()->whereNotNull('email')->first();
-        } elseif($entity->vendor) {
+        } elseif ($entity->vendor) {
             $contact = $entity->vendor->primary_contact->first() ?? $entity->vendor->contacts()->whereNotNull('email')->first();
         }
 
 
-        if($contact && method_exists($this, $key)) {
+        if ($contact && method_exists($this, $key)) {
             return $this->{$key}($contact);
-        } elseif($contact && ($contact->{$key} ?? false)) {
+        } elseif ($contact && ($contact->{$key} ?? false)) {
             return $contact->{$key};
         }
 

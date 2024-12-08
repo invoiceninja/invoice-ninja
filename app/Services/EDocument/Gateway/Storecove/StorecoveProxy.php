@@ -41,8 +41,9 @@ class StorecoveProxy
         if (Ninja::isHosted()) {
             $response = $this->storecove->getLegalEntity($legal_entity_id);
 
-            if (is_array($response)) //successful response is the array
+            if (is_array($response)) { //successful response is the array
                 return $response;
+            }
 
             return $this->handleResponseError($response); //otherwise need to handle the http response returned
         }
@@ -66,6 +67,11 @@ class StorecoveProxy
             $response = $this->storecove->setupLegalEntity($data);
 
             if (is_array($response)) {
+
+                if ($this->company->account->companies()->whereNotNull('legal_entity_id')->count() == 1) {
+                    \Modules\Admin\Jobs\Storecove\SendWelcomeEmail::dispatch($this->company);
+                }
+
                 return $response;
             }
 
@@ -129,9 +135,9 @@ class StorecoveProxy
         ];
 
         if (Ninja::isHosted()) {
-            
+
             $response = $this->storecove->addAdditionalTaxIdentifier($data['legal_entity_id'], $data['vat_number'], $scheme);
-        
+
             if (is_array($response)) {
                 return $response;
             }
@@ -142,11 +148,28 @@ class StorecoveProxy
         return $this->remoteRequest('/api/einvoice/peppol/add_additional_legal_identifier', $data);
     }
 
+    public function removeAdditionalTaxIdentifier(array $data): array|false
+    {
+        $data['legal_entity_id'] = $this->company->legal_entity_id;
+
+        if (Ninja::isHosted()) {
+            $response = $this->storecove->removeAdditionalTaxIdentifier($data['legal_entity_id'], $data['vat_number']);
+
+            if (is_array($response) || is_bool($response)) {
+                return $response;
+            }
+
+            return $this->handleResponseError($response);
+        }
+
+        return $this->remoteRequest('/api/einvoice/peppol/remove_additional_legal_identifier', $data);
+    }
+
     /**
      * handleResponseError
      *
      * Generic error handler that can return an array response
-     * 
+     *
      * @param  mixed $response
      * @return array
      */
@@ -197,8 +220,21 @@ class StorecoveProxy
             ->withHeaders($this->getHeaders())
             ->post($uri, $payload);
 
-        if ($response->successful())
+        if ($response->successful()) {
+            if ($response->hasHeader('X-EINVOICE-QUOTA')) {
+                // @dave is there any case this will run when user is not logged in? (async)
+
+                /**
+                 * @var \App\Models\Account $account
+                 */
+                $account = auth()->user()->company->account;
+
+                $account->e_invoice_quota = (int) $response->header('X-EINVOICE-QUOTA');
+                $account->save();
+            }
+
             return $response->json();
+        }
 
         return $this->handleResponseError($response);
     }

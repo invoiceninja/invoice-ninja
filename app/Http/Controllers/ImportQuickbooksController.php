@@ -37,7 +37,7 @@ class ImportQuickbooksController extends BaseController
 
         return redirect()->to($authorizationUrl);
     }
-    
+
     public function onAuthorized(AuthorizedQuickbooksRequest $request)
     {
 

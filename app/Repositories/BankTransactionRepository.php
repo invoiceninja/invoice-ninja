@@ -48,7 +48,7 @@ class BankTransactionRepository extends BaseRepository
 
     public function unlink($bt)
     {
-        if($bt->payment()->exists()) {
+        if ($bt->payment()->exists()) {
             $bt->payment->transaction_id = null;
             $bt->payment_id = null;
         }

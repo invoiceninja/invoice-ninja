@@ -201,7 +201,7 @@ class Subscription extends BaseModel
                 return null;
         }
     }
-    
+
     /**
      * Calculates the maximum product quantity available
      *

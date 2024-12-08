@@ -43,7 +43,7 @@ class BankIntegrationRepository extends BaseRepository
             return $bank_integration;
         }
 
-        if(Ninja::isHosted()) {
+        if (Ninja::isHosted()) {
 
             $account = $bank_integration->account;
 
@@ -53,7 +53,7 @@ class BankIntegrationRepository extends BaseRepository
 
             try {
                 $yodlee->deleteAccount($bank_integration->bank_account_id);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
 
             }
 

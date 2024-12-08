@@ -92,7 +92,7 @@ class BankTransactionSync implements ShouldQueue
                     $account->bank_integrations()->where('integration_type', BankIntegration::INTEGRATION_TYPE_NORDIGEN)->where('auto_sync', true)->where('disabled_upstream', 0)->cursor()->each(function ($bank_integration) {
                         try {
                             (new ProcessBankTransactionsNordigen($bank_integration))->handle();
-                        } catch(\Exception $e) {
+                        } catch (\Exception $e) {
                             nlog("Exception:: BankTransactioSync::" . $e->getMessage());
                             sleep(20);
                         }

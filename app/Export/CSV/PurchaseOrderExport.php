@@ -63,7 +63,7 @@ class PurchaseOrderExport extends BaseExport
                         })
                         ->where('company_id', $this->company->id);
 
-        if(!$this->input['include_deleted'] ?? false) { // @phpstan-ignore-line
+        if (!$this->input['include_deleted'] ?? false) { // @phpstan-ignore-line
             $query->where('is_deleted', 0);
         }
 
@@ -72,13 +72,13 @@ class PurchaseOrderExport extends BaseExport
 
         $clients = &$this->input['client_id'];
 
-        if($clients) {
+        if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
 
         $query = $this->addPurchaseOrderStatusFilter($query, $this->input['status'] ?? '');
 
-        if($this->input['document_email_attachment'] ?? false) {
+        if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }
 
@@ -151,9 +151,9 @@ class PurchaseOrderExport extends BaseExport
 
 
         }
-        
+
         $entity = $this->decorateAdvancedFields($purchase_order, $entity);
-        
+
         return $this->convertFloats($entity);
 
     }

@@ -18,7 +18,7 @@ use App\Utils\Traits\MakesHash;
 use Livewire\Attributes\Computed;
 
 class RecurringProducts extends Component
-{    
+{
     use MakesHash;
 
     public array $context;

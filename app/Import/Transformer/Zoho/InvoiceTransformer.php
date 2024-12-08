@@ -101,7 +101,7 @@ class InvoiceTransformer extends BaseTransformer
 
         $client_name = $this->getString($invoice_data, 'Customer Name');
 
-        if(strlen($client_name) >= 2) {
+        if (strlen($client_name) >= 2) {
             $client_name_search = \App\Models\Client::query()->where('company_id', $this->company->id)
                 ->where('is_deleted', false)
                 ->whereRaw("LOWER(REPLACE(`name`, ' ' ,''))  = ?", [

@@ -49,37 +49,36 @@ class XsltDocumentValidator
     private function validateSchema(): self
     {
 
-        try{
+        try {
             $processor = new \Saxon\SaxonProcessor();
 
             $xslt = $processor->newXslt30Processor();
 
-            foreach($this->stylesheets as $stylesheet)
-            {
+            foreach ($this->stylesheets as $stylesheet) {
                 $xdmNode = $processor->parseXmlFromString($this->xml_document);
-                
+
                 /** @var \Saxon\XsltExecutable $xsltExecutable */
                 $xsltExecutable = $xslt->compileFromFile(app_path($stylesheet)); //@phpstan-ignore-line
                 $result = $xsltExecutable->transformToValue($xdmNode);
 
-                if($result->size() == 0)
+                if ($result->size() == 0) {
                     continue;
+                }
 
-                for ($x=0; $x<$result->size(); $x++) 
-                {
+                for ($x = 0; $x < $result->size(); $x++) {
                     $a = $result->itemAt($x);
 
-                    if(strlen($a->getStringValue() ?? '') > 1)
+                    if (strlen($a->getStringValue() ?? '') > 1) {
                         $this->errors['stylesheet'][] = $a->getStringValue();
+                    }
                 }
 
             }
-            
-        }
-        catch(\Throwable $th){
+
+        } catch (\Throwable $th) {
 
             $this->errors['general'][] = $th->getMessage();
-        }   
+        }
 
         return $this;
 
@@ -87,7 +86,7 @@ class XsltDocumentValidator
 
     private function validateXsd(): self
     {
-                
+
         libxml_use_internal_errors(true);
 
         $xml = new \DOMDocument();
@@ -114,7 +113,7 @@ class XsltDocumentValidator
     public function setStyleSheets(array $stylesheets): self
     {
         $this->stylesheets = $stylesheets;
-        
+
         return $this;
     }
 
@@ -140,7 +139,7 @@ class XsltDocumentValidator
 
             // Load XML document
             $xml_doc = $processor->parseXmlFromString($xml);
-            
+
             // Compile and apply stylesheet
             $stylesheet = $xslt->compileFromFile(app_path($this->peppol_stylesheet)); //@phpstan-ignore-line
 

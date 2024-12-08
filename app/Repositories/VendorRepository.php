@@ -45,14 +45,15 @@ class VendorRepository extends BaseRepository
     {
         $saveable_vendor = $data;
 
-        if(array_key_exists('contacts', $data)) {
+        if (array_key_exists('contacts', $data)) {
             unset($saveable_vendor['contacts']);
         }
 
         $vendor->fill($saveable_vendor);
 
-        if(!$vendor->country_id)
-            $vendor->country_id = auth()->user()->company()->country()->id ?? 840; 
+        if (!$vendor->country_id) {
+            $vendor->country_id = auth()->user()->company()->country()->id ?? 840;
+        }
 
         $vendor->saveQuietly();
 

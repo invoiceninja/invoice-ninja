@@ -71,7 +71,7 @@ class CreditCard implements LivewireMethodInterface
 
         $response = $this->eway_driver->init()->eway->createCustomer(\Eway\Rapid\Enum\ApiMethod::DIRECT, $transaction);
 
-        if($response->getErrors()) {
+        if ($response->getErrors()) {
 
             $response_status['message'] = \Eway\Rapid::getMessage($response->getErrors()[0]);
 
@@ -284,7 +284,7 @@ class CreditCard implements LivewireMethodInterface
 
         return $payment;
     }
-    public function livewirePaymentView(array $data): string 
+    public function livewirePaymentView(array $data): string
     {
         return 'gateways.eway.pay_livewire';
     }

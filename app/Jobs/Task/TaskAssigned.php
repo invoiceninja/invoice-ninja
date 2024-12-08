@@ -20,7 +20,6 @@ use App\Services\Email\EmailObject;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
-
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Utils\Traits\Notifications\UserNotifies;
@@ -48,7 +47,7 @@ class TaskAssigned implements ShouldQueue
 
         $company_user = $this->task->assignedCompanyUser();
 
-        if(($company_user instanceof CompanyUser) && $this->findEntityAssignedNotification($company_user, 'task')) {
+        if (($company_user instanceof CompanyUser) && $this->findEntityAssignedNotification($company_user, 'task')) {
             $mo = new EmailObject();
             $mo->subject = ctrans('texts.task_assigned_subject', ['task' => $this->task->number, 'date' => now()->setTimeZone($this->task->company->timezone()->name)->format($this->task->company->date_format()) ]);
             $mo->body = ctrans('texts.task_assigned_body', ['task' => $this->task->number, 'description' => $this->task->description ?? '', 'client' => $this->task->client ? $this->task->client->present()->name() : ' ']);

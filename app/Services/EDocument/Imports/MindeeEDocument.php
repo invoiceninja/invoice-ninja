@@ -48,8 +48,9 @@ class MindeeEDocument extends AbstractService
     {
         $api_key = config('services.mindee.api_key');
 
-        if (!$api_key)
+        if (!$api_key) {
             throw new Exception('Mindee API key not configured');
+        }
 
         $this->checkLimits();
 
@@ -62,8 +63,9 @@ class MindeeEDocument extends AbstractService
         /** @var \Mindee\Product\Invoice\InvoiceV4Document $prediction */
         $prediction = $result->document->inference->prediction;
 
-        if ($prediction->documentType->value !== 'INVOICE')
+        if ($prediction->documentType->value !== 'INVOICE') {
             throw new Exception('Unsupported document type');
+        }
 
         $grandTotalAmount = $prediction->totalAmount->value;
         $documentno = $prediction->invoiceNumber->value;
@@ -100,7 +102,7 @@ class MindeeEDocument extends AbstractService
             ], $expense);
             // $expense->saveQuietly();
 
-            $expense->uses_inclusive_taxes = True;
+            $expense->uses_inclusive_taxes = true;
             $expense->amount = $grandTotalAmount;
             $counter = 1;
 
@@ -135,8 +137,9 @@ class MindeeEDocument extends AbstractService
                     return $c->iso_3166_2 == $country || $c->iso_3166_3 == $country;
                 });
 
-                if ($country)
+                if ($country) {
                     $vendor->country_id = $country->id;
+                }
 
                 $vendor->save();
 
@@ -167,14 +170,18 @@ class MindeeEDocument extends AbstractService
         Cache::add('mindeeTotalMonthlyRequests', 0, now()->endOfMonth());
         Cache::add('mindeeAccountDailyRequests' . $this->company->account->id, 0, now()->endOfDay());
         Cache::add('mindeeAccountMonthlyRequests' . $this->company->account->id, 0, now()->endOfMonth());
-        if (config('services.mindee.daily_limit') != 0 && Cache::get('mindeeTotalDailyRequests') > config('services.mindee.daily_limit'))
+        if (config('services.mindee.daily_limit') != 0 && Cache::get('mindeeTotalDailyRequests') > config('services.mindee.daily_limit')) {
             throw new Exception('Mindee daily limit reached');
-        if (config('services.mindee.monthly_limit') != 0 && Cache::get('mindeeTotalMonthlyRequests') > config('services.mindee.monthly_limit'))
+        }
+        if (config('services.mindee.monthly_limit') != 0 && Cache::get('mindeeTotalMonthlyRequests') > config('services.mindee.monthly_limit')) {
             throw new Exception('Mindee monthly limit reached');
-        if (config('services.mindee.account_daily_limit') != 0 && Cache::get('mindeeAccountDailyRequests' . $this->company->account->id) > config('services.mindee.account_daily_limit'))
+        }
+        if (config('services.mindee.account_daily_limit') != 0 && Cache::get('mindeeAccountDailyRequests' . $this->company->account->id) > config('services.mindee.account_daily_limit')) {
             throw new Exception('Mindee daily limit reached for account: ' . $this->company->account->id);
-        if (config('services.mindee.account_monthly_limit') != 0 && Cache::get('mindeeAccountMonthlyRequests' . $this->company->account->id) > config('services.mindee.account_monthly_limit'))
+        }
+        if (config('services.mindee.account_monthly_limit') != 0 && Cache::get('mindeeAccountMonthlyRequests' . $this->company->account->id) > config('services.mindee.account_monthly_limit')) {
             throw new Exception('Mindee monthly limit reached for account: ' . $this->company->account->id);
+        }
     }
 
     private function incrementRequestCounts()
@@ -185,4 +192,3 @@ class MindeeEDocument extends AbstractService
         Cache::increment('mindeeAccountMonthlyRequests' . $this->company->account->id);
     }
 }
-

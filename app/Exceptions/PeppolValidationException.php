@@ -15,7 +15,6 @@ use Exception;
 
 class PeppolValidationException extends Exception
 {
-
     protected string $field = '';
 
     public function __construct($message, $field, $code = 0, Exception $previous = null)

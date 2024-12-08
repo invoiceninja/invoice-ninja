@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.0.1
 info:
   title: 'Invoice Ninja API Reference.'
   description: |
@@ -71,15 +71,16 @@ info:
   license:
     name: 'Elastic License'
     url: 'https://www.elastic.co/licensing/elastic-license'
-  version: 5.10.31
+  version: 5.10.53
+
 servers:
-  -  url: 'https://demo.invoiceninja.com'
-     description: |
-          ## Demo API endpoint 
-          You can use the demo API key `TOKEN` to test the endpoints from within this API spec
-  -  url: 'https://invoicing.co'
-     description: |
-          ## Production API endpoint
+  - url: 'https://demo.invoiceninja.com'
+    description: |
+      ## Demo API endpoint 
+      You can use the demo API key `TOKEN` to test the endpoints from within this API spec
+  - url: 'https://invoicing.co'
+    description: |
+      ## Production API endpoint
 paths:
   /api/v1/activities:
     get:
@@ -168,16 +169,24 @@ paths:
 
   /api/v1/login:
     post:
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("your_token");
+          
+      - lang: curl
+        label: curl
+        source: |
+          curl --request POST \
+            --url 'https://demo.invoiceninja.com/api/v1/login?include=company,token' \
+            --header 'X-API-TOKEN: YOUR_API_TOKEN_HERE' \
+            --header 'X-Requested-With: XMLHttpRequest' \
+            --header 'Accept: application/json'
       tags:
-        - login
-      summary: "Attempts authentication"
+        - auth
+      summary: "Login"
       description: |
-        After authenticating with the API, the returned object is a CompanyUser object which is a bridge linking the user to the company. 
-
-        The company user object itself contains the users permissions (admin/owner or fine grained permissions) You will most likely want to 
-        also include in the response of this object both the company and the user object, this can be done by using the include parameter.
-
-        /api/v1/login?include=company,user
 
       operationId: postLogin
       parameters:
@@ -188,7 +197,16 @@ paths:
         - $ref: "#/components/parameters/include_static"
         - $ref: "#/components/parameters/clear_cache"
       requestBody:
-        description: "User credentials"
+        description: |
+          User credentials
+
+          ```json
+          {
+            "email" : "fred@flintstonze.com",
+            "password" : "magicpassword123",
+            "one_time_password" : "12345",
+          }
+          ```
         required: true
         content:
           application/json:
@@ -3129,7 +3147,23 @@ paths:
                 template:
                   description: "The template required"
                   type: string
-                  example: invoice,quote,credit,purchase_order,payment,payment_partial,reminder1,reminder2,reminder3,reminder_endless
+                  enum:
+                    - invoice
+                    - quote
+                    - credit
+                    - payment
+                    - payment_partial
+                    - statement
+                    - reminder1
+                    - reminder2
+                    - reminder3
+                    - reminder_endless
+                    - custom1
+                    - custom2
+                    - custom3
+                    - purchase_order
+                    - email_quote_template_reminder1
+                  example: invoice
               type: object
       responses:
         200:
@@ -12686,7 +12720,12 @@ paths:
         label: php
         source: |
           $ninja = new InvoiceNinja("your_token");
-          $invoices = $ninja->clients->all();
+          $invoices = $ninja->clients->all([
+              'balance' => 'lt:10', // get all clients with a balance less than 10
+              'per_page' => 10, // return 10 results per page
+              'page' => 2, // paginate to page 2
+              'include' => 'documents', // include the documents relationship
+          ]);
       - lang: curl
         label: curl
         source: |
@@ -12738,63 +12777,145 @@ paths:
         - $ref: "#/components/parameters/updated_at"
         - $ref: "#/components/parameters/is_deleted"
         - $ref: "#/components/parameters/filter_deleted_clients"
-        - $ref: "#/components/parameters/vendor_id"
         - name: name
           in: query
-          description: Filter by client name
+          description: |
+            Filter by client name  
+
+            ```html
+            ?name=bob
+            ```
           required: false
           schema:
             type: string
           example: bob
         - name: balance
           in: query
-          description: Filter by client balance, format uses an operator and value separated by a colon. lt,lte, gt, gte, eq
+          description: |
+            Filter by client balance, format uses an operator and value separated by a colon. lt,lte, gt, gte, eq
+
+            ```html
+            ?balance=lt:10
+            ```
+
+            ie all clients whose balance is less than 10
           required: false
           schema:
             type: string
           example: lt:10
         - name: between_balance
           in: query
-          description: Filter between client balances, format uses two values separated by a colon
+          description: |
+            Filter between client balances, format uses two values separated by a colon
+
+            ```html
+            ?between_balance=10:100
+            ```
           required: false
           schema:
             type: string
           example: 10:100
         - name: email
           in: query
-          description: Filter by client email
+          description: |
+            Filter by client email
+
+            ```html
+            ?email=bob@gmail.com
+            ```
           required: false
           schema:
             type: string
           example: bob@gmail.com
         - name: id_number
           in: query
-          description: Filter by client id_number
+          description: |
+            Filter by client id_number
+
+            ```html
+            ?id_number=0001
+            ```
           required: false
           schema:
             type: string
           example: a1039883
         - name: number
           in: query
-          description: Filter by client number
+          description: |
+            Filter by client number
+
+            ```html
+            ?number=0002
+            ```
           required: false
           schema:
             type: string
           example: a1039883
         - name: filter
           in: query
-          description: Filters clients on columns - name, id_number, contact.first_name contact.last_name, contact.email, custom_value1-4
+          description: |
+            Broad filter which targets multiple client columns:
+              
+              ```html
+                name, 
+                id_number, 
+                contact.first_name 
+                contact.last_name, 
+                contact.email, 
+                contact.phone
+                custom_value1,
+                custom_value2,
+                custom_value3,
+                custom_value4,
+              ```
+
+              ```html
+              ?filter=Bobby
+              ```
           required: false
           schema:
             type: string
           example: a1039883
         - name: sort
           in: query
-          description: Returns the list sorted by column in ascending or descending order.
+          description: |
+            Returns the list sorted by column in ascending or descending order.
+
+            Ensure you use column | direction, ie.
+
+            ```html
+              ?sort=id|desc
+            ```
           required: false
           schema:
             type: string
           example: id|desc name|desc balance|asc 
+
+        - name: group
+          in: query
+          description: |
+            Returns the list of clients assigned to {group_id}
+
+            ```html
+              ?group=X89sjd8
+            ```
+          required: false
+          schema:
+            type: string
+          example: X89sjd8
+
+        - name: client_id
+          in: query
+          description: |
+            Returns the list of clients with {client_id} - proxy call to retrieve a client_id wrapped in an array
+
+            ```html
+              ?client_id=X89sjd8
+            ```
+          required: false
+          schema:
+            type: string
+          example: X89sjd8
 
       responses:
         200:
@@ -12827,12 +12948,58 @@ paths:
       description: |
             Adds a client to a company
               
+            > 🚨 Important    
             When creating (or updating) a client you must include the child contacts with all mutating requests. Client contacts cannot be modified in isolation.
-
+      x-codeSamples:
+        - lang: php
+          label: php
+          source: |
+            $ninja = new InvoiceNinja("YOUR-TOKEN");
+            
+            $client = $ninja->clients->create([
+                'name' => 'Client Name',
+                'contacts' => [
+                    [
+                        'first_name' => 'John',
+                        'last_name' => 'Smith',
+                        'email' => 'john@example.com',
+                        'phone' => '555-0123'
+                    ]
+                ],
+                'address1' => '123 Main St',
+                'city' => 'New York',
+                'state' => 'NY',
+                'postal_code' => '10001',
+                'country_id' => '1'
+            ]);
+        - lang: curl
+          label: curl
+          source: |
+            curl -X POST https://demo.invoiceninja.com/api/v1/clients \
+              -H "X-API-TOKEN: YOUR-TOKEN" \
+              -H "Content-Type: application/json" \
+              -H "X-Requested-With: XMLHttpRequest" \
+              -d '{
+                "name": "Client Name",
+                "contacts": [
+                  {
+                    "first_name": "John",
+                    "last_name": "Smith",
+                    "email": "john@example.com",
+                    "phone": "555-0123"
+                  }
+                ],
+                "address1": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "postal_code": "10001",
+                "country_id": "1"
+              }'
       operationId: storeClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
       requestBody:
         description: Client object that needs to be added to the company
@@ -12871,10 +13038,24 @@ paths:
         - clients
       summary: 'Show client'
       description: 'Displays a client by id'
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $client = $ninja->clients->show('clientId123');
+      - lang: curl
+        label: php
+        source: |
+          curl -X GET https://demo.invoiceninja.com/api/v1/clients/clientId123 \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest"
+
       operationId: showClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -12912,11 +13093,50 @@ paths:
       tags:
         - clients
       summary: 'Update client'
-      description: 'Handles the updating of a client by id'
+      description: |
+        Handles the updating of a client by id
+
+        > 🚨 Important    
+        When creating (or updating) a client you must include the child contacts with all mutating requests. Client contacts cannot be modified in isolation.
+      
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $client = $ninja->clients->update('clientId123', [
+              'name' => 'Updated Name',
+              'contacts' => [
+                  [
+                      'first_name' => 'John',
+                      'last_name' => 'Smith',
+                      'email' => 'john@example.com'
+                  ]
+              ]
+          ]);
+      - lang: curl
+        label: curl
+        source: |
+          curl -X PUT https://demo.invoiceninja.com/api/v1/clients/clientId123 \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -d '{
+              "name": "Updated Name",
+              "contacts": [
+                {
+                  "first_name": "John",
+                  "last_name": "Smith",
+                  "email": "john@example.com"
+                }
+              ]
+            }'
+
       operationId: updateClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -12961,11 +13181,32 @@ paths:
       tags:
         - clients
       summary: 'Delete client'
-      description: 'Handles the deletion of a client by id'
+      description: |
+        Handles the deletion of a client by id
+
+        > ❗ Note
+        Deleting a client does not purge the client from the system. The delete action will remove the clients data from all 
+        views in the application but keep it all on file. A Client can be laterrestored reversing this action.  To permanently wipe a client and
+        all of their records from the system, use the /purge route
+
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->delete('clientId123');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X DELETE https://demo.invoiceninja.com/api/v1/clients/clientId123 \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest"
+
       operationId: deleteClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -13005,7 +13246,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
           description: 'The Client Hashed ID'
@@ -13048,6 +13290,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
       responses:
         200:
@@ -13114,12 +13357,33 @@ paths:
         - custom_value2
         - custom_value3
         - custom_value4
-
+      
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->bulk([
+              'action' => 'archive',
+              'ids' => ['clientId1', 'clientId2']
+          ]);
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/bulk \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -d '{
+              "action": "archive",
+              "ids": ["clientId1", "clientId2"]
+            }'
       operationId: bulkClients
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
         - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
       requestBody:
         description: 'Bulk action array'
         required: true
@@ -13158,10 +13422,26 @@ paths:
         - clients
       summary: 'Add client document'
       description: 'Handles the uploading of a document to a client, please note due to a quirk in REST you will need to use a _method parameter with value of POST'
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->upload('clientId123', '/path/to/document.pdf');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/clientId123/upload \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -F "_method=POST" \
+            -F "documents[]=@/path/to/document.pdf"
+
       operationId: uploadClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
+        - $ref: '#/components/parameters/index'
         - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
@@ -13181,10 +13461,24 @@ paths:
                 _method:
                   type: string
                   example: POST
-                documents:
+                documents[]:
                   type: array
+                  description: |
+                    Array of files to upload. The files should be sent with the key name 'documents[]'.
+                    
+                    Supported file types:
+                    - PDF (.pdf)
+                    - Word (.doc, .docx)
+                    - Excel (.xls, .xlsx)
+                    - Images (.jpg, .jpeg, .png)
+                    - Text (.txt)
+                    
+                    Maximum file size: 20MB per file
                   items:
+                    type: string
                     format: binary
+                    description: The file contents
+                  example: "@/path/to/document.pdf"
       responses:
         200:
           description: 'Returns the client object'
@@ -13217,15 +13511,28 @@ paths:
       description: |
             Handles purging a client.
 
-            Please note this is a destructive action.
-
+            > ❗ Note
+            This is a destructive action.
             This action will remove all data associated with the client and cannot be undone.
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->purge('clientId123');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/clientId123/purge \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -H "X-API-PASSWORD: YOUR-PASSWORD"
+
       operationId: purgeClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
         - $ref: '#/components/parameters/X-API-PASSWORD'
-        - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
           description: 'The Client Hashed ID'
@@ -13265,12 +13572,30 @@ paths:
             The id parameter is the client that will be the primary client after the merge has completed. 
 
             The mergeable_client_hashed_id is the client that will be merged into the primary client, this clients records will be updated and associated with the primary client.
+
+            > 🚨 **Important**    
+            This action requires elevated permissions, please note the X-API-PASSWORD header requirements for this route.
+            
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $ninja->clients->merge('primaryClientId', 'mergeableClientId');
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/clients/primaryClientId/mergeableClientId/merge \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "X-Requested-With: XMLHttpRequest"
+
       operationId: mergeClient
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/client_include'
         - $ref: '#/components/parameters/X-API-PASSWORD'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: id
           in: path
           description: 'The Client Hashed ID'
@@ -13314,10 +13639,37 @@ paths:
       summary: 'Client statement PDF'
       description: 'Return a PDF of the client statement'
       operationId: clientStatement
+      x-codeSamples:
+      - lang: php
+        label: php
+        source: |
+          $ninja = new InvoiceNinja("YOUR-TOKEN");
+          $statement = $ninja->clients->statement([
+              'client_id' => 'clientId123',
+              'start_date' => '2024-01-01',
+              'end_date' => '2024-12-31',
+              'show_payments_table' => true,
+              'show_aging_table' => true
+          ]);
+      - lang: curl
+        label: curl
+        source: |
+          curl -X POST https://demo.invoiceninja.com/api/v1/client_statement \
+            -H "X-API-TOKEN: YOUR-TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "X-Requested-With: XMLHttpRequest" \
+            -d '{
+              "client_id": "clientId123",
+              "start_date": "2024-01-01",
+              "end_date": "2024-12-31",
+              "show_payments_table": true,
+              "show_aging_table": true
+            }'
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
       requestBody:
         description: 'Statement Options'
         required: true
@@ -13380,7 +13732,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: bounce_id
           in: path
           description: 'The postmark Bounce ID reference'
@@ -13423,7 +13776,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/X-API-TOKEN'
         - $ref: '#/components/parameters/X-Requested-With'
-        - $ref: '#/components/parameters/include'
+        - $ref: '#/components/parameters/index'
+        - $ref: '#/components/parameters/client_include'
         - name: client
           in: path
           description: 'The Client Hashed ID reference'
@@ -14650,7 +15004,6 @@ components:
       required: true
       schema:
         type: string
-        readOnly: true
         example: XMLHttpRequest
     X-API-TOKEN:
       name: X-API-TOKEN
@@ -14688,7 +15041,21 @@ components:
     client_include:
       name: include
       in: query
-      description: Include child relationships of the Client Object.
+      description: |
+        Include child relationships of the Client Object. ie ?include=documents,system_logs
+
+        ```html
+        Available includes:
+
+        contacts [All contacts related to the client]
+        documents [All documents related to the client]
+        gateway_tokens [All payment tokens related to the client]
+        activities [All activities related to the client]
+        ledger [The client ledger]
+        system_logs [System logs related to the client]
+        group_settings [The group settings object the client is assigned to]
+        
+        ```
       required: false
       schema:
         type: string
@@ -14752,7 +15119,24 @@ components:
     login_include:
       name: include
       in: query
-      description: Include child relations of the CompanyUser object, format is comma separated. **Note** it is possible to chain multiple includes together, ie. include=account,token
+      description: |
+        Include child relations of the CompanyUser object, format is comma separated.    
+
+        <br />
+        
+        > ### **Note**: it is possible to chain multiple includes together, ie. include=account,token
+
+        <br />
+
+        ```html
+        
+        Available includes:
+
+          user
+          company
+          token
+          account
+        ```
       required: false
       schema:
         type: string
@@ -14797,7 +15181,7 @@ components:
       name: include_static
       in: query
       description: |
-        Static variables include:
+        This include will return the full set of static variables used in the application including:
           - Currencies
           - Countries 
           - Languages
@@ -14815,7 +15199,7 @@ components:
       description: |
         Clears cache
 
-        Sometimes after a system update where the static variables have been updated, it may be necessary to clear the cache so that the static variables repopulate  
+        Clears (and rebuilds) the static variable cache.  
 
       required: false
       schema:
@@ -14824,7 +15208,24 @@ components:
     index:
       name: index
       in: query
-      description: 'Replaces the default response index from data to a user specific string'
+      description: |
+        Replaces the default response index from data to a user specific string
+
+        ie.
+
+        ```html
+          ?index=new_index
+        ```
+
+        response is wrapped
+
+        ```json
+          {
+            'new_index' : [
+              .....  
+            ]
+          }
+        ```
       required: false
       schema:
         type: string
@@ -14847,6 +15248,11 @@ components:
         - active
         - archived
         - deleted  
+
+        ```html
+        GET /api/v1/invoices?status=archived,deleted
+        Returns only archived and deleted invoices
+        ```
       required: false
       schema:
         type: string
@@ -14856,6 +15262,11 @@ components:
       in: query
       description: |
         Filters the entity list by client_id. Suitable when you only want the entities of a specific client.
+
+        ```html
+        GET /api/v1/invoices?client_id=AxB7Hjk9
+        Returns only invoices for the specified client
+        ```
       required: false
       schema:
         type: string
@@ -14865,6 +15276,11 @@ components:
       in: query
       description: |
         Filters the entity list by the created at timestamp. Parameter value can be a datetime string or unix timestamp
+
+        ```html
+        GET /api/v1/invoices?created_at=2022-01-10
+        Returns entities created on January 10th, 2022
+        ```
       required: false
       schema:
         type: integer
@@ -14874,6 +15290,11 @@ components:
       in: query
       description: |
         Filters the entity list by the updated at timestamp. Parameter value can be a datetime string or unix timestamp
+
+        ```html
+        GET /api/v1/invoices?updated_at=2022-01-10
+        Returns entities last updated on January 10th, 2022
+        ```
       required: false
       schema:
         type: integer
@@ -14883,6 +15304,11 @@ components:
       in: query
       description: |
         Filters the entity list by entities that have been deleted.
+
+        ```html
+        GET /api/v1/invoices?is_deleted=true
+        Returns only soft-deleted entities
+        ```
       required: false
       schema:
         type: boolean
@@ -14892,6 +15318,11 @@ components:
       in: query
       description: |
         Filters the entity list by an associated vendor
+
+        ```html
+        GET /api/v1/purchases?vendor_id=AxB7Hjk9
+        Returns only purchases for the specified vendor
+        ```
       required: false
       schema:
         type: string
@@ -14901,12 +15332,16 @@ components:
       in: query
       description: |
         Filters the entity list and only returns entities for clients that have not been deleted
+
+        ```html
+        GET /api/v1/invoices?filter_deleted_clients=true
+        Returns only invoices for active (non-deleted) clients
+        ```
       required: false
       schema:
         type: string
       example: ?filter_deleted_clients=true
   ########################### Generic filters available across all filter ##################################
-
   schemas:
     CreditPaymentable:
       properties:
@@ -17992,859 +18427,893 @@ components:
         - color
 
     CompanySettings:
-        required:
-            - currency_id
-        properties:
-            currency_id:
-                description: "The default currency id"
-                type: string
-                example: true
-            timezone_id:
-                description: "The timezone id"
-                type: string
-                example: "15"
-            date_format_id:
-                description: "The date format id"
-                type: string
-                example: "15"
-            military_time:
-                description: "Toggles 12/24 hour time"
-                type: boolean
-                example: true
-            language_id:
-                description: "The language id"
-                type: string
-                example: "1"
-            show_currency_code:
-                description: "Toggles whether the currency symbol or code is shown"
-                type: boolean
-                example: true
-            payment_terms:
-                description: "-1 sets no payment term, 0 sets payment due immediately, positive integers indicates payment terms in days"
-                type: integer
-                example: "1"
-            company_gateway_ids:
-                description: "A commad separate list of available gateways"
-                type: string
-                example: "1,2,3,4"
-            custom_value1:
-                description: "A Custom Label"
-                type: string
-                example: "Custom Label"
-            custom_value2:
-                description: "A Custom Label"
-                type: string
-                example: "Custom Label"
-            custom_value3:
-                description: "A Custom Label"
-                type: string
-                example: "Custom Label"
-            custom_value4:
-                description: "A Custom Label"
-                type: string
-                example: "Custom Label"
-            default_task_rate:
-                description: "The default task rate"
-                type: number
-                format: float
-                example: "10.00"
-            send_reminders:
-                description: "Toggles whether reminders are sent"
-                type: boolean
-                example: true
-            enable_client_portal_tasks:
-                description: "Show/hide the tasks panel in the client portal"
-                type: boolean
-                example: true
-            email_style:
-                description: "options include plain,light,dark,custom"
-                type: string
-                example: light
-            reply_to_email:
-                description: "The reply to email address"
-                type: string
-                example: email@gmail.com
-            bcc_email:
-                description: "A comma separate list of BCC emails"
-                type: string
-                example: "email@gmail.com, contact@gmail.com"
-            pdf_email_attachment:
-                description: "Toggles whether to attach PDF as attachment"
-                type: boolean
-                example: true
-            ubl_email_attachment:
-                description: "Toggles whether to attach UBL as attachment"
-                type: boolean
-                example: true
-            email_style_custom:
-                description: "The custom template"
-                type: string
-                example: "<HTML></HTML>"
-            counter_number_applied:
-                description: "enum when the invoice number counter is set, ie when_saved, when_sent, when_paid"
-                type: string
-                example: when_sent
-            quote_number_applied:
-                description: "enum when the quote number counter is set, ie when_saved, when_sent"
-                type: string
-                example: when_sent
-            custom_message_dashboard:
-                description: "A custom message which is displayed on the dashboard"
-                type: string
-                example: "Please pay invoices immediately"
-            custom_message_unpaid_invoice:
-                description: "A custom message which is displayed in the client portal when a client is viewing a unpaid invoice."
-                type: string
-                example: "Please pay invoices immediately"
-            custom_message_paid_invoice:
-                description: "A custom message which is displayed in the client portal when a client is viewing a paid invoice."
-                type: string
-                example: "Thanks for paying this invoice!"
-            custom_message_unapproved_quote:
-                description: "A custom message which is displayed in the client portal when a client is viewing a unapproved quote."
-                type: string
-                example: "Please approve quote"
-            lock_invoices:
-                description: "Toggles whether invoices are locked once sent and cannot be modified further"
-                type: enum
-                enum: [off, when_sent, when_paid, end_of_month]
-                example: 'off'
-            auto_archive_invoice:
-                description: "Toggles whether a invoice is archived immediately following payment"
-                type: boolean
-                example: true
-            auto_archive_quote:
-                description: "Toggles whether a quote is archived after being converted to a invoice"
-                type: boolean
-                example: true
-            auto_convert_quote:
-                description: "Toggles whether a quote is converted to a invoice when approved"
-                type: boolean
-                example: true
-            inclusive_taxes:
-                description: "Boolean flag determining whether inclusive or exclusive taxes are used"
-                type: boolean
-                example: true
-            translations:
-                description: "JSON payload of customized translations"
-                type: object
-                example: ""
-            task_number_pattern:
-                description: "Allows customisation of the task number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            task_number_counter:
-                description: "The incrementing counter for tasks"
-                type: integer
-                example: "1"
-            reminder_send_time:
-                description: "Time from UTC +0 when the email will be sent to the client"
-                type: integer
-                example: "32400"
-            expense_number_pattern:
-                description: "Allows customisation of the expense number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            expense_number_counter:
-                description: "The incrementing counter for expenses"
-                type: integer
-                example: "1"
-            vendor_number_pattern:
-                description: "Allows customisation of the vendor number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            vendor_number_counter:
-                description: "The incrementing counter for vendors"
-                type: integer
-                example: "1"
-            ticket_number_pattern:
-                description: "Allows customisation of the ticket number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            ticket_number_counter:
-                description: "The incrementing counter for tickets"
-                type: integer
-                example: "1"
-            payment_number_pattern:
-                description: "Allows customisation of the payment number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            payment_number_counter:
-                description: "The incrementing counter for payments"
-                type: integer
-                example: "1"
-            invoice_number_pattern:
-                description: "Allows customisation of the invoice number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            invoice_number_counter:
-                description: "The incrementing counter for invoices"
-                type: integer
-                example: "1"
-            quote_number_pattern:
-                description: "Allows customisation of the quote number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            quote_number_counter:
-                description: "The incrementing counter for quotes"
-                type: integer
-                example: "1"
-            client_number_pattern:
-                description: "Allows customisation of the client number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            client_number_counter:
-                description: "The incrementing counter for clients"
-                type: integer
-                example: "1"
-            credit_number_pattern:
-                description: "Allows customisation of the credit number pattern"
-                type: string
-                example: "{$year}-{$counter}"
-            credit_number_counter:
-                description: "The incrementing counter for credits"
-                type: integer
-                example: "1"
-            recurring_invoice_number_prefix:
-                description: "This string is prepended to the recurring invoice number"
-                type: string
-                example: R
-            reset_counter_frequency_id:
-                description: "CONSTANT which is used to apply the frequency which the counters are reset"
-                type: integer
-                example: "1"
-            reset_counter_date:
-                description: "The explicit date which is used to reset counters"
-                type: string
-                example: "2019-01-01"
-            counter_padding:
-                description: "Pads the counter with leading zeros"
-                type: integer
-                example: "1"
-            shared_invoice_quote_counter:
-                description: "Flags whether to share the counter for invoices and quotes"
-                type: boolean
-                example: true
-            update_products:
-                description: "Determines if client fields are updated from third party APIs"
-                type: boolean
-                example: true
-            convert_products:
-                description: ""
-                type: boolean
-                example: true
-            fill_products:
-                description: "Automatically fill products based on product_key"
-                type: boolean
-                example: true
-            invoice_terms:
-                description: "The default invoice terms"
-                type: string
-                example: "Invoice Terms are..."
-            quote_terms:
-                description: "The default quote terms"
-                type: string
-                example: "Quote Terms are..."
-            invoice_taxes:
-                description: "The number of Taxes that can be applied to the invoice"
-                type: number
-                example: "1"
-            invoice_design_id:
-                description: "The default design id (invoice, quote etc)"
-                type: string
-                example: "1"
-            quote_design_id:
-                description: "The default design id (invoice, quote etc)"
-                type: string
-                example: "1"
-            invoice_footer:
-                description: "The default invoice footer"
-                type: string
-                example: "1"
-            invoice_labels:
-                description: "JSON string of invoice labels"
-                type: string
-                example: "1"
-            tax_rate1:
-                description: "The tax rate (float)"
-                type: number
-                example: "10"
-            tax_name1:
-                description: "The tax name"
-                type: string
-                example: GST
-            tax_rate2:
-                description: "The tax rate (float)"
-                type: number
-                example: "10"
-            tax_name2:
-                description: "The tax name"
-                type: string
-                example: GST
-            tax_rate3:
-                description: "The tax rate (float)"
-                type: number
-                example: "10"
-            tax_name3:
-                description: "The tax name"
-                type: string
-                example: GST
-            payment_type_id:
-                description: "The default payment type id"
-                type: string
-                example: "1"
-            custom_fields:
-                description: "JSON string of custom fields"
-                type: string
-                example: "{}"
-            email_footer:
-                description: "The default email footer"
-                type: string
-                example: "A default email footer"
-            email_sending_method:
-                description: "The email driver to use to send email, options include default, gmail, client_postmark, client_mailgun, client_brevo, office365"
-                type: string
-                enum: [default, gmail, office365, client_postmark, client_mailgun, mailgun, client_brevo]
-                example: 'default'
-            gmail_sending_user_id:
-                description: "The hashed_id of the user account to send email from"
-                type: string
-                example: F76sd34D
-            email_subject_invoice:
-                description: ""
-                type: string
-                example: "Your Invoice Subject"
-            email_subject_quote:
-                description: ""
-                type: string
-                example: "Your Quote Subject"
-            email_subject_payment:
-                description: ""
-                type: string
-                example: "Your Payment Subject"
-            email_template_invoice:
-                description: "The full template for invoice emails"
-                type: string
-                example: "<HTML></HTML>"
-            email_template_quote:
-                description: "The full template for quote emails"
-                type: string
-                example: "<HTML></HTML>"
-            email_template_payment:
-                description: "The full template for payment emails"
-                type: string
-                example: "<HTML></HTML>"
-            email_subject_reminder1:
-                description: "Email subject for Reminder"
-                type: string
-                example: "<HTML></HTML>"
-            email_subject_reminder2:
-                description: "Email subject for Reminder"
-                type: string
-                example: "<HTML></HTML>"
-            email_subject_reminder3:
-                description: "Email subject for Reminder"
-                type: string
-                example: "<HTML></HTML>"
-            email_subject_reminder_endless:
-                description: "Email subject for endless reminders"
-                type: string
-                example: "<HTML></HTML>"
-            email_template_reminder1:
-                description: "The full template for Reminder 1"
-                type: string
-                example: "<HTML></HTML>"
-            email_template_reminder2:
-                description: "The full template for Reminder 2"
-                type: string
-                example: "<HTML></HTML>"
-            email_template_reminder3:
-                description: "The full template for Reminder 3"
-                type: string
-                example: "<HTML></HTML>"
-            email_template_reminder_endless:
-                description: "The full template for enless reminders"
-                type: string
-                example: "<HTML></HTML>"
-            enable_portal_password:
-                description: "Toggles whether a password is required to log into the client portal"
-                type: boolean
-                example: true
-            show_accept_invoice_terms:
-                description: "Toggles whether the terms dialogue is shown to the client"
-                type: boolean
-                example: true
-            show_accept_quote_terms:
-                description: "Toggles whether the terms dialogue is shown to the client"
-                type: boolean
-                example: true
-            require_invoice_signature:
-                description: "Toggles whether a invoice signature is required"
-                type: boolean
-                example: true
-            require_quote_signature:
-                description: "Toggles whether a quote signature is required"
-                type: boolean
-                example: true
-            name:
-                description: "The company name"
-                type: string
-                example: "Acme Co"
-            company_logo:
-                description: "The company logo file"
-                type: object
-                example: logo.png
-            website:
-                description: "The company website URL"
-                type: string
-                example: www.acme.com
-            address1:
-                description: "The company address line 1"
-                type: string
-                example: "Suite 888"
-            address2:
-                description: "The company address line 2"
-                type: string
-                example: "5 Jimbo Way"
-            city:
-                description: "The company city"
-                type: string
-                example: Sydney
-            state:
-                description: "The company state"
-                type: string
-                example: Florisa
-            postal_code:
-                description: "The company zip/postal code"
-                type: string
-                example: "90210"
-            phone:
-                description: "The company phone"
-                type: string
-                example: 555-213-3948
-            email:
-                description: "The company email"
-                type: string
-                example: joe@acme.co
-            country_id:
-                description: "The country ID"
-                type: string
-                example: "1"
-            vat_number:
-                description: "The company VAT/TAX ID number"
-                type: string
-                example: "32 120 377 720"
-            page_size:
-                description: "The default page size"
-                type: string
-                example: A4
-            font_size:
-                description: "The font size"
-                type: number
-                example: "9"
-            primary_font:
-                description: "The primary font"
-                type: string
-                example: roboto
-            secondary_font:
-                description: "The secondary font"
-                type: string
-                example: roboto
-            hide_paid_to_date:
-                description: "Flags whether to hide the paid to date field"
-                type: boolean
-                example: false
-            embed_documents:
-                description: "Toggled whether to embed documents in the PDF"
-                type: boolean
-                example: false
-            all_pages_header:
-                description: "The header for the PDF"
-                type: boolean
-                example: false
-            all_pages_footer:
-                description: "The footer for the PDF"
-                type: boolean
-                example: false
-            document_email_attachment:
-                description: "Toggles whether to attach documents in the email"
-                type: boolean
-                example: false
-            enable_client_portal_password:
-                description: "Toggles password protection of the client portal"
-                type: boolean
-                example: false
-            enable_email_markup:
-                description: "Toggles the use of markdown in emails"
-                type: boolean
-                example: false
-            enable_client_portal_dashboard:
-                description: "Toggles whether the client dashboard is shown in the client portal"
-                type: boolean
-                example: false
-            enable_client_portal:
-                description: "Toggles whether the entire client portal is displayed to the client, or only the context"
-                type: boolean
-                example: false
-            email_template_statement:
-                description: "The body of the email for statements"
-                type: string
-                example: "template matter"
-            email_subject_statement:
-                description: "The subject of the email for statements"
-                type: string
-                example: "subject matter"
-            signature_on_pdf:
-                description: "Toggles whether the signature (if available) is displayed on the PDF"
-                type: boolean
-                example: false
-            quote_footer:
-                description: "The default quote footer"
-                type: string
-                example: "the quote footer"
-            email_subject_custom1:
-                description: "Custom reminder template subject"
-                type: string
-                example: "Custom Subject 1"
-            email_subject_custom2:
-                description: "Custom reminder template subject"
-                type: string
-                example: "Custom Subject 2"
-            email_subject_custom3:
-                description: "Custom reminder template subject"
-                type: string
-                example: "Custom Subject 3"
-            email_template_custom1:
-                description: "Custom reminder template body"
-                type: string
-                example: "<HTML>"
-            email_template_custom2:
-                description: "Custom reminder template body"
-                type: string
-                example: "<HTML>"
-            email_template_custom3:
-                description: "Custom reminder template body"
-                type: string
-                example: "<HTML>"
-            enable_reminder1:
-                description: "Toggles whether this reminder is enabled"
-                type: boolean
-                example: false
-            enable_reminder2:
-                description: "Toggles whether this reminder is enabled"
-                type: boolean
-                example: false
-            enable_reminder3:
-                description: "Toggles whether this reminder is enabled"
-                type: boolean
-                example: false
-            num_days_reminder1:
-                description: "The Reminder interval"
-                type: number
-                example: "9"
-            num_days_reminder2:
-                description: "The Reminder interval"
-                type: number
-                example: "9"
-            num_days_reminder3:
-                description: "The Reminder interval"
-                type: number
-                example: "9"
-            schedule_reminder1:
-                description: "(enum: after_invoice_date, before_due_date, after_due_date)"
-                type: string
-                example: after_invoice_date
-            schedule_reminder2:
-                description: "(enum: after_invoice_date, before_due_date, after_due_date)"
-                type: string
-                example: after_invoice_date
-            schedule_reminder3:
-                description: "(enum: after_invoice_date, before_due_date, after_due_date)"
-                type: string
-                example: after_invoice_date
-            late_fee_amount1:
-                description: "The late fee amount for reminder 1"
-                type: number
-                example: 10
-            late_fee_amount2:
-                description: "The late fee amount for reminder 2"
-                type: number
-                example: 20
-            late_fee_amount3:
-                description: "The late fee amount for reminder 2"
-                type: number
-                example: 100
-            endless_reminder_frequency_id:
-                description: "The frequency id of the endless reminder"
-                type: string
-                example: "1"
-            client_online_payment_notification:
-                description: "Determines if a client should receive the notification for a online payment"
-                type: boolean
-                example: false
-            client_manual_payment_notification:
-                description: "Determines if a client should receive the notification for a manually entered payment"
-                type: boolean
-                example: false
-            enable_e_invoice:
-                description: "Determines if e-invoicing is enabled"
-                type: boolean
-                example: false
-            default_expense_payment_type_id:
-                description: "The default payment type for expenses"
-                type: string
-                example: "0"
-            e_invoice_type:
-                description: "The e-invoice type"
-                type: string
-                example: "EN16931"
-            mailgun_endpoint:
-                description: "The mailgun endpoint - used to determine whether US or EU endpoints are used"
-                type: string
-                example: "api.mailgun.net or api.eu.mailgun.net"
-            client_initiated_payments:
-                description: "Determines if clients can initiate payments directly from the client portal"
-                type: boolean
-                example: false
-            client_initiated_payments_minimum:
-                description: "The minimum amount a client can pay"
-                type: number
-                example: 10
-            sync_invoice_quote_columns:
-                description: "Determines if invoice and quote columns are synced for the PDF rendering, or if they use their own columns"
-                type: boolean
-                example: false
-            show_task_item_description:
-                description: "Determines if the task item description is shown on the invoice"
-                type: boolean
-                example: false
-            allow_billable_task_items:
-                description: "Determines if task items can be marked as billable"
-                type: boolean
-                example: false
-            accept_client_input_quote_approval:
-                description: "Determines if clients can approve quotes and also pass through a PO Number reference"
-                type: boolean
-                example: false
-            custom_sending_email:
-                description: "When using Mailgun or Postmark, the FROM email address can be customized using this setting."
-                type: string
-                example: "bob@gmail.com"
-            show_paid_stamp:
-                description: "Determines if the PAID stamp is shown on the invoice"
-                type: boolean
-                example: false
-            show_shipping_address:
-                description: "Determines if the shipping address is shown on the invoice"
-                type: boolean
-                example: false
-            company_logo_size:
-                description: "The size of the company logo on the PDF - percentage value between 0 and 100"
-                type: number
-                example: 100
-            show_email_footer:
-                description: "Determines if the email footer is shown on emails"
-                type: boolean
-                example: false
-            email_alignment:
-                description: "The alignment of the email body text, options include left / center / right"
-                type: string
-                example: "left"
-            auto_bill_standard_invoices:
-                description: "Determines if standard invoices are automatically billed when they are created or due"
-                type: boolean
-                example: false
-            postmark_secret:
-                description: "The Postmark secret API key"
-                type: string
-                example: "123456"
-            mailgun_secret:
-                description: "The Mailgun secret API key"
-                type: string
-                example: "123456"
-            mailgun_domain:
-                description: "The Mailgun domain"
-                type: string
-                example: "sandbox123456.mailgun.org"
-            send_email_on_mark_paid:
-                description: "Determines if an email is sent when an invoice is marked as paid"
-                type: boolean
-                example: false
-            vendor_portal_enable_uploads:
-                description: "Determines if vendors can upload files to the portal"
-                type: boolean
-                example: false
-            besr_id:
-                description: "The BESR ID"
-                type: string
-                example: "123456"
-            qr_iban:
-                description: "The IBAN for the QR code"
-                type: string
-                example: "CH123456"
-            email_subject_purchase_order:
-                description: "The email subject for purchase orders"
-                type: string
-                example: "Purchase Order"
-            email_template_purchase_order:
-                description: "The email template for purchase orders"
-                type: string
-                example: "Please see attached your purchase order."
-            require_purchase_order_signature:
-                description: "Determines if a signature is required on purchase orders"
-                type: boolean
-                example: false
-            purchase_order_public_notes:
-                description: "The public notes for purchase orders"
-                type: string
-                example: "Please see attached your purchase order."
-            purchase_order_terms:
-                description: "The terms for purchase orders"
-                type: string
-                example: "Please see attached your purchase order."
-            purchase_order_footer:
-                description: "The footer for purchase orders"
-                type: string
-                example: "Please see attached your purchase order."
-            purchase_order_design_id:
-                description: "The design id for purchase orders"
-                type: string
-                example: "hd677df"
-            purchase_order_number_pattern:
-                description: "The pattern for purchase order numbers"
-                type: string
-                example: "PO-000000"
-            purchase_order_number_counter:
-                description: "The counter for purchase order numbers"
-                type: number
-                example: 1
-            page_numbering_alignment:
-                description: "The alignment for page numbering: options include left / center / right"
-                type: string
-                example: "left"
-            page_numbering:
-                description: "Determines if page numbering is enabled on Document PDFs"
-                type: boolean
-                example: false
-            auto_archive_invoice_cancelled:
-                description: "Determines if invoices are automatically archived when they are cancelled"
-                type: boolean
-                example: false
-            email_from_name:
-                description: "The FROM name for emails when using Custom emailers"
-                type: string
-                example: "Bob Smith"
-            show_all_tasks_client_portal:
-                description: "Determines if all tasks are shown on the client portal"
-                type: boolean
-                example: false
-            entity_send_time:
-                description: "The time that emails are sent. The time is localized to the clients locale, integer values from 1 - 24"
-                type: integer
-                example: 9
-            shared_invoice_credit_counter:
-                description: "Determines if the invoice and credit counter are shared"
-                type: boolean
-                example: false
-            reply_to_name:
-                description: "The reply to name for emails"
-                type: string
-                example: "Bob Smith"
-            hide_empty_columns_on_pdf:
-                description: "Determines if empty columns are hidden on PDFs"
-                type: boolean
-                example: false
-            enable_reminder_endless:
-                description: "Determines if endless reminders are enabled"
-                type: boolean
-                example: false
-            use_credits_payment:
-                description: "Determines if credits can be used as a payment method"
-                type: boolean
-                example: false
-            recurring_invoice_number_pattern:
-                description: "The pattern for recurring invoice numbers"
-                type: string
-                example: "R-000000"
-            recurring_invoice_number_counter:
-                description: "The counter for recurring invoice numbers"
-                type: number
-                example: 1
-            client_portal_under_payment_minimum:
-                description: "The minimum payment payment"
-                type: number
-                example: 10
-            auto_bill_date:
-                description: "Determines when the invoices are auto billed, options are on_send_date (when the invoice is sent) or on_due_date (when the invoice is due))"
-                type: string
-                example: "on_send_date"
-            primary_color:
-                description: "The primary color for the client portal / document highlights"
-                type: string
-                example: "#ffffff"
-            secondary_color:
-                description: "The secondary color for the client portal / document highlights"
-                type: string
-                example: "#ffffff"
-            client_portal_allow_under_payment:
-                description: "Determines if clients can pay invoices under the invoice amount due"
-                type: boolean
-                example: false
-            client_portal_allow_over_payment:
-                description: "Determines if clients can pay invoices over the invoice amount"
-                type: boolean
-                example: false
-            auto_bill:
-                description: "Determines how autobilling is applied for recurring invoices. off (no auto billed), always (always auto bill), optin (The user must opt in to auto billing), optout (The user must opt out of auto billing"
-                type: string
-                example: "off"
-            client_portal_terms:
-                description: "The terms which are displayed on the client portal"
-                type: string
-                example: "Please see attached your invoice."
-            client_portal_privacy_policy:
-                description: "The privacy policy which is displayed on the client portal"
-                type: string
-                example: "These are the terms of use for using the client portal."
-            client_can_register:
-                description: "Determines if clients can register on the client portal"
-                type: boolean
-                example: false
-            portal_design_id:
-                description: "The design id for the client portal"
-                type: string
-                example: "hd677df"
-            late_fee_endless_percent:
-                description: "The late fee percentage for endless late fees"
-                type: number
-                example: 10
-            late_fee_endless_amount:
-                description: "The late fee amount for endless late fees"
-                type: number
-                example: 10
-            auto_email_invoice:
-                description: "Determines if invoices are automatically emailed when they are created"
-                type: boolean
-                example: false
-            email_signature:
-                description: "The email signature for emails"
-                type: string
-                example: "Bob Smith"
-            classification:
-                description: "The classification for the company"
-                type: string
-                example: "individual"
-            valid_until:
-                description: 'Default validity period for quotes'
-                type: string
-            credit_terms:
-                description: 'Default terms for credit notes'
-                type: string
-            credit_footer:
-                description: 'Default footer for credit notes'
-                type: string
-        type: object
-
+      type: object
+      required:
+        - currency_id
+      properties:
+        currency_id:
+          description: "The default currency id"
+          type: string
+          example: "1"
+        timezone_id:
+          description: "The timezone id"
+          type: string
+          example: "15"
+        date_format_id:
+          description: "The date format id"
+          type: string
+          example: "15"
+        military_time:
+          description: "Toggles 12/24 hour time"
+          type: boolean
+          example: true
+        language_id:
+          description: "The language id"
+          type: string
+          example: "1"
+        show_currency_code:
+          description: "Toggles whether the currency symbol or code is shown"
+          type: boolean
+          example: true
+        payment_terms:
+          description: "-1 sets no payment term, 0 sets payment due immediately, positive integers indicates payment terms in days"
+          type: integer
+          example: 1
+        company_gateway_ids:
+          description: "A commad separate list of available gateways"
+          type: string
+          example: "1,2,3,4"
+        custom_value1:
+          description: "A Custom Label"
+          type: string
+          example: "Custom Label"
+        custom_value2:
+          description: "A Custom Label"
+          type: string
+          example: "Custom Label"
+        custom_value3:
+          description: "A Custom Label"
+          type: string
+          example: "Custom Label"
+        custom_value4:
+          description: "A Custom Label"
+          type: string
+          example: "Custom Label"
+        default_task_rate:
+          description: "The default task rate"
+          type: number
+          format: float
+          example: 10.00
+        send_reminders:
+          description: "Toggles whether reminders are sent"
+          type: boolean
+          example: true
+        enable_client_portal_tasks:
+          description: "Show/hide the tasks panel in the client portal"
+          type: boolean
+          example: true
+        email_style:
+          description: "options include plain,light,dark,custom"
+          type: string
+          enum: [plain, light, dark, custom]
+          example: "light"
+        reply_to_email:
+          description: "The reply to email address"
+          type: string
+          format: email
+          example: "email@gmail.com"
+        bcc_email:
+          description: "A comma separate list of BCC emails"
+          type: string
+          example: "email@gmail.com, contact@gmail.com"
+        pdf_email_attachment:
+          description: "Toggles whether to attach PDF as attachment"
+          type: boolean
+          example: true
+        ubl_email_attachment:
+          description: "Toggles whether to attach UBL as attachment"
+          type: boolean
+          example: true
+        email_style_custom:
+          description: "The custom template"
+          type: string
+          example: "<HTML></HTML>"
+        counter_number_applied:
+          description: "enum when the invoice number counter is set"
+          type: string
+          enum: [when_saved, when_sent, when_paid]
+          example: "when_sent"
+        quote_number_applied:
+          description: "enum when the quote number counter is set"
+          type: string
+          enum: [when_saved, when_sent]
+          example: "when_sent"
+        custom_message_dashboard:
+          description: "A custom message which is displayed on the dashboard"
+          type: string
+          example: "Please pay invoices immediately"
+        custom_message_unpaid_invoice:
+          description: "A custom message which is displayed in the client portal when a client is viewing a unpaid invoice."
+          type: string
+          example: "Please pay invoices immediately"
+        custom_message_paid_invoice:
+          description: "A custom message which is displayed in the client portal when a client is viewing a paid invoice."
+          type: string
+          example: "Thanks for paying this invoice!"
+        custom_message_unapproved_quote:
+          description: "A custom message which is displayed in the client portal when a client is viewing a unapproved quote."
+          type: string
+          example: "Please approve quote"
+        lock_invoices:
+          description: "Toggles whether invoices are locked once sent and cannot be modified further"
+          type: string
+          enum: [off, when_sent, when_paid, end_of_month]
+          example: "off"
+        auto_archive_invoice:
+          description: "Toggles whether a invoice is archived immediately following payment"
+          type: boolean
+          example: true
+        auto_archive_quote:
+          description: "Toggles whether a quote is archived after being converted to a invoice"
+          type: boolean
+          example: true
+        auto_convert_quote:
+          description: "Toggles whether a quote is converted to a invoice when approved"
+          type: boolean
+          example: true
+        inclusive_taxes:
+          description: "Boolean flag determining whether inclusive or exclusive taxes are used"
+          type: boolean
+          example: true
+        translations:
+          description: "JSON payload of customized translations"
+          type: object
+          example: {}
+        task_number_pattern:
+          description: "Allows customisation of the task number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        task_number_counter:
+          description: "The incrementing counter for tasks"
+          type: integer
+          example: 1
+        reminder_send_time:
+          description: "Time from UTC +0 when the email will be sent to the client"
+          type: integer
+          example: 32400
+        expense_number_pattern:
+          description: "Allows customisation of the expense number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        expense_number_counter:
+          description: "The incrementing counter for expenses"
+          type: integer
+          example: 1
+        vendor_number_pattern:
+          description: "Allows customisation of the vendor number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        vendor_number_counter:
+          description: "The incrementing counter for vendors"
+          type: integer
+          example: 1
+        ticket_number_pattern:
+          description: "Allows customisation of the ticket number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        ticket_number_counter:
+          description: "The incrementing counter for tickets"
+          type: integer
+          example: 1
+        payment_number_pattern:
+          description: "Allows customisation of the payment number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        payment_number_counter:
+          description: "The incrementing counter for payments"
+          type: integer
+          example: 1
+        invoice_number_pattern:
+          description: "Allows customisation of the invoice number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        invoice_number_counter:
+          description: "The incrementing counter for invoices"
+          type: integer
+          example: 1
+        quote_number_pattern:
+          description: "Allows customisation of the quote number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        quote_number_counter:
+          description: "The incrementing counter for quotes"
+          type: integer
+          example: 1
+        client_number_pattern:
+          description: "Allows customisation of the client number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        client_number_counter:
+          description: "The incrementing counter for clients"
+          type: integer
+          example: 1
+        credit_number_pattern:
+          description: "Allows customisation of the credit number pattern"
+          type: string
+          example: "{$year}-{$counter}"
+        credit_number_counter:
+          description: "The incrementing counter for credits"
+          type: integer
+          example: 1
+        recurring_invoice_number_prefix:
+          description: "This string is prepended to the recurring invoice number"
+          type: string
+          example: "R"
+        reset_counter_frequency_id:
+          description: "CONSTANT which is used to apply the frequency which the counters are reset"
+          type: integer
+          example: 1
+        reset_counter_date:
+          description: "The explicit date which is used to reset counters"
+          type: string
+          format: date
+          example: "2019-01-01"
+        counter_padding:
+          description: "Pads the counter with leading zeros"
+          type: integer
+          example: 1
+        shared_invoice_quote_counter:
+          description: "Flags whether to share the counter for invoices and quotes"
+          type: boolean
+          example: true
+        update_products:
+          description: "Determines if client fields are updated from third party APIs"
+          type: boolean
+          example: true
+        convert_products:
+          description: ""
+          type: boolean
+          example: true
+        fill_products:
+          description: "Automatically fill products based on product_key"
+          type: boolean
+          example: true
+        invoice_terms:
+          description: "The default invoice terms"
+          type: string
+          example: "Invoice Terms are..."
+        quote_terms:
+          description: "The default quote terms"
+          type: string
+          example: "Quote Terms are..."
+        invoice_taxes:
+          description: "The number of Taxes that can be applied to the invoice"
+          type: integer
+          example: 1
+        invoice_design_id:
+          description: "The default design id (invoice, quote etc)"
+          type: string
+          example: "1"
+        quote_design_id:
+          description: "The default design id (invoice, quote etc)"
+          type: string
+          example: "1"
+        invoice_footer:
+          description: "The default invoice footer"
+          type: string
+          example: "1"
+        invoice_labels:
+          description: "JSON string of invoice labels"
+          type: string
+          example: "1"
+        tax_rate1:
+          description: "The tax rate (float)"
+          type: number
+          format: float
+          example: 10
+        tax_name1:
+          description: "The tax name"
+          type: string
+          example: "GST"
+        tax_rate2:
+          description: "The tax rate (float)"
+          type: number
+          format: float
+          example: 10
+        tax_name2:
+          description: "The tax name"
+          type: string
+          example: "GST"
+        tax_rate3:
+          description: "The tax rate (float)"
+          type: number
+          format: float
+          example: 10
+        tax_name3:
+          description: "The tax name"
+          type: string
+          example: "GST"
+        payment_type_id:
+          description: "The default payment type id"
+          type: string
+          example: "1"
+        custom_fields:
+          description: "JSON string of custom fields"
+          type: string
+          example: "{}"
+        email_footer:
+          description: "The default email footer"
+          type: string
+          example: "A default email footer"
+        email_sending_method:
+          description: "The email driver to use to send email"
+          type: string
+          enum: [default, gmail, office365, client_postmark, client_mailgun, mailgun, client_brevo]
+          example: "default"
+        gmail_sending_user_id:
+          description: "The hashed_id of the user account to send email from"
+          type: string
+          example: "F76sd34D"
+        email_subject_invoice:
+          description: ""
+          type: string
+          example: "Your Invoice Subject"
+        email_subject_quote:
+          description: ""
+          type: string
+          example: "Your Quote Subject"
+        email_subject_payment:
+          description: ""
+          type: string
+          example: "Your Payment Subject"
+        email_template_invoice:
+          description: "The full template for invoice emails"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_quote:
+          description: "The full template for quote emails"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_payment:
+          description: "The full template for payment emails"
+          type: string
+          example: "<HTML></HTML>"
+        email_subject_reminder1:
+          description: "Email subject for Reminder"
+          type: string
+          example: "<HTML></HTML>"
+        email_subject_reminder2:
+          description: "Email subject for Reminder"
+          type: string
+          example: "<HTML></HTML>"
+        email_subject_reminder3:
+          description: "Email subject for Reminder"
+          type: string
+          example: "<HTML></HTML>"
+        email_subject_reminder_endless:
+          description: "Email subject for endless reminders"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_reminder1:
+          description: "The full template for Reminder 1"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_reminder2:
+          description: "The full template for Reminder 2"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_reminder3:
+          description: "The full template for Reminder 3"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_reminder_endless:
+          description: "The full template for enless reminders"
+          type: string
+          example: "<HTML></HTML>"
+        enable_portal_password:
+          description: "Toggles whether a password is required to log into the client portal"
+          type: boolean
+          example: true
+        show_accept_invoice_terms:
+          description: "Toggles whether the terms dialogue is shown to the client"
+          type: boolean
+          example: true
+        show_accept_quote_terms:
+          description: "Toggles whether the terms dialogue is shown to the client"
+          type: boolean
+          example: true
+        require_invoice_signature:
+          description: "Toggles whether a invoice signature is required"
+          type: boolean
+          example: true
+        require_quote_signature:
+          description: "Toggles whether a quote signature is required"
+          type: boolean
+          example: true
+        name:
+          description: "The company name"
+          type: string
+          example: "Acme Co"
+        company_logo:
+          description: "The company logo file"
+          type: string
+          example: "logo.png"
+        website:
+          description: "The company website URL"
+          type: string
+          format: uri
+          example: "www.acme.com"
+        address1:
+          description: "The company address line 1"
+          type: string
+          example: "Suite 888"
+        address2:
+          description: "The company address line 2"
+          type: string
+          example: "5 Jimbo Way"
+        city:
+          description: "The company city"
+          type: string
+          example: "Sydney"
+        state:
+          description: "The company state"
+          type: string
+          example: "Florida"
+        postal_code:
+          description: "The company zip/postal code"
+          type: string
+          example: "90210"
+        phone:
+          description: "The company phone"
+          type: string
+          example: "555-213-3948"
+        email:
+          description: "The company email"
+          type: string
+          format: email
+          example: "joe@acme.co"
+        country_id:
+          description: "The country ID"
+          type: string
+          example: "1"
+        vat_number:
+          description: "The company VAT/TAX ID number"
+          type: string
+          example: "32 120 377 720"
+        page_size:
+          description: "The default page size"
+          type: string
+          example: "A4"
+        font_size:
+          description: "The font size"
+          type: number
+          example: 9
+        primary_font:
+          description: "The primary font"
+          type: string
+          example: "roboto"
+        secondary_font:
+          description: "The secondary font"
+          type: string
+          example: "roboto"
+        hide_paid_to_date:
+          description: "Flags whether to hide the paid to date field"
+          type: boolean
+          example: false
+        embed_documents:
+          description: "Toggled whether to embed documents in the PDF"
+          type: boolean
+          example: false
+        all_pages_header:
+          description: "The header for the PDF"
+          type: boolean
+          example: false
+        all_pages_footer:
+          description: "The footer for the PDF"
+          type: boolean
+          example: false
+        document_email_attachment:
+          description: "Toggles whether to attach documents in the email"
+          type: boolean
+          example: false
+        enable_client_portal_password:
+          description: "Toggles password protection of the client portal"
+          type: boolean
+          example: false
+        enable_email_markup:
+          description: "Toggles the use of markdown in emails"
+          type: boolean
+          example: false
+        enable_client_portal_dashboard:
+          description: "Toggles whether the client dashboard is shown in the client portal"
+          type: boolean
+          example: false
+        enable_client_portal:
+          description: "Toggles whether the entire client portal is displayed to the client, or only the context"
+          type: boolean
+          example: false
+        email_template_statement:
+          description: "The body of the email for statements"
+          type: string
+          example: "template matter"
+        email_subject_statement:
+          description: "The subject of the email for statements"
+          type: string
+          example: "subject matter"
+        signature_on_pdf:
+          description: "Toggles whether the signature (if available) is displayed on the PDF"
+          type: boolean
+          example: false
+        quote_footer:
+          description: "The default quote footer"
+          type: string
+          example: "the quote footer"
+        email_subject_custom1:
+          description: "Custom reminder template subject"
+          type: string
+          example: "Custom Subject 1"
+        email_subject_custom2:
+          description: "Custom reminder template subject"
+          type: string
+          example: "Custom Subject 2"
+        email_subject_custom3:
+          description: "Custom reminder template subject"
+          type: string
+          example: "Custom Subject 3"
+        email_template_custom1:
+          description: "Custom reminder template body"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_custom2:
+          description: "Custom reminder template body"
+          type: string
+          example: "<HTML></HTML>"
+        email_template_custom3:
+          description: "Custom reminder template body"
+          type: string
+          example: "<HTML></HTML>"
+        enable_reminder1:
+          description: "Toggles whether this reminder is enabled"
+          type: boolean
+          example: false
+        enable_reminder2:
+          description: "Toggles whether this reminder is enabled"
+          type: boolean
+          example: false
+        enable_reminder3:
+          description: "Toggles whether this reminder is enabled"
+          type: boolean
+          example: false
+        num_days_reminder1:
+          description: "The Reminder interval"
+          type: integer
+          example: 9
+        num_days_reminder2:
+          description: "The Reminder interval"
+          type: integer
+          example: 9
+        num_days_reminder3:
+          description: "The Reminder interval"
+          type: integer
+          example: 9
+        schedule_reminder1:
+          description: "(enum: after_invoice_date, before_due_date, after_due_date)"
+          type: string
+          enum: [after_invoice_date, before_due_date, after_due_date]
+          example: "after_invoice_date"
+        schedule_reminder2:
+          description: "(enum: after_invoice_date, before_due_date, after_due_date)"
+          type: string
+          enum: [after_invoice_date, before_due_date, after_due_date]
+          example: "after_invoice_date"
+        schedule_reminder3:
+          description: "(enum: after_invoice_date, before_due_date, after_due_date)"
+          type: string
+          enum: [after_invoice_date, before_due_date, after_due_date]
+          example: "after_invoice_date"
+        late_fee_amount1:
+          description: "The late fee amount for reminder 1"
+          type: number
+          format: float
+          example: 10
+        late_fee_amount2:
+          description: "The late fee amount for reminder 2"
+          type: number
+          format: float
+          example: 20
+        late_fee_amount3:
+          description: "The late fee amount for reminder 2"
+          type: number
+          format: float
+          example: 100
+        endless_reminder_frequency_id:
+          description: "The frequency id of the endless reminder"
+          type: string
+          example: "1"
+        client_online_payment_notification:
+          description: "Determines if a client should receive the notification for a online payment"
+          type: boolean
+          example: false
+        client_manual_payment_notification:
+          description: "Determines if a client should receive the notification for a manually entered payment"
+          type: boolean
+          example: false
+        enable_e_invoice:
+          description: "Determines if e-invoicing is enabled"
+          type: boolean
+          example: false
+        default_expense_payment_type_id:
+          description: "The default payment type for expenses"
+          type: string
+          example: "0"
+        e_invoice_type:
+          description: "The e-invoice type"
+          type: string
+          example: "EN16931"
+        mailgun_endpoint:
+          description: "The mailgun endpoint - used to determine whether US or EU endpoints are used"
+          type: string
+          enum: ["api.mailgun.net", "api.eu.mailgun.net"]
+          example: "api.mailgun.net"
+        client_initiated_payments:
+          description: "Determines if clients can initiate payments directly from the client portal"
+          type: boolean
+          example: false
+        client_initiated_payments_minimum:
+          description: "The minimum amount a client can pay"
+          type: number
+          format: float
+          example: 10
+        sync_invoice_quote_columns:
+          description: "Determines if invoice and quote columns are synced for the PDF rendering, or if they use their own columns"
+          type: boolean
+          example: false
+        show_task_item_description:
+          description: "Determines if the task item description is shown on the invoice"
+          type: boolean
+          example: false
+        allow_billable_task_items:
+          description: "Determines if task items can be marked as billable"
+          type: boolean
+          example: false
+        accept_client_input_quote_approval:
+          description: "Determines if clients can approve quotes and also pass through a PO Number reference"
+          type: boolean
+          example: false
+        custom_sending_email:
+          description: "When using Mailgun or Postmark, the FROM email address can be customized using this setting."
+          type: string
+          format: email
+          example: "bob@gmail.com"
+        show_paid_stamp:
+          description: "Determines if the PAID stamp is shown on the invoice"
+          type: boolean
+          example: false
+        show_shipping_address:
+          description: "Determines if the shipping address is shown on the invoice"
+          type: boolean
+          example: false
+        company_logo_size:
+          description: "The size of the company logo on the PDF - percentage value between 0 and 100"
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 100
+        show_email_footer:
+          description: "Determines if the email footer is shown on emails"
+          type: boolean
+          example: false
+        email_alignment:
+          description: "The alignment of the email body text, options include left / center / right"
+          type: string
+          enum: [left, center, right]
+          example: "left"
+        auto_bill_standard_invoices:
+          description: "Determines if standard invoices are automatically billed when they are created or due"
+          type: boolean
+          example: false
+        postmark_secret:
+          description: "The Postmark secret API key"
+          type: string
+          example: "123456"
+        mailgun_secret:
+          description: "The Mailgun secret API key"
+          type: string
+          example: "123456"
+        mailgun_domain:
+          description: "The Mailgun domain"
+          type: string
+          example: "sandbox123456.mailgun.org"
+        send_email_on_mark_paid:
+          description: "Determines if an email is sent when an invoice is marked as paid"
+          type: boolean
+          example: false
+        vendor_portal_enable_uploads:
+          description: "Determines if vendors can upload files to the portal"
+          type: boolean
+          example: false
+        besr_id:
+          description: "The BESR ID"
+          type: string
+          example: "123456"
+        qr_iban:
+          description: "The IBAN for the QR code"
+          type: string
+          example: "CH123456"
+        email_subject_purchase_order:
+          description: "The email subject for purchase orders"
+          type: string
+          example: "Purchase Order"
+        email_template_purchase_order:
+          description: "The email template for purchase orders"
+          type: string
+          example: "Please see attached your purchase order."
+        require_purchase_order_signature:
+          description: "Determines if a signature is required on purchase orders"
+          type: boolean
+          example: false
+        purchase_order_public_notes:
+          description: "The public notes for purchase orders"
+          type: string
+          example: "Please see attached your purchase order."
+        purchase_order_terms:
+          description: "The terms for purchase orders"
+          type: string
+          example: "Please see attached your purchase order."
+        purchase_order_footer:
+          description: "The footer for purchase orders"
+          type: string
+          example: "Please see attached your purchase order."
+        purchase_order_design_id:
+          description: "The design id for purchase orders"
+          type: string
+          example: "hd677df"
+        purchase_order_number_pattern:
+          description: "The pattern for purchase order numbers"
+          type: string
+          example: "PO-000000"
+        purchase_order_number_counter:
+          description: "The counter for purchase order numbers"
+          type: integer
+          example: 1
+        page_numbering_alignment:
+          description: "The alignment for page numbering: options include left / center / right"
+          type: string
+          enum: [left, center, right]
+          example: "left"
+        page_numbering:
+          description: "Determines if page numbering is enabled on Document PDFs"
+          type: boolean
+          example: false
+        auto_archive_invoice_cancelled:
+          description: "Determines if invoices are automatically archived when they are cancelled"
+          type: boolean
+          example: false
+        email_from_name:
+          description: "The FROM name for emails when using Custom emailers"
+          type: string
+          example: "Bob Smith"
+        show_all_tasks_client_portal:
+          description: "Determines if all tasks are shown on the client portal"
+          type: boolean
+          example: false
+        entity_send_time:
+          description: "The time that emails are sent. The time is localized to the clients locale, integer values from 1 - 24"
+          type: integer
+          minimum: 1
+          maximum: 24
+          example: 9
+        shared_invoice_credit_counter:
+          description: "Determines if the invoice and credit counter are shared"
+          type: boolean
+          example: false
+        reply_to_name:
+          description: "The reply to name for emails"
+          type: string
+          example: "Bob Smith"
+        hide_empty_columns_on_pdf:
+          description: "Determines if empty columns are hidden on PDFs"
+          type: boolean
+          example: false
+        enable_reminder_endless:
+          description: "Determines if endless reminders are enabled"
+          type: boolean
+          example: false
+        use_credits_payment:
+          description: "Determines if credits can be used as a payment method"
+          type: boolean
+          example: false
+        recurring_invoice_number_pattern:
+          description: "The pattern for recurring invoice numbers"
+          type: string
+          example: "R-000000"
+        recurring_invoice_number_counter:
+          description: "The counter for recurring invoice numbers"
+          type: integer
+          example: 1
+        client_portal_under_payment_minimum:
+          description: "The minimum payment payment"
+          type: number
+          format: float
+          example: 10
+        auto_bill_date:
+          description: "Determines when the invoices are auto billed"
+          type: string
+          enum: [on_send_date, on_due_date]
+          example: "on_send_date"
+        primary_color:
+          description: "The primary color for the client portal / document highlights"
+          type: string
+          pattern: "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+          example: "#ffffff"
+        secondary_color:
+          description: "The secondary color for the client portal / document highlights"
+          type: string
+          pattern: "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+          example: "#ffffff"
+        client_portal_allow_under_payment:
+          description: "Determines if clients can pay invoices under the invoice amount due"
+          type: boolean
+          example: false
+        client_portal_allow_over_payment:
+          description: "Determines if clients can pay invoices over the invoice amount"
+          type: boolean
+          example: false
+        auto_bill:
+          description: "Determines how autobilling is applied for recurring invoices"
+          type: string
+          enum: [off, always, optin, optout]
+          example: "off"
+        client_portal_terms:
+          description: "The terms which are displayed on the client portal"
+          type: string
+          example: "Please see attached your invoice."
+        client_portal_privacy_policy:
+          description: "The privacy policy which is displayed on the client portal"
+          type: string
+          example: "These are the terms of use for using the client portal."
+        client_can_register:
+          description: "Determines if clients can register on the client portal"
+          type: boolean
+          example: false
+        portal_design_id:
+          description: "The design id for the client portal"
+          type: string
+          example: "hd677df"
+        late_fee_endless_percent:
+          description: "The late fee percentage for endless late fees"
+          type: number
+          format: float
+          example: 10
+        late_fee_endless_amount:
+          description: "The late fee amount for endless late fees"
+          type: number
+          format: float
+          example: 10
+        auto_email_invoice:
+          description: "Determines if invoices are automatically emailed when they are created"
+          type: boolean
+          example: false
+        email_signature:
+          description: "The email signature for emails"
+          type: string
+          example: "Bob Smith"
+        classification:
+          description: "The classification for the company"
+          type: string
+          example: "individual"
+        valid_until:
+          description: "Default validity period for quotes"
+          type: string
+          example: "30 days"
+        credit_terms:
+          description: "Default terms for credit notes"
+          type: string
+          example: "Credit note terms"
+        credit_footer:
+          description: "Default footer for credit notes"
+          type: string
+          example: "Credit note footer"
     Design:
       properties:
         id:
@@ -20003,11 +20472,11 @@ components:
         name:
           description: 'The name of the client company or organization'
           type: string
-          example: "Jim's Housekeeping"
+          example: "Bob & Co Housekeeping"
         website:
           description: 'The website URL of the client company or organization'
           type: string
-          example: 'https://www.jims-housekeeping.com'
+          example: 'https://www.boandco-housekeeping.com'
         private_notes:
           description: 'Notes that are only visible to the user who created the client'
           type: string
@@ -20045,7 +20514,10 @@ components:
           type: string
           example: '555-3434-3434'
         country_id:
-          description: "The unique identifier of the client's country"
+          description: |
+            The unique identifier of the client's country expressed by the countries ISO number.
+
+            Optionally, instead of the country_id you can pass either the iso_3166_2 or iso_3166_3 country code into the country_code property.
           type: number
           format: integer
           example: '1'
@@ -20097,7 +20569,10 @@ components:
           type: string
           example: '6110'
         shipping_country_id:
-          description: "The unique identifier of the country for the client's shipping address"
+          description: |
+            The unique identifier of the client's shipping country expressed by the countries ISO number.
+
+            Optionally, instead of the shipping_country_id you can pass either the iso_3166_2 or iso_3166_3 country code into the shipping_country_code property.
           type: number
           format: integer
           example: '4'
@@ -21267,7 +21742,7 @@ components:
     CompanyUser:
       properties:
         permissions:
-          description: 'The user permissionsfor this company in a comma separated list'
+          description: 'The user permissions for this company in a comma separated list'
           type: string
           example: 'create_invoice,create_client,view_client'
         settings:
@@ -21313,7 +21788,7 @@ components:
     CompanyUserRef:
       properties:
         permissions:
-          description: 'The user permissionsfor this company in a comma separated list'
+          description: 'The user permissions for this company in a comma separated list'
           type: string
           example: 'create_invoice,create_client,view_client'
         settings:
@@ -22122,18 +22597,51 @@ components:
           readOnly: true
       type: object
 tags:
-  - name: login
-    # description: |
-    #   Attempts to authenticate with the API using a email/password combination.
+  - name: auth
+    x-displayName: Authentication
+    description: |
+      Attempts to authenticate with the API using a email/password combination.
     
+      After authenticating with the API, the returned object is a CompanyUser object which is a bridge linking the user to the company. 
+
+      The company user object contains the users permissions (admin/owner or fine grained permissions) You will most likely want to 
+        also include in the response of this object both the company and the user object, this can be done by using the include parameter.
+
+      ```html
+      /api/v1/login?include=company,user
+      ```
+
   - name: clients
-    x-tag-expanded: false
-    # description: |
-    #   Endpoint definitions for interacting with clients.
+    x-displayName: Clients
+    description: |
+      The Clients API provides endpoints for managing client records within your company. A client represents a customer 
+      or business entity that you provide services or products to.
+
+      ## Key Features
+      - Create, read, update, and delete client records
+      - Manage client contact information and billing details
+      - View client-specific transaction history
+      - Handle multiple contacts per client
+      - Track client-specific settings and preferences
+
+      ## Client Statuses
+      - Active: Client is currently active and can be billed
+      - Archived: Client is archived and hidden from active lists
+      - Deleted: Client is marked for deletion but retained in the database
+
+      ## Best Practices
+      - Always validate client email addresses
+      - Use unique client numbers for easy reference
+      - Keep contact information up to date
+      - Set appropriate client-specific currency and tax settings
+
   - name: products
+    x-displayName: Products
     description: |
       Endpoint definitions for interacting with products.
   - name: invoices
+    x-displayName: Invoices
+    
     description: |
 
       ## Invoice Statuses
@@ -22156,43 +22664,76 @@ tags:
         - An invoice which is not yet due, but also, not paid
         
   - name: Recurring Invoices
+    x-displayName: Recurring Invoices
     description: |
       Endpoint definitions for interacting with recurring_invoices.
+
   - name: payments
+    x-displayName: Payments
     description: |
       Endpoint definitions for interacting with payments.
+  
   - name: quotes
+    x-displayName: Quotes
     description: |
       Endpoint definitions for interacting with quotes.
+
   - name: credits
+    x-displayName: Credits
     description: |
       Endpoint definitions for interacting with credits.
+
   - name: projects
+    x-displayName: Projects
     description: |
       Endpoint definitions for interacting with projects.
+
   - name: tasks
+    x-displayName: Tasks
     description: |
       Endpoint definitions for interacting with tasks.
+
   - name: vendors
+    x-displayName: Vendors
     description: |
       Endpoint definitions for interacting with vendors.
+
   - name: Purchase Orders
+    x-displayName: Purchase Orders
     description: |
       Endpoint definitions for interacting with purchase orders.
+
   - name: expenses
+    x-displayName: Expenses
     description: |
       Endpoint definitions for interacting with expenses.
+
   - name: recurring_expenses
+    x-displayName: Recurring Expenses
     description: |
       Endpoint definitions for interacting with recurring_expenses.
+
   - name: bank_transactions
+    x-displayName: Bank Transactions
     description: |
       Endpoint definitions for interacting with bank transactions.
+
   - name: reports
+    x-displayName: Reports
     description: |
       Endpoint definitions for interacting with reports.
+
 externalDocs:
-  description: "https://invoiceninja.github.io"
-  url: "https://invoiceninja.github.io"
+  description: "Client Libraries"
+  x-libraries:
+    - name: PHP SDK
+      description: Official PHP client library
+      url: https://github.com/invoiceninja/sdk-php
+      packageUrl: https://packagist.org/packages/invoiceninja/sdk-php
+      language: PHP
+    - name: User Guide
+      description: Official user guide
+      url: https://invoiceninja.github.io
+
 security:
   - ApiKeyAuth: []

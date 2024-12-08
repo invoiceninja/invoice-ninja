@@ -23,8 +23,9 @@ class DocumentRepository extends BaseRepository
         $document->deleteFile();
         $document->forceDelete();
 
-        if($document->documentable)
+        if ($document->documentable) {
             $document->documentable->touch();
+        }
     }
 
     public function restore($document)

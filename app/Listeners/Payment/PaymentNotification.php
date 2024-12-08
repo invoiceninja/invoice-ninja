@@ -59,7 +59,7 @@ class PaymentNotification implements ShouldQueue
         }
 
         /* Manual Payment Notifications */
-        if($payment->is_manual) {
+        if ($payment->is_manual) {
 
             foreach ($payment->company->company_users as $company_user) {
                 $user = $company_user->user;

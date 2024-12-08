@@ -48,7 +48,7 @@ trait SubscriptionHooker
                 RequestOptions::JSON => ['body' => $body], RequestOptions::ALLOW_REDIRECTS => false,
             ]);
 
-            if($response_body = json_decode($response->getBody(), true)) {
+            if ($response_body = json_decode($response->getBody(), true)) {
                 return array_merge($body, $response_body);
             }
 

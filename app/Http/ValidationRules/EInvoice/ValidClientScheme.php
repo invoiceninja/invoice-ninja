@@ -34,7 +34,7 @@ class ValidClientScheme implements ValidationRule, ValidatorAwareRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
 
-        if(isset($value['Invoice'])) {
+        if (isset($value['Invoice'])) {
             $r = new EInvoice();
             $errors = $r->validateRequest($value['Invoice'], ClientLevel::class);
 

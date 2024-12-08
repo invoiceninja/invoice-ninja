@@ -52,16 +52,16 @@ class CheckSmtpRequest extends Request
 
         $input = $this->input();
 
-        if(isset($input['smtp_username']) && $input['smtp_username'] == '********') {
-            
+        if (isset($input['smtp_username']) && $input['smtp_username'] == '********') {
+
             $input['smtp_username'] = $company->smtp_username;
         }
 
-        if(isset($input['smtp_password']) && $input['smtp_password'] == '********') {   
+        if (isset($input['smtp_password']) && $input['smtp_password'] == '********') {
             $input['smtp_password'] = $company->smtp_password;
         }
 
-        if(isset($input['smtp_host']) && strlen($input['smtp_host']) >= 3) {
+        if (isset($input['smtp_host']) && strlen($input['smtp_host']) >= 3) {
 
         } else {
             $input['smtp_host'] = $company->smtp_host;

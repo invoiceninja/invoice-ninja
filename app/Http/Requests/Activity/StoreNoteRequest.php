@@ -17,7 +17,6 @@ use Illuminate\Validation\Rule;
 
 class StoreNoteRequest extends Request
 {
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -46,7 +45,7 @@ class StoreNoteRequest extends Request
     {
         $input = $this->all();
 
-        if(isset($input['entity_id']) && $input['entity_id'] != null) {
+        if (isset($input['entity_id']) && $input['entity_id'] != null) {
             $input['entity_id'] = $this->decodePrimaryKey($input['entity_id']);
         }
 
@@ -69,7 +68,7 @@ class StoreNoteRequest extends Request
 
     public function getEntity()
     {
-        if(!$this->entity) {
+        if (!$this->entity) {
             return false;
         }
 

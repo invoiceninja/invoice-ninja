@@ -46,13 +46,13 @@ class ChangePlanInvoice extends AbstractService
 
         $invoice = $this->generateInvoice($refund);
 
-        if($refund >= $new_charge) {
+        if ($refund >= $new_charge) {
             $invoice = $invoice->markPaid()->save();
 
             //generate new recurring invoice at this point as we know the user has succeeded with their upgrade.
         }
 
-        if($refund > $new_charge) {
+        if ($refund > $new_charge) {
             return $this->generateCredit($refund - $new_charge);
         }
 

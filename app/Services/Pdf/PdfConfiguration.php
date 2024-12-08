@@ -406,7 +406,7 @@ class PdfConfiguration
         }
 
         //04-04-2023 if currency = JPY override precision to 0
-        if($this->currency->code == 'JPY') {
+        if ($this->currency->code == 'JPY') {
             $precision = 0;
         }
 

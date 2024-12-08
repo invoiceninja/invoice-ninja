@@ -28,9 +28,9 @@ class QuickbooksSettings implements Castable
     public int $accessTokenExpiresAt;
 
     public int $refreshTokenExpiresAt;
-    
+
     public string $baseURL;
-    
+
     public QuickbooksSync $settings;
 
     public function __construct(array $attributes = [])

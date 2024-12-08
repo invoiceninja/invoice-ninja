@@ -75,7 +75,7 @@ class AutoBillInvoice extends AbstractService
             $this->applyCreditPayment();
         }
 
-        if($this->client->getSetting('use_unapplied_payment') != 'off') {
+        if ($this->client->getSetting('use_unapplied_payment') != 'off') {
             $this->applyUnappliedPayment();
         }
 
@@ -119,10 +119,6 @@ class AutoBillInvoice extends AbstractService
         /* $gateway fee */
         $this->invoice = $this->invoice->service()->addGatewayFee($gateway_token->gateway, $gateway_token->gateway_type_id, $amount)->save();
 
-
-        nlog($this->invoice->amount);
-        nlog($this->invoice->balance);
-
         //change from $this->invoice->amount to $this->invoice->balance
         if ($is_partial) {
             $fee = $this->invoice->balance - $invoice_total;
@@ -156,7 +152,7 @@ class AutoBillInvoice extends AbstractService
         ]);
 
         nlog("Payment hash created => {$payment_hash->id}");
-       
+
         $payment = false;
         try {
             $payment = $gateway_token->gateway
@@ -167,25 +163,20 @@ class AutoBillInvoice extends AbstractService
 
             nlog('payment NOT captured for '.$this->invoice->number.' with error '.$e->getMessage());
             event(new InvoiceAutoBillFailed($this->invoice, $this->invoice->company, Ninja::eventVars(), $e->getMessage()));
-
-        }
-
-        $this->invoice = $this->invoice->fresh();
-        $this->invoice->auto_bill_tries += 1;
-
-        if ($this->invoice->auto_bill_tries == 3) {
-
-            \App\Models\Invoice::where('id', $this->invoice->id)->update([
-                'auto_bill_enabled' => false,
-                'auto_bill_tries' => 0
-            ]);
-
-        }
-        else {
             
-            \App\Models\Invoice::where('id', $this->invoice->id)->update([
-                'auto_bill_tries' => $this->invoice->auto_bill_tries
-            ]);
+            $this->invoice->increment('auto_bill_tries', 1);
+            $this->invoice->refresh();
+
+            if ($this->invoice->auto_bill_tries == 3) {
+
+                \App\Models\Invoice::where('id', $this->invoice->id)->update([
+                    'auto_bill_enabled' => false,
+                    'auto_bill_tries' => 0
+                ]);
+
+            }
+
+            throw $e;
 
         }
 
@@ -276,7 +267,7 @@ class AutoBillInvoice extends AbstractService
         event(new PaymentWasCreated($payment, $payment->company, Ninja::eventVars()));
 
         //if we have paid the invoice in full using credits, then we need to fire the event
-        if($this->invoice->balance == 0) {
+        if ($this->invoice->balance == 0) {
             event(new InvoiceWasPaid($this->invoice, $payment, $payment->company, Ninja::eventVars()));
         }
 
@@ -363,7 +354,7 @@ class AutoBillInvoice extends AbstractService
                 }
             }
 
-            if((int)$this->invoice->balance == 0) {
+            if ((int)$this->invoice->balance == 0) {
                 event(new InvoiceWasPaid($this->invoice, $payment, $payment->company, Ninja::eventVars()));
                 return $this;
             }

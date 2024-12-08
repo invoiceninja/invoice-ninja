@@ -81,7 +81,7 @@ class ApplyPaymentAmount extends AbstractService
             $invoice_service->checkReminderStatus();
         }
 
-        if($this->invoice->balance == 0) {
+        if ($this->invoice->balance == 0) {
             $this->invoice->next_send_date = null;
         }
 

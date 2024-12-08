@@ -554,7 +554,7 @@ class CreditController extends BaseController
         }
 
 
-        if($action == 'template' && $user->can('view', $credits->first())) {
+        if ($action == 'template' && $user->can('view', $credits->first())) {
 
             $hash_or_response = $request->boolean('send_email') ? 'email sent' : \Illuminate\Support\Str::uuid();
 

@@ -426,7 +426,7 @@ class ProcessBrevoWebhook implements ShouldQueue
     public function getRawMessage(string $message_id)
     {
 
-        $brevo_secret = !empty ($this->company->settings->brevo_secret) ? $this->company->settings->brevo_secret : config('services.brevo.secret');
+        $brevo_secret = !empty($this->company->settings->brevo_secret) ? $this->company->settings->brevo_secret : config('services.brevo.secret');
 
         $brevo = new TransactionalEmailsApi(null, Configuration::getDefaultConfiguration()->setApiKey('api-key', $brevo_secret));
         $messageDetail = $brevo->getTransacEmailContent($message_id);

@@ -17,7 +17,6 @@ namespace App\Services\Quickbooks\Transformers;
  */
 class ProductTransformer extends BaseTransformer
 {
-
     public function qbToNinja(mixed $qb_data)
     {
         return $this->transform($qb_data);
@@ -30,10 +29,10 @@ class ProductTransformer extends BaseTransformer
 
     public function transform(mixed $data): array
     {
-        
+
         return [
             'id' => data_get($data, 'Id.value', null),
-            'product_key' => data_get($data, 'Name', data_get($data, 'FullyQualifiedName','')),
+            'product_key' => data_get($data, 'Name', data_get($data, 'FullyQualifiedName', '')),
             'notes' => data_get($data, 'Description', ''),
             'cost' => data_get($data, 'PurchaseCost', 0),
             'price' => data_get($data, 'UnitPrice', 0),

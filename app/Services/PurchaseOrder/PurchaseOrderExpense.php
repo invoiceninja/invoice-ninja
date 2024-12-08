@@ -57,10 +57,10 @@ class PurchaseOrderExpense
 
         $expense->number = empty($expense->number) ? $this->getNextExpenseNumber($expense) : $expense->number;
 
-        if($this->purchase_order->project_id) {
+        if ($this->purchase_order->project_id) {
             $expense->project_id = $this->purchase_order->project_id;
             $expense->client_id = $this->purchase_order->project->client_id;
-        } elseif($this->purchase_order->client_id) {
+        } elseif ($this->purchase_order->client_id) {
             $expense->client_id = $this->purchase_order->client_id;
         }
 

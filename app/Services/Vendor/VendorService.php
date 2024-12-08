@@ -29,7 +29,7 @@ class VendorService
     {
         $x = 1;
 
-        if(isset($this->vendor->number)) {
+        if (isset($this->vendor->number)) {
             return $this;
         }
 

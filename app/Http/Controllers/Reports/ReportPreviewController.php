@@ -30,7 +30,7 @@ class ReportPreviewController extends BaseController
 
         $report = Cache::get($hash);
 
-        if(!$report) {
+        if (!$report) {
             return response()->json(['message' => 'Still working.....'], 409);
         }
 

@@ -46,7 +46,7 @@ class PaymentCreatedActivity implements ShouldQueue
         $payment = $event->payment;
         $invoice_id = null;
 
-        if($payment->invoices()->exists()) {
+        if ($payment->invoices()->exists()) {
             $invoice_id = $payment->invoices()->first()->id;
         }
 

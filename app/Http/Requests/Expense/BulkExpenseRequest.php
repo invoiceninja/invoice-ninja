@@ -58,7 +58,7 @@ class BulkExpenseRequest extends Request
             $input['category_id'] = $this->transformKeys($input['category_id']);
         }
 
-        if(isset($input['newValue'])){
+        if (isset($input['newValue'])) {
             $input['new_value'] = $input['newValue'];
         }
 

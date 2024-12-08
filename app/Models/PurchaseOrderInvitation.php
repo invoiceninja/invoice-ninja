@@ -13,7 +13,6 @@ namespace App\Models;
 
 use App\Utils\Ninja;
 use App\Utils\Traits\Inviteable;
-use App\Utils\Traits\MakesDates;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -76,7 +75,6 @@ use Illuminate\Support\Str;
  */
 class PurchaseOrderInvitation extends BaseModel
 {
-    use MakesDates;
     use SoftDeletes;
     use Inviteable;
 

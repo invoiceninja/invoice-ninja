@@ -69,7 +69,7 @@ class EmailEntity implements ShouldQueue
      * @param array      $template_data
      */
     public function __construct($invitation, string $db, ?string $reminder_template = null, $template_data = null)
-    { 
+    {
         $this->db = $db;
 
         $this->invitation = $invitation;
@@ -95,7 +95,7 @@ class EmailEntity implements ShouldQueue
      */
     public function handle(): void
     {
-        
+
         /* Set DB */
         MultiDB::setDB($this->db);
 

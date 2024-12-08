@@ -104,8 +104,8 @@ class ActivityExport extends BaseExport
         /** @var \App\Models\DateFormat $df */
         $df = DateFormat::query()->find($this->company->settings->date_format_id);
 
-        $this->date_format = $df->format; 
-        
+        $this->date_format = $df->format;
+
         if (count($this->input['report_keys']) == 0) {
             $this->input['report_keys'] = array_values($this->entity_keys);
         }

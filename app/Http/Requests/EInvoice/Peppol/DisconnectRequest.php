@@ -41,7 +41,7 @@ class DisconnectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_key' => ['required'], 
+            'company_key' => ['required'],
         ];
     }
 

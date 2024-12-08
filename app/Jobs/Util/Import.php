@@ -265,11 +265,11 @@ class Import implements ShouldQueue
             $t = app('translator');
             $t->replace(Ninja::transformTranslations($this->company->settings));
 
-            if(!$this->silent_migration) {
+            if (!$this->silent_migration) {
                 Mail::to($this->user->email, $this->user->name())->send(new MigrationCompleted($this->company->id, $this->company->db, implode("<br>", $check_data)));
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog($e->getMessage());
         }
 
@@ -282,7 +282,7 @@ class Import implements ShouldQueue
 
         try {
             unlink($this->file_path);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("problem unsetting file");
         }
     }
@@ -369,7 +369,7 @@ class Import implements ShouldQueue
             }
         } else {
 
-            if(isset($data['plan'])) {
+            if (isset($data['plan'])) {
                 $account->plan = $data['plan'];
             }
 
@@ -1215,7 +1215,7 @@ class Import implements ShouldQueue
                 CreditFactory::create($this->company->id, $modified['user_id'])
             );
 
-            if($credit->status_id == 4) {
+            if ($credit->status_id == 4) {
 
                 $client = $credit->client;
                 $client->balance -= $credit->balance;
@@ -1509,7 +1509,7 @@ class Import implements ShouldQueue
                 try {
                     $invoice_id = $this->transformId('invoices', $resource['invoice_id']);
                     $entity = Invoice::query()->where('id', $invoice_id)->withTrashed()->first();
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     nlog("i couldn't find the invoice document {$resource['invoice_id']}, perhaps it is a quote?");
                     nlog($e->getMessage());
 
@@ -1520,7 +1520,7 @@ class Import implements ShouldQueue
                     try {
                         $quote_id = $this->transformId('quotes', $resource['invoice_id']);
                         $entity = Quote::query()->where('id', $quote_id)->withTrashed()->first();
-                    } catch(\Exception $e) {
+                    } catch (\Exception $e) {
                         nlog("i couldn't find the quote document {$resource['invoice_id']}, perhaps it is a quote?");
                         nlog($e->getMessage());
                     }
@@ -1570,7 +1570,7 @@ class Import implements ShouldQueue
                 ))->handle();
 
 
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 nlog($e->getMessage());
                 //do nothing, gracefully :)
             }
@@ -1640,7 +1640,7 @@ class Import implements ShouldQueue
                 $nmo->settings = $this->company->settings;
                 $nmo->to_user = $this->user;
 
-                if(!$this->silent_migration) {
+                if (!$this->silent_migration) {
                     NinjaMailerJob::dispatch($nmo, true);
                 }
 
@@ -2109,7 +2109,7 @@ class Import implements ShouldQueue
         if (Ninja::isHosted()) {
             try {
                 \Modules\Admin\Jobs\Account\NinjaUser::dispatch($data, $this->company);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 nlog($e->getMessage());
             }
         }

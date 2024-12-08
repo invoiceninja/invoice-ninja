@@ -54,7 +54,7 @@ class CreateCompany
 
         $settings->name = isset($this->request['name']) ? $this->request['name'] : '';
 
-        if($country_id = $this->resolveCountry()) {
+        if ($country_id = $this->resolveCountry()) {
             $settings->country_id = $country_id;
         }
 
@@ -102,11 +102,11 @@ class CreateCompany
 
             $ip = request()->ip();
 
-            if(request()->hasHeader('cf-ipcountry')) {
+            if (request()->hasHeader('cf-ipcountry')) {
 
                 $c = Country::query()->where('iso_3166_2', request()->header('cf-ipcountry'))->first();
 
-                if($c) {
+                if ($c) {
                     return (string)$c->id;
                 }
 
@@ -114,16 +114,16 @@ class CreateCompany
 
             $details = json_decode(file_get_contents("http://ip-api.com/json/{$ip}"));
 
-            if($details && property_exists($details, 'countryCode')) {
+            if ($details && property_exists($details, 'countryCode')) {
 
                 $c = Country::query()->where('iso_3166_2', $details->countryCode)->first();
 
-                if($c) {
+                if ($c) {
                     return (string)$c->id;
                 }
 
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: CreateCompany::" . $e->getMessage());
             nlog("Could not resolve country => {$e->getMessage()}");
         }
@@ -173,7 +173,7 @@ class CreateCompany
 
             return $company;
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog("Exception:: CreateCompany::" . $e->getMessage());
             nlog("SETUP: could not complete setup for Spanish Locale");
         }
@@ -206,7 +206,7 @@ class CreateCompany
 
             return $company;
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog($e->getMessage());
             nlog("Exception:: CreateCompany::" . $e->getMessage());
             nlog("SETUP: could not complete setup for South African Locale");
@@ -240,7 +240,7 @@ class CreateCompany
 
             return $company;
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             nlog($e->getMessage());
             nlog("Exception:: CreateCompany::" . $e->getMessage());
             nlog("SETUP: could not complete setup for Australian Locale");

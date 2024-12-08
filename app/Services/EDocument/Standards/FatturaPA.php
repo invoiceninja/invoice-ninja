@@ -253,7 +253,7 @@ $datiTrasporto->setDatiAnagraficiVettore($datiAnagraficiVettore)
         }
 
         //totals
-        if($this->invoice->tax_rate1 > $tax_rate_level) {
+        if ($this->invoice->tax_rate1 > $tax_rate_level) {
             $tax_rate_level = sprintf('%0.2f', $this->invoice->tax_rate1);
         }
 

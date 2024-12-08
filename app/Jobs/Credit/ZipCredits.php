@@ -58,11 +58,10 @@ class ZipCredits implements ShouldQueue
 
         $invitations = CreditInvitation::query()->with('credit')->whereIn('credit_id', $this->credit_ids)->get();
 
-        if($invitations->count() == 0)
-        {
+        if ($invitations->count() == 0) {
             nlog("no Credit Invitations");
             return;
-        }   
+        }
 
         $invitation = $invitations->first();
 

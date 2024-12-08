@@ -74,7 +74,7 @@ class EmailController extends BaseController
 
         if ($request->cc_email && (Ninja::isSelfHost() || $user->account->isPremium())) {
 
-            foreach($request->cc_email as $email) {
+            foreach ($request->cc_email as $email) {
                 $mo->cc[] = new Address($email);
             }
 
@@ -102,7 +102,7 @@ class EmailController extends BaseController
             $this->entity_transformer = InvoiceTransformer::class;
 
             if ($entity_obj->invitations->count() >= 1) {
-                $entity_obj->entityEmailEvent($entity_obj->invitations->first(), 'invoice', $template);
+                $entity_obj->entityEmailEvent($entity_obj->invitations->first(), $template, $template);
                 $entity_obj->sendEvent(Webhook::EVENT_SENT_INVOICE, "client");
             }
         }
@@ -112,9 +112,8 @@ class EmailController extends BaseController
             $this->entity_transformer = QuoteTransformer::class;
 
             if ($entity_obj->invitations->count() >= 1) {
-                event(new QuoteWasEmailed($entity_obj->invitations->first(), $entity_obj->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), 'quote'));
+                $entity_obj->entityEmailEvent($entity_obj->invitations->first(), $template);
                 $entity_obj->sendEvent(Webhook::EVENT_SENT_QUOTE, "client");
-
             }
         }
 
@@ -141,7 +140,7 @@ class EmailController extends BaseController
         return $this->itemResponse($entity_obj->fresh());
     }
 
-   private function resolveClass(string $entity): string
+    private function resolveClass(string $entity): string
     {
         $class = '';
 

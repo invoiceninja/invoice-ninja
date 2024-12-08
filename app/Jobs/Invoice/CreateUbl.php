@@ -11,6 +11,7 @@
 
 namespace App\Jobs\Invoice;
 
+use App\Models\Company;
 use App\Models\Invoice;
 use CleverIt\UBL\Invoice\Address;
 use CleverIt\UBL\Invoice\Contact;
@@ -125,7 +126,7 @@ class CreateUbl implements ShouldQueue
 
         if ($company->country_id) {
             $country = new Country();
-            $country->setIdentificationCode($company->country->iso_3166_2);
+            $country->setIdentificationCode(($company instanceof Company) ? $company->country()->iso_3166_2 : $company->country->iso_3166_2);
             $address->setCountry($country);
         }
 

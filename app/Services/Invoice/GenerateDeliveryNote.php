@@ -46,7 +46,7 @@ class GenerateDeliveryNote
         $delivery_note_design_id = $this->invoice->client->getSetting('delivery_note_design_id');
         $design = Design::withTrashed()->find($this->decodePrimaryKey($delivery_note_design_id));
 
-        if($design && $design->is_template) {
+        if ($design && $design->is_template) {
 
             $ts = new TemplateService($design);
 
@@ -83,6 +83,8 @@ class GenerateDeliveryNote
 
         $variables = $html->generateLabelsAndValues();
         $variables['labels']['$entity_label'] = ctrans('texts.delivery_note');
+        $variables['labels']['$invoice.date_label'] = ctrans('texts.date');
+        $variables['labels']['$invoice.number_label'] = ctrans('texts.number');
 
         $state = [
             'template' => $template->elements([

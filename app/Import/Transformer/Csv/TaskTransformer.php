@@ -29,7 +29,7 @@ class TaskTransformer extends BaseTransformer
     {
         $this->stubbed_timestamp = time();
 
-        if(count($task_items_data) == count($task_items_data, COUNT_RECURSIVE)) {
+        if (count($task_items_data) == count($task_items_data, COUNT_RECURSIVE)) {
             $task_data = $task_items_data;
         } else {
             $task_data = reset($task_items_data);
@@ -57,7 +57,7 @@ class TaskTransformer extends BaseTransformer
             'custom_value4' => $this->getString($task_data, 'task.custom_value4'),
         ];
 
-        if(count($task_items_data) == count($task_items_data, COUNT_RECURSIVE)) {
+        if (count($task_items_data) == count($task_items_data, COUNT_RECURSIVE)) {
             $transformed['time_log'] = json_encode([$this->parseLog($task_items_data)]);
             return $transformed;
         }
@@ -80,18 +80,18 @@ class TaskTransformer extends BaseTransformer
 
         $notes = $item['task.notes'] ?? '';
 
-        if(isset($item['task.billable']) && is_string($item['task.billable']) && in_array($item['task.billable'], ['yes', 'true', '1', 'TRUE', 'YES'])) {
+        if (isset($item['task.billable']) && is_string($item['task.billable']) && in_array($item['task.billable'], ['yes', 'true', '1', 'TRUE', 'YES'])) {
             $is_billable = true;
-        } elseif(isset($item['task.billable']) && is_bool($item['task.billable'])) {
+        } elseif (isset($item['task.billable']) && is_bool($item['task.billable'])) {
             $is_billable = $item['task.billable'];
         } else {
             $is_billable = true;
         }
 
-        if(isset($item['task.start_date'])) {
+        if (isset($item['task.start_date'])) {
             $start_date = $this->resolveStartDate($item);
             $end_date = $this->resolveEndDate($item);
-        } elseif(isset($item['task.duration'])) {
+        } elseif (isset($item['task.duration'])) {
             $duration =  strtotime($item['task.duration']) - strtotime('TODAY');
             $start_date = $this->stubbed_timestamp;
             $end_date = $this->stubbed_timestamp + $duration;
@@ -143,7 +143,7 @@ class TaskTransformer extends BaseTransformer
 
             $stub_end_date = \Carbon\Carbon::parse($stub_end_date);
 
-            if($stub_end_date->timestamp == $this->stubbed_timestamp) {
+            if ($stub_end_date->timestamp == $this->stubbed_timestamp) {
                 $this->stubbed_timestamp;
                 return $this->stubbed_timestamp;
             }
@@ -174,7 +174,7 @@ class TaskTransformer extends BaseTransformer
 
     private function getTaskStatusId($item): ?int
     {
-        if(isset($item['task.status'])) {
+        if (isset($item['task.status'])) {
             $name = strtolower(trim($item['task.status']));
 
             $ts = TaskStatus::query()->where('company_id', $this->company->id)
@@ -184,7 +184,7 @@ class TaskTransformer extends BaseTransformer
                 ])
                 ->first();
 
-            if($ts) {
+            if ($ts) {
                 return $ts->id;
             }
         }

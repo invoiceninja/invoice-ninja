@@ -474,7 +474,7 @@ class SubscriptionController extends BaseController
 
         $subscriptions = Subscription::withTrashed()->find($request->ids);
 
-        if(in_array($request->action, ['assign_invoice'])) {
+        if (in_array($request->action, ['assign_invoice'])) {
 
             $subscriptions->each(function ($subscription, $key) use ($request, $user) {
                 if ($user->can('edit', $subscription)) {

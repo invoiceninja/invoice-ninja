@@ -66,17 +66,17 @@ class PreviewController extends BaseController
         $entity_obj = $invitation->{$request->entity};
         $entity_obj->fill($request->all());
 
-        if(!$entity_obj->id) {
+        if (!$entity_obj->id) {
             $entity_obj->design_id = intval($this->decodePrimaryKey($settings->{$entity_prop."_design_id"}));
             $entity_obj->footer = empty($entity_obj->footer) ? $settings->{$entity_prop."_footer"} : $entity_obj->footer;
             $entity_obj->terms = empty($entity_obj->terms) ? $settings->{$entity_prop."_terms"} : $entity_obj->terms;
             $entity_obj->public_notes = empty($entity_obj->public_notes) ? $request->getClient()->public_notes : $entity_obj->public_notes;
-            
+
             $entity_obj->custom_surcharge_tax1 = $client->company->custom_surcharge_taxes1;
             $entity_obj->custom_surcharge_tax2 = $client->company->custom_surcharge_taxes2;
             $entity_obj->custom_surcharge_tax3 = $client->company->custom_surcharge_taxes3;
             $entity_obj->custom_surcharge_tax4 = $client->company->custom_surcharge_taxes4;
-            
+
             $invitation->setRelation($request->entity, $entity_obj);
         }
 
@@ -117,7 +117,7 @@ class PreviewController extends BaseController
     {
         $start = microtime(true);
 
-        if($request->has('entity_type') && in_array($request->entity_type, ['payment_receipt', 'payment_refund', 'statement', 'delivery_note'])) {
+        if ($request->has('entity_type') && in_array($request->entity_type, ['payment_receipt', 'payment_refund', 'statement', 'delivery_note'])) {
             return $this->liveTemplate($request->all());
         }
 
@@ -145,7 +145,7 @@ class PreviewController extends BaseController
     public function show(ShowPreviewRequest $request)
     {
 
-        if($request->input('design.is_template')) {
+        if ($request->input('design.is_template')) {
             return $this->template();
         }
 
@@ -154,8 +154,9 @@ class PreviewController extends BaseController
             ! empty(request()->input('entity')) &&
             ! empty(request()->input('entity_id'))) {
 
-            if($request->input('entity') == 'purchase_order')
+            if ($request->input('entity') == 'purchase_order') {
                 return app(\App\Http\Controllers\PreviewPurchaseOrderController::class)->show($request);
+            }
 
             $design_object = json_decode(json_encode(request()->input('design')));
 
@@ -180,7 +181,7 @@ class PreviewController extends BaseController
             App::setLocale($entity_obj->client->preferredLocale());
             $t->replace(Ninja::transformTranslations($entity_obj->client->getMergedSettings()));
 
-            if($entity_obj->client) {
+            if ($entity_obj->client) {
                 $html = new HtmlEngine($entity_obj->invitations()->first());
             } else {
                 $html = new VendorHtmlEngine($entity_obj->invitations()->first());
@@ -270,14 +271,14 @@ class PreviewController extends BaseController
 
         try {
 
-            if(isset($request_data['settings']) && is_array($request_data['settings'])) {
+            if (isset($request_data['settings']) && is_array($request_data['settings'])) {
                 $ts->setSettings(json_decode(json_encode($request_data['settings'])));
             }
 
             $ts->setCompany($company)
                 ->compose()
                 ->mock();
-        } catch(SyntaxError $e) {
+        } catch (SyntaxError $e) {
             // return response()->json(['message' => 'Twig syntax is invalid.', 'errors' => new \stdClass], 422);
         }
 
@@ -302,13 +303,13 @@ class PreviewController extends BaseController
         $ts = (new TemplateService());
 
         try {
-            
+
             $ts->setCompany($company)
                 ->setTemplate($design_object)
                 ->mock();
 
-        } catch(SyntaxError $e) {
-        } catch(\Exception $e) {
+        } catch (SyntaxError $e) {
+        } catch (\Exception $e) {
             return response()->json(['message' => 'invalid data access', 'errors' => ['design.design.body' => $e->getMessage()]], 422);
         }
 
@@ -501,7 +502,7 @@ class PreviewController extends BaseController
                 ->build();
 
             DB::connection($company->db)->rollBack();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             DB::connection($company->db)->rollBack();
             return response()->json(['message' => $e->getMessage()], 400);
         }

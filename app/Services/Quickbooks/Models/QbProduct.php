@@ -19,14 +19,13 @@ use App\Interfaces\SyncInterface;
 use App\Services\Quickbooks\QuickbooksService;
 use App\Services\Quickbooks\Transformers\ProductTransformer;
 
-
 class QbProduct implements SyncInterface
 {
     protected ProductTransformer $product_transformer;
 
     public function __construct(public QuickbooksService $service)
     {
-        
+
         $this->product_transformer = new ProductTransformer($service->company);
 
     }
@@ -38,7 +37,7 @@ class QbProduct implements SyncInterface
 
     public function syncToNinja(array $records): void
     {
-        
+
         foreach ($records as $record) {
 
             $ninja_data = $this->product_transformer->qbToNinja($record);
@@ -61,18 +60,18 @@ class QbProduct implements SyncInterface
                          ->withTrashed()
                          ->where('company_id', $this->service->company->id)
                          ->where('sync->qb_id', $key);
-             
-        if($search->count() == 0) {
-            
+
+        if ($search->count() == 0) {
+
             $product = ProductFactory::create($this->service->company->id, $this->service->company->owner()->id);
 
             $sync = new ProductSync();
             $sync->qb_id = $key;
             $product->sync = $sync;
-            
+
             return $product;
 
-        } elseif($search->count() == 1) {
+        } elseif ($search->count() == 1) {
             return $this->service->syncable('product', \App\Enum\SyncDirection::PULL) ? $search->first() : null;
         }
 
@@ -84,13 +83,11 @@ class QbProduct implements SyncInterface
     {
         $qb_record = $this->find($id);
 
-        if($this->service->syncable('product', \App\Enum\SyncDirection::PULL) && $ninja_record = $this->findProduct($id))
-        {
+        if ($this->service->syncable('product', \App\Enum\SyncDirection::PULL) && $ninja_record = $this->findProduct($id)) {
 
-            if(Carbon::parse($last_updated) > Carbon::parse($ninja_record->updated_at))
-            {
+            if (Carbon::parse($last_updated) > Carbon::parse($ninja_record->updated_at)) {
                 $ninja_data = $this->product_transformer->qbToNinja($qb_record);
-                
+
                 $ninja_record->fill($ninja_data);
                 $ninja_record->save();
 
