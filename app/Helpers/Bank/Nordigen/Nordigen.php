@@ -61,18 +61,32 @@ class Nordigen
     }
 
     // requisition-section
-    public function createRequisition(string $redirect, string $institutionId, string $reference, string $userLanguage)
+    public function createRequisition(string $redirect, string $institutionId, string $reference, string $userLanguage, int $maxHistoricalDays = null, int $accessValidForDays = null)
     {
         if ($this->test_mode && $institutionId != $this->sandbox_institutionId) {
             throw new \Exception('invalid institutionId while in test-mode');
         }
 
-        return $this->client->requisition->createRequisition($redirect, $institutionId, $this->getExtendedEndUserAggreementId($institutionId), $reference, $userLanguage);
+        return $this->client->requisition->createRequisition($redirect, $institutionId, $this->getExtendedEndUserAggreementId($institutionId, $maxHistoricalDays, $accessValidForDays), $reference, $userLanguage);
     }
 
-    private function getExtendedEndUserAggreementId(string $institutionId): string|null
+    private function getExtendedEndUserAggreementId(string $institutionId, int $maxHistoricalDays = null, int $accessValidForDays = null): string|null
     {
 
+        // validate or set maxHistoricalDays and accessValidForDays
+        $institution = $this->client->institution->getInstitution($institutionId);
+
+        if (empty($maxHistoricalDays))
+            $maxHistoricalDays = (int) ($institution["transaction_total_days"] ?? 90);
+        if (empty($accessValidForDays))
+            $accessValidForDays = (int) ($institution["max_access_valid_for_days"] ?? 90);
+
+        if ($maxHistoricalDays > (int) $institution["transaction_total_days"])
+            throw new \Exception("maxHistoricalDays must be lower or equal than " . $institution["transaction_total_days"]);
+        if ($accessValidForDays > (int) $institution["max_access_valid_for_days"])
+            throw new \Exception("accessValidForDays must be lower or equal than " . $institution["max_access_valid_for_days"]);
+
+        // GET EXISTING ENDUSERAGREEMENT
         $endUserAggreements = null;
         $endUserAgreement = null;
 
@@ -87,38 +101,38 @@ class Nordigen
 
         // try to find an existing valid endUserAgreement
         foreach ($endUserAggreements["results"] as $row) {
-            $endUserAgreement = $row;
-
             // Validate Institution
-            if ($endUserAgreement["institution_id"] != $institutionId)
+            if ($row["institution_id"] != $institutionId)
                 continue;
 
             // Validate Access Scopes
             $requiredScopes = ["balances", "details", "transactions"];
-            if (isset($endUserAgreement['access_scope']) && array_diff($requiredScopes, $endUserAgreement['access_scope']))
+            if (isset($row['access_scope']) && array_diff($requiredScopes, $row['access_scope']))
                 continue;
 
-            // try to accept the endUserAgreement when not already accepted
-            if (empty($endUserAgreement["accepted"]))
-                try {
-                    $this->client->endUserAgreement->acceptEndUserAgreement($endUserAgreement["id"], request()->userAgent(), request()->ip());
-                } catch (\Exception $e) { // not able to accept it
-                    nlog("Nordigen: Was not able to confirm an existing outstanding endUserAgreement for this institution. We now try to find another or will create and confirm a new one. {$institutionId} {$endUserAgreement["id"]} {$e->getMessage()} {$e->getCode()}");
-                    $endUserAgreement = null;
+            // Validate Transaction Total Days
+            if ($row["max_historical_days"] != $maxHistoricalDays)
+                continue;
 
-                    continue;
-                }
+            // Validate Max Access Valid For Days
+            if ($row["access_valid_for_days"] != $accessValidForDays)
+                continue;
 
+            // only allow not accepted agreements to reuse them => we want to allow the user to reconnect or use other accounts from the same bank, when clicking on an institution
+            if (!empty($row["accepted"]))
+                continue;
+
+            nlog("Nordigen: We found an unaccepted agreement and will reuse it to reduce unnecessary entries within nordigen.");
+            $endUserAgreement = $row;
             break;
         }
 
-        // try to create and accept an endUserAgreement
+        // try to create a new endUserAgreement
         if (!$endUserAgreement)
             try {
-                $endUserAgreement = $this->client->endUserAgreement->createEndUserAgreement($institutionId, ['details', 'balances', 'transactions'], 90, 180);
-                $this->client->endUserAgreement->acceptEndUserAgreement($endUserAgreement["id"], request()->userAgent(), request()->ip());
+                $endUserAgreement = $this->client->endUserAgreement->createEndUserAgreement($institutionId, ['details', 'balances', 'transactions'], $maxHistoricalDays, $accessValidForDays);
             } catch (\Exception $e) { // not able to create this for this institution
-                nlog("Nordigen: Was not able to create and confirm a new endUserAgreement for this institution. We continue with defaults to setup bank_integration. {$institutionId} {$e->getMessage()} {$e->getCode()}");
+                nlog("Nordigen: Was not able to create a new endUserAgreement for this institution. We continue with defaults to setup bank_integration. {$institutionId} {$e->getMessage()} {$e->getCode()}");
 
                 return null;
             }
@@ -137,6 +151,24 @@ class Nordigen
 
             throw $e;
         }
+    }
+
+    /**
+     * Get end user agreement details by ID.
+     *
+     * @return array{
+     *   id: string,
+     *   created: string,
+     *   institution_id: string,
+     *   max_historical_days: int,
+     *   access_valid_for_days: int,
+     *   access_scope: string[],
+     *   accepted: string
+     * } Agreement details
+     */
+    public function getEndUserAgreement(string $id): array
+    {
+        return $this->client->endUserAgreement->getEndUserAgreement($id);
     }
 
     // TODO: return null on not found

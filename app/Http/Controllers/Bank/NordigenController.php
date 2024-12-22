@@ -212,6 +212,8 @@ class NordigenController extends BaseController
             ]);
         }
 
+        $endUserAgreement = empty($requisition["agreement"]) ? null : $nordigen->getEndUserAgreement($requisition["agreement"]);
+
         // connect new accounts
         $bank_integration_ids = [];
         foreach ($requisition["accounts"] as $nordigenAccountId) {
@@ -243,7 +245,7 @@ class NordigenController extends BaseController
                 $bank_integration->currency = $nordigen_account['account_currency'];
                 $bank_integration->disabled_upstream = false;
                 $bank_integration->auto_sync = true;
-                $bank_integration->from_date = now()->subDays(90); // default max-fetch interval of nordigen is 90 days
+                $bank_integration->from_date = now()->subDays(value: (int) ($endUserAgreement['max_historical_days'] ?? 90));
 
                 $bank_integration->save();
 
@@ -256,7 +258,7 @@ class NordigenController extends BaseController
                 $existing_bank_integration->bank_account_status = $nordigen_account['account_status'];
                 $existing_bank_integration->disabled_upstream = false;
                 $existing_bank_integration->auto_sync = true;
-                $existing_bank_integration->from_date = now()->subDays(90); // default max-fetch interval of nordigen is 90 days
+                $existing_bank_integration->from_date = now()->subDays((int) ($endUserAgreement['max_historical_days'] ?? 90));
                 $existing_bank_integration->deleted_at = null;
 
                 $existing_bank_integration->save();
