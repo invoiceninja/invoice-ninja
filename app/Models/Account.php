@@ -258,21 +258,21 @@ class Account extends BaseModel
             case self::FEATURE_CUSTOM_URL:
                 return $self_host || !empty($plan_details);
 
-                // Pro; No trial allowed, unless they're trialing enterprise with an active pro plan
+            // Pro; No trial allowed, unless they're trialing enterprise with an active pro plan
             case self::FEATURE_MORE_CLIENTS:
                 return $self_host || !empty($plan_details) && (!$plan_details['trial'] || !empty($this->getPlanDetails(false, false)));
 
-                // White Label
+            // White Label
             case self::FEATURE_WHITE_LABEL:
                 if (!$self_host && $plan_details && !$plan_details['expires']) {
                     return false;
                 }
-                // Fallthrough
-                // no break
+            // Fallthrough
+            // no break
             case self::FEATURE_REMOVE_CREATED_BY:
                 return !empty($plan_details); // A plan is required even for self-hosted users
 
-                // Enterprise; No Trial allowed; grandfathered for old pro users
+            // Enterprise; No Trial allowed; grandfathered for old pro users
             case self::FEATURE_USERS: // Grandfathered for old Pro users
                 if ($plan_details && $plan_details['trial']) {
                     // Do they have a non-trial plan?
@@ -281,7 +281,7 @@ class Account extends BaseModel
 
                 return $self_host || !empty($plan_details) && ($plan_details['plan'] == self::PLAN_ENTERPRISE);
 
-                // Enterprise; No Trial allowed
+            // Enterprise; No Trial allowed
             case self::FEATURE_DOCUMENTS:
             case self::FEATURE_USER_PERMISSIONS:
                 return $self_host || !empty($plan_details) && $plan_details['plan'] == self::PLAN_ENTERPRISE && !$plan_details['trial'];
@@ -340,7 +340,7 @@ class Account extends BaseModel
 
     public function isEnterprisePaidClient(): bool
     {
-        if (! Ninja::isNinja()) {
+        if (!Ninja::isNinja()) {
             return false;
         }
 
@@ -349,7 +349,7 @@ class Account extends BaseModel
 
     public function isProClient(): bool
     {
-        if (! Ninja::isNinja()) {
+        if (!Ninja::isNinja()) {
             return false;
         }
 
@@ -358,7 +358,7 @@ class Account extends BaseModel
 
     public function isProPaidClient(): bool
     {
-        if (! Ninja::isNinja()) {
+        if (!Ninja::isNinja()) {
             return false;
         }
 
@@ -500,7 +500,7 @@ class Account extends BaseModel
         }
 
         if ($this->email_quota) {
-            return (int)$this->email_quota;
+            return (int) $this->email_quota;
         }
 
         if (Carbon::createFromTimestamp($this->created_at)->diffInWeeks() <= 1) {

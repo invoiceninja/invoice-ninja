@@ -23,6 +23,8 @@ class InvoiceItem
 
     public $product_cost = 0;
 
+    public $product_allocation_ids = [];
+
     public $notes = '';
 
     public $discount = 0;
@@ -79,6 +81,7 @@ class InvoiceItem
         'cost' => 'float',
         'product_cost' => 'float',
         'product_key' => 'string',
+        'product_allocation_ids' => 'array',
         'notes' => 'string',
         'discount' => 'float',
         'is_amount_discount' => 'bool',

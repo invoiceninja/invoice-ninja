@@ -13,6 +13,7 @@ namespace App\Repositories;
 
 use App\Jobs\Client\UpdateTaxData;
 use App\Jobs\Product\UpdateOrCreateProduct;
+use App\Jobs\ProductAllocation\UpdateOrCreateProductAllocation;
 use App\Models\Client;
 use App\Models\ClientContact;
 use App\Models\Company;
@@ -319,6 +320,11 @@ class BaseRepository
                 event('eloquent.updated: App\Models\Invoice', $model);
             }
 
+            /* Update product allocations if necessary - if we are inside a transaction - do nothing */
+            if ($model->company->update_products && $model->id && \DB::transactionLevel() == 0) {
+                UpdateOrCreateProductAllocation::dispatch($model->line_items, $model, $model->company);
+            }
+
             /** If the client does not have tax_data - then populate this now */
             if ($client->country_id == 840 && !$client->tax_data && $model->company->calculate_taxes && !$model->company->account->isFreeHostedClient()) {
                 UpdateTaxData::dispatch($client, $client->company);
@@ -395,7 +401,7 @@ class BaseRepository
     public function bulkUpdate(\Illuminate\Database\Eloquent\Builder $model, string $column, mixed $new_value): void
     {
         /** Handle taxes being updated */
-        if (in_array($column, ['tax1','tax2','tax3'])) {
+        if (in_array($column, ['tax1', 'tax2', 'tax3'])) {
 
             $parts = explode("||", $new_value);
             $tax_name_column = str_replace("tax", "tax_name", $column);

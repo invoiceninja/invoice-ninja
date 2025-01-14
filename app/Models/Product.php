@@ -58,6 +58,7 @@ use League\CommonMark\CommonMarkConverter;
  * @property-read \App\Models\User $user
  * @property-read \App\Models\Vendor|null $vendor
  * @property int|null $tax_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductAllocation> $product_allocations
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Document> $documents
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereTaxId($value)
  * @mixin \Eloquent
@@ -115,13 +116,13 @@ class Product extends BaseModel
         self::PRODUCT_TYPE_EXEMPT => 'E', // EXEMPT_FROM_TAX =
         self::PRODUCT_TYPE_PHYSICAL => 'S', // STANDARD_RATE =
         self::PRODUCT_TYPE_ZERO_RATED => 'Z', // ZERO_RATED_GOODS =
-        //  self::PRODUCT_TYPE_ZERO_RATED => 'G', // FREE_EXPORT_ITEM =
-        //  self::PRODUCT_TYPE_ZERO_RATED => 'O', // OUTSIDE_TAX_SCOPE =
-        //  self::PRODUCT_TYPE_EXEMPT => 'K', // EEA_GOODS_AND_SERVICES =
-        //  self::PRODUCT_TYPE_PHYSICAL => 'L', // CANARY_ISLANDS_INDIRECT_TAX =
-        //  self::PRODUCT_TYPE_PHYSICAL => 'M', // CEUTA_AND_MELILLA =
-        //  self::PRODUCT_TYPE_PHYSICAL => 'B', // TRANSFERRED_VAT_ITALY =
-        //  self::PRODUCT_TYPE_PHYSICAL => 'A', // MIXED_TAX_RATE =
+            //  self::PRODUCT_TYPE_ZERO_RATED => 'G', // FREE_EXPORT_ITEM =
+            //  self::PRODUCT_TYPE_ZERO_RATED => 'O', // OUTSIDE_TAX_SCOPE =
+            //  self::PRODUCT_TYPE_EXEMPT => 'K', // EEA_GOODS_AND_SERVICES =
+            //  self::PRODUCT_TYPE_PHYSICAL => 'L', // CANARY_ISLANDS_INDIRECT_TAX =
+            //  self::PRODUCT_TYPE_PHYSICAL => 'M', // CEUTA_AND_MELILLA =
+            //  self::PRODUCT_TYPE_PHYSICAL => 'B', // TRANSFERRED_VAT_ITALY =
+            //  self::PRODUCT_TYPE_PHYSICAL => 'A', // MIXED_TAX_RATE =
         self::PRODUCT_TYPE_REDUCED_TAX => 'AA', // LOWER_RATE =
         //  self::PRODUCT_TYPE_PHYSICAL => 'AB', // EXEMPT_FOR_RESALE =
         //  self::PRODUCT_TYPE_PHYSICAL => 'AC', // VAT_NOT_NOW_DUE =
@@ -193,6 +194,11 @@ class Product extends BaseModel
     public function assigned_user()
     {
         return $this->belongsTo(User::class, 'assigned_user_id', 'id')->withTrashed();
+    }
+
+    public function product_allocations()
+    {
+        return $this->hasMany(ProductAllocation::class)->withTrashed();
     }
 
     public function documents()

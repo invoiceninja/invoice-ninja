@@ -13,6 +13,7 @@ namespace App\Jobs\Product;
 
 use App\Libraries\MultiDB;
 use App\Models\Product;
+use App\Models\ProductAllocation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -26,7 +27,7 @@ class UpdateOrCreateProduct implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public $products;
+    public $line_items;
 
     public $invoice;
 
@@ -37,13 +38,13 @@ class UpdateOrCreateProduct implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param $products
+     * @param $line_items
      * @param $invoice
      * @param $company
      */
-    public function __construct($products, $invoice, $company)
+    public function __construct($line_items, $invoice, $company)
     {
-        $this->products = $products;
+        $this->line_items = $line_items;
 
         $this->invoice = $invoice;
 
@@ -69,18 +70,18 @@ class UpdateOrCreateProduct implements ShouldQueue
          * we do NOT update the product details this short block we
          * check for the presence of a task_id and/or expense_id
          */
-        // $expense_count = count(array_column((array) $this->products, 'expense_id'));
-        // $task_count = count(array_column((array) $this->products, 'task_id'));
+        // $expense_count = count(array_column((array) $this->line_items, 'expense_id'));
+        // $task_count = count(array_column((array) $this->line_items, 'task_id'));
 
-        $task_count = implode("", array_column((array) $this->products, 'task_id'));
-        $expense_count = implode("", array_column((array) $this->products, 'expense_id'));
+        $task_count = implode("", array_column((array) $this->line_items, 'task_id'));
+        $expense_count = implode("", array_column((array) $this->line_items, 'expense_id'));
 
         if ($task_count >= 1 || $expense_count >= 1) {
             return;
         }
 
         //only update / create products - not tasks or gateway fees
-        $updateable_products = collect($this->products)->filter(function ($item) {
+        $updateable_products = collect($this->line_items)->filter(function ($item) {
             return $item->type_id == 1;
         });
 
@@ -95,7 +96,7 @@ class UpdateOrCreateProduct implements ShouldQueue
             /* If a user is using placeholders in their descriptions, do not update the products */
             $string_hit = false;
 
-            foreach ([':MONTH',':YEAR',':QUARTER',':WEEK'] as $string) {
+            foreach ([':MONTH', ':YEAR', ':QUARTER', ':WEEK'] as $string) {
                 if (stripos($product->notes, $string) !== false) {
                     $string_hit = true;
                 }
@@ -109,7 +110,7 @@ class UpdateOrCreateProduct implements ShouldQueue
             $product->notes = isset($item->notes) ? $item->notes : '';
             $product->price = isset($item->cost) ? $item->cost : 0;
 
-            if (! $product->id) {
+            if (!$product->id) {
                 $product->quantity = isset($item->quantity) ? $item->quantity : 0;
             }
 

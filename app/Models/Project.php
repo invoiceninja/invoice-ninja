@@ -51,6 +51,7 @@ use Laracasts\Presenter\PresentableTrait;
  * @method static \Illuminate\Database\Eloquent\Builder|BaseModel scope()
  * @method static \Illuminate\Database\Eloquent\Builder|Project withTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|Project withoutTrashed()
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductAllocation> $product_allocations
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Document> $documents
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Task> $tasks
  * @mixin \Eloquent
@@ -144,7 +145,12 @@ class Project extends BaseModel
         return $this->hasMany(Quote::class);
     }
 
-     /**
+    public function product_allocations()
+    {
+        return $this->hasMany(ProductAllocation::class)->withTrashed();
+    }
+
+    /**
      * Service entry points.
      *
      * @return ProjectService

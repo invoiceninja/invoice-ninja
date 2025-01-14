@@ -12,6 +12,7 @@
 */
 use App\Http\Controllers\EInvoicePeppolController;
 use App\Http\Controllers\EInvoiceTokenController;
+use App\Http\Controllers\ProductAllocationController;
 use App\Http\Controllers\SubscriptionStepsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BaseController;
@@ -234,7 +235,7 @@ Route::group(['middleware' => ['throttle:api', 'api_db', 'token_auth', 'locale']
 
     Route::post('einvoice/validateEntity', [EInvoiceController::class, 'validateEntity'])->name('einvoice.validateEntity');
     Route::post('einvoice/configurations', [EInvoiceController::class, 'configurations'])->name('einvoice.configurations');
-    
+
     Route::post('einvoice/peppol/legal_entity', [EInvoicePeppolController::class, 'show'])->name('einvoice.peppol.legal_entity');
     Route::post('einvoice/peppol/setup', [EInvoicePeppolController::class, 'setup'])->name('einvoice.peppol.setup');
     Route::post('einvoice/peppol/disconnect', [EInvoicePeppolController::class, 'disconnect'])->name('einvoice.peppol.disconnect');
@@ -267,7 +268,7 @@ Route::group(['middleware' => ['throttle:api', 'api_db', 'token_auth', 'locale']
     Route::post('import', [ImportController::class, 'import'])->name('import.import');
     Route::post('import_json', [ImportJsonController::class, 'import'])->name('import.import_json');
     Route::post('preimport', [ImportController::class, 'preimport'])->name('import.preimport');
-    
+
     Route::resource('invoices', InvoiceController::class); // name = (invoices. index / create / show / update / destroy / edit
     Route::get('invoices/{invoice}/delivery_note', [InvoiceController::class, 'deliveryNote'])->name('invoices.delivery_note');
     Route::get('invoices/{invoice}/{action}', [InvoiceController::class, 'action'])->name('invoices.action');
@@ -306,10 +307,15 @@ Route::group(['middleware' => ['throttle:api', 'api_db', 'token_auth', 'locale']
     Route::post('products/bulk', [ProductController::class, 'bulk'])->name('products.bulk');
     Route::put('products/{product}/upload', [ProductController::class, 'upload']);
 
+    Route::resource('product_allocations', ProductAllocationController::class); // name = (productAllocations. index / create / show / update / destroy / edit
+    Route::post('product_allocations/bulk', [ProductAllocationController::class, 'bulk'])->name('product_allocations.bulk');
+    Route::put('product_allocations/{productAllocation}/upload', [ProductAllocationController::class, 'upload']);
+
     Route::resource('projects', ProjectController::class); // name = (projects. index / create / show / update / destroy / edit
     Route::post('projects/bulk', [ProjectController::class, 'bulk'])->name('projects.bulk');
     Route::put('projects/{project}/upload', [ProjectController::class, 'upload'])->name('projects.upload');
-    
+    Route::post('projects/{project}/invoice', [ProjectController::class, 'invoice'])->name('projects.invoice');
+
     Route::resource('purchase_orders', PurchaseOrderController::class);
     Route::post('purchase_orders/bulk', [PurchaseOrderController::class, 'bulk'])->name('purchase_orders.bulk');
     Route::put('purchase_orders/{purchase_order}/upload', [PurchaseOrderController::class, 'upload']);

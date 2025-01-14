@@ -20,6 +20,7 @@ use App\Models\CompanyGateway;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\ProductAllocation;
 use App\Models\Subscription;
 use App\Models\Task;
 use App\Utils\Ninja;
@@ -33,6 +34,18 @@ class InvoiceService
 
     public function __construct(public Invoice $invoice)
     {
+    }
+
+    /**
+     * Applies product allocations to the invoice line_items
+     * by upserting those entries.
+     * @param ProductAllocation[] $products
+     */
+    public function applyProductAllocations(array $product_allocations)
+    {
+        $this->invoice = (new ApplyProductAllocations($this->invoice, $product_allocations))->run();
+
+        return $this;
     }
 
     /**
@@ -143,14 +156,14 @@ class InvoiceService
     public function updateBalance($balance_adjustment, bool $is_draft = false)
     {
         if ((bool) $this->invoice->is_deleted !== false) {
-            nlog($this->invoice->number.' is deleted returning');
+            nlog($this->invoice->number . ' is deleted returning');
 
             return $this;
         }
 
         $this->invoice->balance += $balance_adjustment;
 
-        if (round($this->invoice->balance, 2) == 0 && ! $is_draft) {
+        if (round($this->invoice->balance, 2) == 0 && !$is_draft) {
             $this->invoice->status_id = Invoice::STATUS_PAID;
         }
 
@@ -178,9 +191,11 @@ class InvoiceService
     public function markSent($fire_event = false)
     {
 
-        $this->invoice->loadMissing(['client' => function ($q) {
-            $q->without('documents', 'contacts.company', 'contacts'); // Exclude 'grandchildren' relation of 'client'
-        }]);
+        $this->invoice->loadMissing([
+            'client' => function ($q) {
+                $q->without('documents', 'contacts.company', 'contacts'); // Exclude 'grandchildren' relation of 'client'
+            }
+        ]);
 
         $this->invoice = (new MarkSent($this->invoice->client, $this->invoice))->run($fire_event);
 
@@ -294,9 +309,9 @@ class InvoiceService
 
         //12-10-2022
         if ($this->invoice->partial > 0 && !$this->invoice->partial_due_date) {
-            $this->invoice->partial_due_date = Carbon::parse($this->invoice->date)->addDays((int)$this->invoice->client->getSetting('payment_terms'));
+            $this->invoice->partial_due_date = Carbon::parse($this->invoice->date)->addDays((int) $this->invoice->client->getSetting('payment_terms'));
         } else {
-            $this->invoice->due_date = Carbon::parse($this->invoice->date)->addDays((int)$this->invoice->client->getSetting('payment_terms'));
+            $this->invoice->due_date = Carbon::parse($this->invoice->date)->addDays((int) $this->invoice->client->getSetting('payment_terms'));
         }
 
         return $this;
@@ -377,13 +392,13 @@ class InvoiceService
     public function toggleFeesPaid()
     {
         $this->invoice->line_items = collect($this->invoice->line_items)
-                                     ->map(function ($item) {
-                                         if ($item->type_id == '3') {
-                                             $item->type_id = '4';
-                                         }
+            ->map(function ($item) {
+                if ($item->type_id == '3') {
+                    $item->type_id = '4';
+                }
 
-                                         return $item;
-                                     })->toArray();
+                return $item;
+            })->toArray();
 
         $this->deleteEInvoice();
 
@@ -398,12 +413,12 @@ class InvoiceService
         $this->invoice->invitations->each(function ($invitation) {
             try {
                 // if (Storage::disk(config('filesystems.default'))->exists($this->invoice->client->invoice_filepath($invitation).$this->invoice->numberFormatter().'.pdf')) {
-                Storage::disk(config('filesystems.default'))->delete($this->invoice->client->invoice_filepath($invitation).$this->invoice->numberFormatter().'.pdf');
+                Storage::disk(config('filesystems.default'))->delete($this->invoice->client->invoice_filepath($invitation) . $this->invoice->numberFormatter() . '.pdf');
                 // }
 
                 // if (Ninja::isHosted() && Storage::disk('public')->exists($this->invoice->client->invoice_filepath($invitation).$this->invoice->numberFormatter().'.pdf')) {
                 if (Ninja::isHosted()) {
-                    Storage::disk('public')->delete($this->invoice->client->invoice_filepath($invitation).$this->invoice->numberFormatter().'.pdf');
+                    Storage::disk('public')->delete($this->invoice->client->invoice_filepath($invitation) . $this->invoice->numberFormatter() . '.pdf');
                 }
             } catch (\Exception $e) {
                 nlog($e->getMessage());
@@ -420,12 +435,12 @@ class InvoiceService
         $this->invoice->invitations->each(function ($invitation) {
             try {
                 // if (Storage::disk(config('filesystems.default'))->exists($this->invoice->client->e_invoice_filepath($invitation).$this->invoice->getFileName("xml"))) {
-                Storage::disk(config('filesystems.default'))->delete($this->invoice->client->e_document_filepath($invitation).$this->invoice->getFileName("xml"));
+                Storage::disk(config('filesystems.default'))->delete($this->invoice->client->e_document_filepath($invitation) . $this->invoice->getFileName("xml"));
                 // }
 
                 // if (Ninja::isHosted() && Storage::disk('public')->exists($this->invoice->client->e_invoice_filepath($invitation).$this->invoice->getFileName("xml"))) {
                 if (Ninja::isHosted()) {
-                    Storage::disk('public')->delete($this->invoice->client->e_document_filepath($invitation).$this->invoice->getFileName("xml"));
+                    Storage::disk('public')->delete($this->invoice->client->e_document_filepath($invitation) . $this->invoice->getFileName("xml"));
                 }
             } catch (\Exception $e) {
                 nlog($e->getMessage());
@@ -440,16 +455,16 @@ class InvoiceService
         $balance = $this->invoice->balance;
 
         //return early if type three does not exist.
-        if ($this->invoice->status_id == Invoice::STATUS_PAID || ! collect($this->invoice->line_items)->contains('type_id', 3)) {
+        if ($this->invoice->status_id == Invoice::STATUS_PAID || !collect($this->invoice->line_items)->contains('type_id', 3)) {
             return $this;
         }
 
-        $pre_count = count((array)$this->invoice->line_items);
+        $pre_count = count((array) $this->invoice->line_items);
 
-        $items = collect((array)$this->invoice->line_items)
-                    ->filter(function ($item) {
-                        return $item->type_id != '3';
-                    })->toArray();
+        $items = collect((array) $this->invoice->line_items)
+            ->filter(function ($item) {
+                return $item->type_id != '3';
+            })->toArray();
 
         $this->invoice->line_items = array_values($items);
 
@@ -465,8 +480,8 @@ class InvoiceService
             $adjustment = $balance - $new_balance;
 
             $this->invoice
-            ->ledger()
-            ->updateInvoiceBalance($adjustment * -1, 'Adjustment for removing gateway fee');
+                ->ledger()
+                ->updateInvoiceBalance($adjustment * -1, 'Adjustment for removing gateway fee');
 
             $this->invoice->client->service()->calculateBalance();
 
@@ -541,11 +556,16 @@ class InvoiceService
                 $item->expense_id = $this->decodePrimaryKey($item->expense_id);
             }
 
+            if (isset($item->product_allocation_ids)) {
+                $item->product_allocation_ids = $this->decodePrimaryKey($item->product_allocation_ids);
+            }
+
             return $item;
         });
 
         Task::query()->whereIn('id', $tasks->pluck('task_id'))->update(['invoice_id' => $this->invoice->id]);
         Expense::query()->whereIn('id', $tasks->pluck('expense_id'))->update(['invoice_id' => $this->invoice->id]);
+        ProductAllocation::query()->whereIn('id', $tasks->pluck('product_allocation_ids'))->update(['invoice_id' => $this->invoice->id]);
 
         return $this;
     }
@@ -556,24 +576,24 @@ class InvoiceService
 
         $settings = $this->invoice->client->getMergedSettings();
 
-        if (! $this->invoice->design_id) {
+        if (!$this->invoice->design_id) {
             $this->invoice->design_id = intval($this->decodePrimaryKey($settings->invoice_design_id));
         }
 
-        if (! isset($this->invoice->footer) || empty($this->invoice->footer)) {
+        if (!isset($this->invoice->footer) || empty($this->invoice->footer)) {
             $this->invoice->footer = $settings->invoice_footer;
         }
 
-        if (! isset($this->invoice->terms) || empty($this->invoice->terms)) {
+        if (!isset($this->invoice->terms) || empty($this->invoice->terms)) {
             $this->invoice->terms = $settings->invoice_terms;
         }
 
-        if (! isset($this->invoice->public_notes) || empty($this->invoice->public_notes)) {
+        if (!isset($this->invoice->public_notes) || empty($this->invoice->public_notes)) {
             $this->invoice->public_notes = $this->invoice->client->public_notes;
         }
 
         /* If client currency differs from the company default currency, then insert the client exchange rate on the model.*/
-        if (! isset($this->invoice->exchange_rate) && $this->invoice->client->currency()->id != (int) $this->invoice->company->settings->currency_id) {
+        if (!isset($this->invoice->exchange_rate) && $this->invoice->client->currency()->id != (int) $this->invoice->company->settings->currency_id) {
             $this->invoice->exchange_rate = $this->invoice->client->setExchangeRate();
         }
 

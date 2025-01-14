@@ -72,6 +72,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Subscription withTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|Subscription withoutTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|Subscription with($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductAllocation> $product_allocations
  * @mixin \Eloquent
  */
 class Subscription extends BaseModel
@@ -163,6 +164,11 @@ class Subscription extends BaseModel
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class)->withTrashed();
+    }
+
+    public function product_allocations()
+    {
+        return $this->hasMany(ProductAllocation::class)->withTrashed();
     }
 
     public function group_settings()

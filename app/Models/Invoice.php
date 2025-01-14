@@ -134,6 +134,7 @@ use App\Utils\Number;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\InvoiceInvitation> $invitations
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Payment> $payments
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Task> $tasks
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductAllocation> $product_allocations
  * @property object|null $tax_data
  * @mixin \Eloquent
  */
@@ -248,7 +249,7 @@ class Invoice extends BaseModel
 
         return [
             'id' => $this->id,
-            'name' => ctrans('texts.invoice') . " " . $this->number . " | " . $this->client->present()->name() .  ' | ' . Number::formatMoney($this->amount, $this->company) . ' | ' . $this->translateDate($this->date, $this->company->date_format(), $locale),
+            'name' => ctrans('texts.invoice') . " " . $this->number . " | " . $this->client->present()->name() . ' | ' . Number::formatMoney($this->amount, $this->company) . ' | ' . $this->translateDate($this->date, $this->company->date_format(), $locale),
             'hashed_id' => $this->hashed_id,
             'number' => $this->number,
             'is_deleted' => $this->is_deleted,
@@ -256,12 +257,12 @@ class Invoice extends BaseModel
             'balance' => (float) $this->balance,
             'due_date' => $this->due_date,
             'date' => $this->date,
-            'custom_value1' => (string)$this->custom_value1,
-            'custom_value2' => (string)$this->custom_value2,
-            'custom_value3' => (string)$this->custom_value3,
-            'custom_value4' => (string)$this->custom_value4,
+            'custom_value1' => (string) $this->custom_value1,
+            'custom_value2' => (string) $this->custom_value2,
+            'custom_value3' => (string) $this->custom_value3,
+            'custom_value4' => (string) $this->custom_value4,
             'company_key' => $this->company->company_key,
-            'po_number' => (string)$this->po_number,
+            'po_number' => (string) $this->po_number,
         ];
     }
 
@@ -341,6 +342,11 @@ class Invoice extends BaseModel
     public function subscription(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Subscription::class)->withTrashed();
+    }
+
+    public function product_allocations()
+    {
+        return $this->hasMany(ProductAllocation::class)->withTrashed();
     }
 
     /**
@@ -512,23 +518,23 @@ class Invoice extends BaseModel
     {
         switch ($status) {
             case self::STATUS_DRAFT:
-                return '<h5><span class="badge badge-light">'.ctrans('texts.draft').'</span></h5>';
+                return '<h5><span class="badge badge-light">' . ctrans('texts.draft') . '</span></h5>';
             case self::STATUS_SENT:
-                return '<h5><span class="badge badge-primary">'.ctrans('texts.sent').'</span></h5>';
+                return '<h5><span class="badge badge-primary">' . ctrans('texts.sent') . '</span></h5>';
             case self::STATUS_PARTIAL:
-                return '<h5><span class="badge badge-primary">'.ctrans('texts.partial').'</span></h5>';
+                return '<h5><span class="badge badge-primary">' . ctrans('texts.partial') . '</span></h5>';
             case self::STATUS_PAID:
-                return '<h5><span class="badge badge-success">'.ctrans('texts.paid').'</span></h5>';
+                return '<h5><span class="badge badge-success">' . ctrans('texts.paid') . '</span></h5>';
             case self::STATUS_CANCELLED:
-                return '<h5><span class="badge badge-secondary">'.ctrans('texts.cancelled').'</span></h5>';
+                return '<h5><span class="badge badge-secondary">' . ctrans('texts.cancelled') . '</span></h5>';
             case self::STATUS_OVERDUE:
-                return '<h5><span class="badge badge-danger">'.ctrans('texts.overdue').'</span></h5>';
+                return '<h5><span class="badge badge-danger">' . ctrans('texts.overdue') . '</span></h5>';
             case self::STATUS_UNPAID:
-                return '<h5><span class="badge badge-warning text-white">'.ctrans('texts.unpaid').'</span></h5>';
+                return '<h5><span class="badge badge-warning text-white">' . ctrans('texts.unpaid') . '</span></h5>';
             case self::STATUS_REVERSED:
-                return '<h5><span class="badge badge-info">'.ctrans('texts.reversed').'</span></h5>';
+                return '<h5><span class="badge badge-info">' . ctrans('texts.reversed') . '</span></h5>';
             default:
-                return '<h5><span class="badge badge-primary">'.ctrans('texts.sent').'</span></h5>';
+                return '<h5><span class="badge badge-primary">' . ctrans('texts.sent') . '</span></h5>';
 
         }
     }
@@ -562,7 +568,7 @@ class Invoice extends BaseModel
      *
      * @return InvoiceSumInclusive | InvoiceSum The invoice calculator object getters
      */
-    public function calc(): InvoiceSumInclusive | InvoiceSum
+    public function calc(): InvoiceSumInclusive|InvoiceSum
     {
         $invoice_calc = null;
 
@@ -578,7 +584,7 @@ class Invoice extends BaseModel
     public function markInvitationsSent()
     {
         $this->invitations->each(function ($invitation) {
-            if (! isset($invitation->sent_date)) {
+            if (!isset($invitation->sent_date)) {
                 $invitation->load('invoice');
                 $invitation->sent_date = Carbon::now();
                 $invitation->save();
@@ -639,7 +645,7 @@ class Invoice extends BaseModel
 
     public function entityEmailEvent($invitation, $reminder_template, $template = '')
     {
-        
+
         switch ($reminder_template) {
             case 'invoice':
                 event(new InvoiceWasEmailed($invitation, $invitation->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), $reminder_template));
@@ -695,9 +701,9 @@ class Invoice extends BaseModel
         }
 
         return Expense::query()->whereIn('id', $this->transformKeys($expense_ids))
-                           ->where('invoice_documents', 1)
-                           ->where('company_id', $this->company_id)
-                           ->cursor();
+            ->where('invoice_documents', 1)
+            ->where('company_id', $this->company_id)
+            ->cursor();
     }
 
     public function task_documents()
@@ -713,11 +719,11 @@ class Invoice extends BaseModel
         }
 
         return Task::query()->whereIn('id', $this->transformKeys($task_ids))
-                           ->whereHas('company', function ($query) {
-                               $query->where('invoice_task_documents', 1);
-                           })
-                           ->where('company_id', $this->company_id)
-                           ->cursor();
+            ->whereHas('company', function ($query) {
+                $query->where('invoice_task_documents', 1);
+            })
+            ->where('company_id', $this->company_id)
+            ->cursor();
     }
 
     public function translate_entity()
@@ -727,9 +733,9 @@ class Invoice extends BaseModel
 
     public function taxTypeString($id): string
     {
-        $tax_type  = '';
+        $tax_type = '';
 
-        match(intval($id)) {
+        match (intval($id)) {
             Product::PRODUCT_TYPE_PHYSICAL => $tax_type = ctrans('texts.physical_goods'),
             Product::PRODUCT_TYPE_SERVICE => $tax_type = ctrans('texts.services'),
             Product::PRODUCT_TYPE_DIGITAL => $tax_type = ctrans('texts.digital_products'),
@@ -767,8 +773,8 @@ class Invoice extends BaseModel
         $reminder_schedule = '';
         $settings = $this->client->getMergedSettings();
 
-        $send_email_enabled =  ctrans('texts.send_email') . " " .ctrans('texts.enabled');
-        $send_email_disabled =  ctrans('texts.send_email') . " " .ctrans('texts.disabled');
+        $send_email_enabled = ctrans('texts.send_email') . " " . ctrans('texts.enabled');
+        $send_email_disabled = ctrans('texts.send_email') . " " . ctrans('texts.disabled');
 
         $sends_email_1 = $settings->enable_reminder1 ? $send_email_enabled : $send_email_disabled;
         $days_1 = $settings->num_days_reminder1 . " " . ctrans('texts.days');
@@ -790,25 +796,25 @@ class Invoice extends BaseModel
         $label_endless = ctrans('texts.reminder_endless');
 
         if ($schedule_1 == ctrans('texts.disabled') || $settings->schedule_reminder1 == 'disabled' || $settings->schedule_reminder1 == '') {
-            $reminder_schedule .= "{$label_1}: " . ctrans('texts.disabled') ."<br>";
+            $reminder_schedule .= "{$label_1}: " . ctrans('texts.disabled') . "<br>";
         } else {
             $reminder_schedule .= "{$label_1}: {$days_1} {$schedule_1} [{$sends_email_1}]<br>";
         }
 
         if ($schedule_2 == ctrans('texts.disabled') || $settings->schedule_reminder2 == 'disabled' || $settings->schedule_reminder2 == '') {
-            $reminder_schedule .= "{$label_2}: " . ctrans('texts.disabled') ."<br>";
+            $reminder_schedule .= "{$label_2}: " . ctrans('texts.disabled') . "<br>";
         } else {
             $reminder_schedule .= "{$label_2}: {$days_2} {$schedule_2} [{$sends_email_2}]<br>";
         }
 
         if ($schedule_3 == ctrans('texts.disabled') || $settings->schedule_reminder3 == 'disabled' || $settings->schedule_reminder3 == '') {
-            $reminder_schedule .= "{$label_3}: " . ctrans('texts.disabled') ."<br>";
+            $reminder_schedule .= "{$label_3}: " . ctrans('texts.disabled') . "<br>";
         } else {
             $reminder_schedule .= "{$label_3}: {$days_3} {$schedule_3} [{$sends_email_3}]<br>";
         }
 
         if ($sends_email_endless == ctrans('texts.disabled') || $settings->endless_reminder_frequency_id == '0' || $settings->endless_reminder_frequency_id == '') {
-            $reminder_schedule .= "{$label_endless}: " . ctrans('texts.disabled') ."<br>";
+            $reminder_schedule .= "{$label_endless}: " . ctrans('texts.disabled') . "<br>";
         } else {
             $reminder_schedule .= "{$label_endless}: {$days_endless} [{$sends_email_endless}]<br>";
         }

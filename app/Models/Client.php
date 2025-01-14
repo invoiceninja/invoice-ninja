@@ -93,6 +93,7 @@ use Illuminate\Contracts\Translation\HasLocalePreference;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Expense> $expenses
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ClientGatewayToken> $gateway_tokens
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Invoice> $invoices
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductAllocation> $product_allocations
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CompanyLedger> $ledger
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Payment> $payments
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ClientContact> $primary_contact
@@ -245,7 +246,7 @@ class Client extends BaseModel implements HasLocalePreference
         $name = ctrans('texts.client') . " | " . $this->present()->name();
 
         if (strlen($this->vat_number ?? '') > 1) {
-            $name .= " | ". $this->vat_number;
+            $name .= " | " . $this->vat_number;
         }
 
         return [
@@ -334,9 +335,9 @@ class Client extends BaseModel implements HasLocalePreference
     public function gateway_token($company_gateway_id, $payment_method_id)
     {
         return $this->gateway_tokens()
-                    ->whereCompanyGatewayId($company_gateway_id)
-                    ->whereGatewayTypeId($payment_method_id)
-                    ->first();
+            ->whereCompanyGatewayId($company_gateway_id)
+            ->whereGatewayTypeId($payment_method_id)
+            ->first();
     }
 
     public function credits(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -387,6 +388,11 @@ class Client extends BaseModel implements HasLocalePreference
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class)->withTrashed();
+    }
+
+    public function product_allocations()
+    {
+        return $this->hasMany(ProductAllocation::class)->withTrashed();
     }
 
     public function quotes(): HasMany
@@ -452,7 +458,7 @@ class Client extends BaseModel implements HasLocalePreference
 
     public function locale(): string
     {
-        if (! $this->language()) {
+        if (!$this->language()) {
             return 'en';
         }
 
@@ -598,7 +604,7 @@ class Client extends BaseModel implements HasLocalePreference
                     continue;
                 }
 
-                if ($cg && is_object($cg->fees_and_limits) && ! property_exists($cg->fees_and_limits, strval(GatewayType::CREDIT_CARD))) {
+                if ($cg && is_object($cg->fees_and_limits) && !property_exists($cg->fees_and_limits, strval(GatewayType::CREDIT_CARD))) {
                     $fees_and_limits = $cg->fees_and_limits;
                     $fees_and_limits->{GatewayType::CREDIT_CARD} = new FeesAndLimits();
                     $cg->fees_and_limits = $fees_and_limits;
@@ -622,7 +628,7 @@ class Client extends BaseModel implements HasLocalePreference
             if ($pm['gateway_type_id'] == GatewayType::BACS) {
                 $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
 
-                if ($cg && ! property_exists($cg->fees_and_limits, GatewayType::BACS)) { //@phpstan-ignore-line
+                if ($cg && !property_exists($cg->fees_and_limits, GatewayType::BACS)) { //@phpstan-ignore-line
                     $fees_and_limits = $cg->fees_and_limits;
                     $fees_and_limits->{GatewayType::BACS} = new FeesAndLimits();
                     $cg->fees_and_limits = $fees_and_limits;
@@ -646,7 +652,7 @@ class Client extends BaseModel implements HasLocalePreference
             if ($pm['gateway_type_id'] == GatewayType::ACSS) {
                 $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
 
-                if ($cg && ! property_exists($cg->fees_and_limits, GatewayType::ACSS)) { //@phpstan-ignore-line
+                if ($cg && !property_exists($cg->fees_and_limits, GatewayType::ACSS)) { //@phpstan-ignore-line
                     $fees_and_limits = $cg->fees_and_limits;
                     $fees_and_limits->{GatewayType::ACSS} = new FeesAndLimits();
                     $cg->fees_and_limits = $fees_and_limits;
@@ -673,7 +679,7 @@ class Client extends BaseModel implements HasLocalePreference
                 if ($pm['gateway_type_id'] == GatewayType::BANK_TRANSFER) {
                     $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
 
-                    if ($cg && ! property_exists($cg->fees_and_limits, GatewayType::BANK_TRANSFER)) { //@phpstan-ignore-line
+                    if ($cg && !property_exists($cg->fees_and_limits, GatewayType::BANK_TRANSFER)) { //@phpstan-ignore-line
                         $fees_and_limits = $cg->fees_and_limits;
                         $fees_and_limits->{GatewayType::BANK_TRANSFER} = new FeesAndLimits();
                         $cg->fees_and_limits = $fees_and_limits;
@@ -711,7 +717,7 @@ class Client extends BaseModel implements HasLocalePreference
             }
         }
 
-        if (in_array($this->currency()->code, ['CAD','USD']) && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
+        if (in_array($this->currency()->code, ['CAD', 'USD']) && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
             // if ($this->currency()->code == 'CAD' && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
             foreach ($pms as $pm) {
                 if ($pm['gateway_type_id'] == GatewayType::ACSS) {
@@ -752,7 +758,7 @@ class Client extends BaseModel implements HasLocalePreference
                 if ($pm['gateway_type_id'] == GatewayType::BANK_TRANSFER) {
                     $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
 
-                    if ($cg && ! property_exists($cg->fees_and_limits, GatewayType::BANK_TRANSFER)) { //@phpstan-ignore-line
+                    if ($cg && !property_exists($cg->fees_and_limits, GatewayType::BANK_TRANSFER)) { //@phpstan-ignore-line
                         $fees_and_limits = $cg->fees_and_limits;
                         $fees_and_limits->{GatewayType::BANK_TRANSFER} = new FeesAndLimits();
                         $cg->fees_and_limits = $fees_and_limits;
@@ -766,7 +772,7 @@ class Client extends BaseModel implements HasLocalePreference
             }
         }
 
-        if ($this->currency()->code == 'EUR' && (in_array(GatewayType::BANK_TRANSFER, array_column($pms, 'gateway_type_id')) || in_array(GatewayType::SEPA, array_column($pms, 'gateway_type_id'))  || in_array(GatewayType::DIRECT_DEBIT, array_column($pms, 'gateway_type_id')))) {
+        if ($this->currency()->code == 'EUR' && (in_array(GatewayType::BANK_TRANSFER, array_column($pms, 'gateway_type_id')) || in_array(GatewayType::SEPA, array_column($pms, 'gateway_type_id')) || in_array(GatewayType::DIRECT_DEBIT, array_column($pms, 'gateway_type_id')))) {
             foreach ($pms as $pm) {
                 if ($pm['gateway_type_id'] == GatewayType::SEPA) {
                     $cg = CompanyGateway::query()->find($pm['company_gateway_id']);
@@ -795,7 +801,7 @@ class Client extends BaseModel implements HasLocalePreference
             }
         }
 
-        if (in_array($this->currency()->code, ['CAD','USD']) && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
+        if (in_array($this->currency()->code, ['CAD', 'USD']) && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
             // if ($this->currency()->code == 'CAD' && in_array(GatewayType::ACSS, array_column($pms, 'gateway_type_id'))) {
             foreach ($pms as $pm) {
                 if ($pm['gateway_type_id'] == GatewayType::ACSS) {
@@ -884,51 +890,51 @@ class Client extends BaseModel implements HasLocalePreference
 
     public function backup_path(): string
     {
-        return $this->company->company_key.'/'.$this->client_hash.'/backups';
+        return $this->company->company_key . '/' . $this->client_hash . '/backups';
     }
 
     public function invoice_filepath($invitation): string
     {
         $contact_key = $invitation->contact->contact_key;
 
-        return $this->company->company_key.'/'.$this->client_hash.'/'.$contact_key.'/invoices/';
+        return $this->company->company_key . '/' . $this->client_hash . '/' . $contact_key . '/invoices/';
     }
     public function e_document_filepath($invitation): string
     {
         $contact_key = $invitation->contact->contact_key;
 
-        return $this->company->company_key.'/'.$this->client_hash.'/'.$contact_key.'/e_invoice/';
+        return $this->company->company_key . '/' . $this->client_hash . '/' . $contact_key . '/e_invoice/';
     }
 
     public function quote_filepath($invitation): string
     {
         $contact_key = $invitation->contact->contact_key;
 
-        return $this->company->company_key.'/'.$this->client_hash.'/'.$contact_key.'/quotes/';
+        return $this->company->company_key . '/' . $this->client_hash . '/' . $contact_key . '/quotes/';
     }
 
     public function credit_filepath($invitation): string
     {
         $contact_key = $invitation->contact->contact_key;
 
-        return $this->company->company_key.'/'.$this->client_hash.'/'.$contact_key.'/credits/';
+        return $this->company->company_key . '/' . $this->client_hash . '/' . $contact_key . '/credits/';
     }
 
     public function recurring_invoice_filepath($invitation): string
     {
         $contact_key = $invitation->contact->contact_key;
 
-        return $this->company->company_key.'/'.$this->client_hash.'/'.$contact_key.'/recurring_invoices/';
+        return $this->company->company_key . '/' . $this->client_hash . '/' . $contact_key . '/recurring_invoices/';
     }
 
     public function company_filepath(): string
     {
-        return $this->company->company_key.'/';
+        return $this->company->company_key . '/';
     }
 
     public function document_filepath(): string
     {
-        return $this->company->company_key.'/documents/';
+        return $this->company->company_key . '/documents/';
     }
 
     public function setCompanyDefaults($data, $entity_name): array
@@ -939,13 +945,13 @@ class Client extends BaseModel implements HasLocalePreference
         $footer = &$data['footer'];
 
         if (empty($terms)) {
-            $defaults['terms'] = $this->getSetting($entity_name.'_terms');
+            $defaults['terms'] = $this->getSetting($entity_name . '_terms');
         } elseif ($terms) {
             $defaults['terms'] = $data['terms'];
         }
 
         if (empty($footer)) {
-            $defaults['footer'] = $this->getSetting($entity_name.'_footer');
+            $defaults['footer'] = $this->getSetting($entity_name . '_footer');
         } elseif ($footer) {
             $defaults['footer'] = $data['footer'];
         }
@@ -1021,7 +1027,7 @@ class Client extends BaseModel implements HasLocalePreference
 
     public function portalUrl(bool $use_react_url): string
     {
-        return $use_react_url ? config('ninja.react_url'). "/#/clients/{$this->hashed_id}" : config('ninja.app_url');
+        return $use_react_url ? config('ninja.react_url') . "/#/clients/{$this->hashed_id}" : config('ninja.app_url');
     }
 
     /**
@@ -1035,30 +1041,30 @@ class Client extends BaseModel implements HasLocalePreference
     {
         return $this->getSetting('e_invoice_type') == 'PEPPOL' && $this->company->peppolSendingEnabled() && is_null($this->checkDeliveryNetwork());
     }
-    
+
     /**
      * checkDeliveryNetwork
      *
      * Checks whether the client country is supported
      * for sending over the PEPPOL network.
-     * 
+     *
      * @return string|null
      */
     public function checkDeliveryNetwork(): ?string
     {
 
-        if(!isset($this->country->iso_3166_2))
+        if (!isset($this->country->iso_3166_2))
             return "Client has no country set!";
-        
+
         $br = new \App\DataMapper\Tax\BaseRule();
 
         $government_countries = array_merge($br->peppol_business_countries, $br->peppol_government_countries);
 
-        if(in_array($this->country->iso_3166_2, $government_countries) && $this->classification == 'government'){
+        if (in_array($this->country->iso_3166_2, $government_countries) && $this->classification == 'government') {
             return null;
         }
 
-        if(in_array($this->country->iso_3166_2, $br->peppol_business_countries))
+        if (in_array($this->country->iso_3166_2, $br->peppol_business_countries))
             return null;
 
         return "Country {$this->country->full_name} ( {$this->country->iso_3166_2} ) is not supported by the PEPPOL network for e-delivery.";

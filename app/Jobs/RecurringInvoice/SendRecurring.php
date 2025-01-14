@@ -11,6 +11,7 @@
 
 namespace App\Jobs\RecurringInvoice;
 
+use App\Models\ProductAllocation;
 use Carbon\Carbon;
 use App\Utils\Ninja;
 use App\Models\Invoice;
@@ -62,10 +63,21 @@ class SendRecurring implements ShouldQueue
         // Generate Standard Invoice
         $invoice = RecurringInvoiceToInvoiceFactory::create($this->recurring_invoice, $this->recurring_invoice->client);
 
+        // populate with outstanding, not already invoiced product allocations
+        $product_allocations = $this->recurring_invoice->product_allocations()->withTrashed()
+            ->whereNull('invoice_id')
+            ->where('should_be_invoiced')
+            ->where('is_deleted', 0)
+            ->all()->toArray();
+        if (count($product_allocations) > 0) {
+            $invoice = $invoice->service()
+                ->applyProductAllocations($product_allocations);
+        }
+
         $date = date('Y-m-d'); //@todo this will always pull UTC date.
         $invoice->date = $date;
 
-        nlog("Recurring Invoice Date Set on Invoice = {$invoice->date} - ". now()->format('Y-m-d'));
+        nlog("Recurring Invoice Date Set on Invoice = {$invoice->date} - " . now()->format('Y-m-d'));
 
         $invoice->due_date = $this->recurring_invoice->calculateDueDate($date);
         $invoice->recurring_id = $this->recurring_invoice->id;
@@ -73,15 +85,15 @@ class SendRecurring implements ShouldQueue
 
         if ($invoice->client->getSetting('auto_email_invoice')) {
             $invoice = $invoice->service()
-                               ->markSent()
-                               ->applyNumber()
-                               ->fillDefaults(true)
-                               ->adjustInventory()
-                               ->save();
+                ->markSent()
+                ->applyNumber()
+                ->fillDefaults(true)
+                ->adjustInventory()
+                ->save();
         } else {
             $invoice = $invoice->service()
-                               ->fillDefaults(true)
-                               ->save();
+                ->fillDefaults(true)
+                ->save();
         }
 
         if ($this->recurring_invoice->auto_bill == 'always') {
@@ -153,7 +165,7 @@ class SendRecurring implements ShouldQueue
         }
 
         $invoice->invitations->each(function ($invitation) use ($invoice) {
-            if ($invitation->contact && ! $invitation->contact->trashed() && strlen($invitation->contact->email) >= 1 && $invoice->client->getSetting('auto_email_invoice')) {
+            if ($invitation->contact && !$invitation->contact->trashed() && strlen($invitation->contact->email) >= 1 && $invoice->client->getSetting('auto_email_invoice')) {
                 try {
                     EmailEntity::dispatch($invitation->withoutRelations(), $invoice->company->db, 'invoice')->delay(rand(1, 2));
                 } catch (\Exception $e) {
@@ -198,7 +210,7 @@ class SendRecurring implements ShouldQueue
         $job_failure->string_metric6 = $exception->getMessage();
 
         LightLogs::create($job_failure)
-                 ->send();
+            ->send();
 
         nlog($exception->getMessage());
     }

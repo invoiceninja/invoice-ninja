@@ -14,7 +14,6 @@ namespace App\Repositories;
 use App\DataMapper\InvoiceItem;
 use App\Factory\InvoiceFactory;
 use App\Models\Product;
-use App\Models\Project;
 
 /**
  * Class for project repository.
@@ -31,37 +30,35 @@ class ProjectRepository extends BaseRepository
 
         $lines = [];
 
-        foreach($projects as $project) {
+        foreach ($projects as $project) {
             $project->tasks()
-                    ->withTrashed()
-                    ->whereNull('invoice_id')
-                    ->where('is_deleted', 0)
-                    ->cursor()
-                    ->each(function ($task, $key) use (&$lines) {
+                ->withTrashed()
+                ->whereNull('invoice_id')
+                ->where('is_deleted', 0)
+                ->cursor()
+                ->each(function ($task, $key) use (&$lines) {
 
-                        if (!$task->isRunning())
-                        { 
-                            if ($key == 0 && $task->company->invoice_task_project) {
-                                $body = '<div class="project-header">'.$task->project->name.'</div>' .$task->project?->public_notes ?? ''; //@phpstan-ignore-line
-                                $body .= '<div class="task-time-details">'.$task->description().'</div>';
-                            }
-                            else {
-                                $body = '<div class="task-time-details">'.$task->description().'</div>';
-                            }
-
-                            $item = new InvoiceItem();
-                            $item->quantity = $task->getQuantity();
-                            $item->cost = $task->getRate();
-                            $item->product_key = '';
-                            $item->notes = $body;
-                            $item->task_id = $task->hashed_id;
-                            $item->tax_id = (string) Product::PRODUCT_TYPE_SERVICE;
-                            $item->type_id = '2';
-
-                            $lines[] = $item;
+                    if (!$task->isRunning()) {
+                        if ($key == 0 && $task->company->invoice_task_project) {
+                            $body = '<div class="project-header">' . $task->project->name . '</div>' . $task->project?->public_notes ?? '';
+                            $body .= '<div class="task-time-details">' . $task->description() . '</div>';
+                        } else {
+                            $body = '<div class="task-time-details">' . $task->description() . '</div>';
                         }
-                        
-                    });
+
+                        $item = new InvoiceItem();
+                        $item->quantity = $task->getQuantity();
+                        $item->cost = $task->getRate();
+                        $item->product_key = '';
+                        $item->notes = $body;
+                        $item->task_id = $task->hashed_id;
+                        $item->tax_id = (string) Product::PRODUCT_TYPE_SERVICE;
+                        $item->type_id = '2';
+
+                        $lines[] = $item;
+                    }
+
+                });
 
             $project->expenses()
                 ->withTrashed()
@@ -89,11 +86,31 @@ class ProjectRepository extends BaseRepository
                     $lines[] = $item;
                 });
 
+            $project->product_allocations()
+                ->withTrashed()
+                ->whereNull('invoice_id')
+                ->where('should_be_invoiced', true)
+                ->where('is_deleted', 0)
+                ->cursor()
+                ->each(function ($productAllocation) use (&$lines) {
+
+                    $item = new InvoiceItem();
+                    $item->quantity = $productAllocation->quantity;
+                    $item->cost = $productAllocation->product()->cost;
+                    $item->product_key = $productAllocation->product()->product_key;
+                    $item->notes = $productAllocation->public_notes ?? '';
+                    $item->line_total = round($item->cost * $item->quantity, 2);
+                    $item->product_allocation_ids = [$productAllocation->id];
+                    $item->type_id = '1';
+
+                    $lines[] = $item;
+                });
+
         }
 
         $invoice->uses_inclusive_taxes = $project->company->settings->inclusive_taxes ?? false;
         $invoice->line_items = $lines;
-        
+
         return $invoice;
 
     }
