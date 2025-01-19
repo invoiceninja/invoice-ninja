@@ -97,7 +97,7 @@ class NinjaMailerJob implements ShouldQueue
                 $reply_to_name = $this->nmo->settings->reply_to_email;
             }
 
-            $this->nmo->mailable->replyTo($this->nmo->settings->reply_to_email, $reply_to_name);
+        $this->nmo->mailable->replyTo($this->nmo->settings->reply_to_email, $reply_to_name);
         } elseif (isset($this->nmo->invitation->user)) {
             $this->nmo->mailable->replyTo($this->nmo->invitation->user->email, $this->nmo->invitation->user->present()->name());
         } else {
@@ -417,7 +417,7 @@ class NinjaMailerJob implements ShouldQueue
         $company = $this->company;
 
         $smtp_host = $company->smtp_host ?? '';
-        $smtp_port = $company->smtp_port ?? 0;
+        $smtp_port = (int)$company->smtp_port ?? 0; //@phpstan-ignore-line
         $smtp_username = $company->smtp_username ?? '';
         $smtp_password = $company->smtp_password ?? '';
         $smtp_encryption = $company->smtp_encryption ?? 'tls';
@@ -515,7 +515,7 @@ class NinjaMailerJob implements ShouldQueue
     private function checkValidSendingUser($user)
     {
         /* Always ensure the user is set on the correct account */
-        if ($user->account_id != $this->company->account_id) {
+        if (!$user ||($user->account_id != $this->company->account_id)) {
             $this->nmo->settings->email_sending_method = 'default';
             return $this->setMailDriver();
         }
@@ -535,7 +535,7 @@ class NinjaMailerJob implements ShouldQueue
         if ($sending_user == "0") {
             $user = $this->company->owner();
         } else {
-            $user = User::find($this->decodePrimaryKey($sending_user));
+            $user = User::withTrashed()->find($this->decodePrimaryKey($sending_user));
         }
 
         return $user;

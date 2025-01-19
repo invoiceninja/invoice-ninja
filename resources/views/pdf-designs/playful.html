@@ -37,8 +37,8 @@
     }
 
     .header-wrapper {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
         gap: 20px;
         padding: 1rem 0rem 0rem 2rem;
     }
@@ -61,6 +61,7 @@
         width: 100%;
         color: white;
         text-align: left;
+        line-height: 1.2;
     }
 
     .header-wrapper #entity-details > tr,
@@ -171,18 +172,17 @@
         color: white;
     }
 
-    [data-ref="table"] > thead tr > th:last-child {
+    th.left-radius {
+        border-top-left-radius: 10px;
+    }
+
+    th.right-radius {
+        border-top-right-radius: 10px;
         text-align: right;
     }
 
-    [data-ref="table"] > thead tr > th:first-child {
-        border-top-left-radius: 10px;
-        border-bottom-left-radius: 10px;
-    }
-
-    [data-ref="table"] > thead tr > th:last-child {
-        border-top-right-radius: 10px;
-        border-bottom-right-radius: 10px;
+    td.right-radius {
+        text-align: right;
     }
 
     [data-ref="table"] > tbody > tr > td {
@@ -191,11 +191,11 @@
         padding: 1rem;
     }
 
-    [data-ref="table"] > tbody > tr > td:first-child {
+    [data-ref="table"] > tbody > tr > td.left-radius {
         color: var(--primary-color);
     }
 
-    [data-ref="table"] > tbody > tr > td:last-child {
+    [data-ref="table"] > tbody > tr > td.right-radius {
         text-align: right;
     }
 
@@ -266,7 +266,7 @@
     [data-ref="total_table-footer"] {
         text-align: left;
         padding-left: 2rem;
-        padding-right: rem;
+        padding-right: 2rem;
     }
 
     #footer {
@@ -382,6 +382,10 @@
     .pqrcode {
         
     }
+
+    #qr-bill{
+        width:100% !important;
+    }
     
     /** Useful snippets, uncomment to enable. **/
 
@@ -458,8 +462,8 @@
             <div id="statement-invoice-table-totals" data-ref="statement-totals"></div>
             <table id="statement-payment-table" cellspacing="0" data-ref="table"></table>
             <div id="statement-payment-table-totals" data-ref="statement-totals"></div>
-                            <table id="statement-credit-table" cellspacing="0" data-ref="table"></table>
-                            <div id="statement-credit-table-totals" data-ref="statement-totals"></div>
+            <table id="statement-credit-table" cellspacing="0" data-ref="table"></table>
+            <div id="statement-credit-table-totals" data-ref="statement-totals"></div>
             <table id="statement-aging-table" cellspacing="0" data-ref="table"></table>
             <div id="statement-aging-table-totals" data-ref="statement-totals"></div>
             <div id="table-totals" cellspacing="0">$status_logo</div>      
@@ -491,7 +495,7 @@
 $entity_images
 
 <div class="repeating-footerx"  id="footer">
-    <p data-ref="total_table-footer">$entity_footer</p>
+    <div data-ref="total_table-footer">$entity_footer</div>
 
     <div id="footer-colors">
         <div style="background-color: #00968B"><!-- 1 --></div>
@@ -504,23 +508,4 @@ $entity_images
         <div style="background-color: #009B8F"><!-- 8 --></div>
     </div>
 
-        <script>
-            // Clear up space a bit, if [product-table, tasks-table, delivery-note-table] isn't present.
-            document.addEventListener('DOMContentLoaded', () => {
-                let tables = [
-                    'product-table', 'task-table', 'delivery-note-table',
-                    'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-                    'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
-                    'client-details', 'vendor-details', 'swiss-qr', 'shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
-                ];
-
-                tables.forEach((tableIdentifier) => {
-                    console.log(document.getElementById(tableIdentifier));
-
-                    document.getElementById(tableIdentifier)?.childElementCount === 0
-                        ? document.getElementById(tableIdentifier).style.setProperty('display', 'none', 'important')
-                        : '';
-                });
-            });
-        </script>
 </div>

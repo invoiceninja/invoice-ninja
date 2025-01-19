@@ -120,7 +120,7 @@ class Purchase extends Component
     #[Computed()]
     public function subscription()
     {
-        return Subscription::find($this->decodePrimaryKey($this->subscription_id))->withoutRelations()->makeHidden(['webhook_configuration','steps']);
+        return Subscription::find($this->decodePrimaryKey($this->subscription_id))?->withoutRelations()?->makeHidden(['webhook_configuration','steps']);
     }
 
     public static function defaultSteps()
@@ -139,11 +139,21 @@ class Purchase extends Component
 
         $sub = Subscription::find($this->decodePrimaryKey($this->subscription_id));
 
+
+        if(!$sub){
+
+
+            session()->flash('title', __('texts.subscription_unavailable'));
+            session()->flash('notification', '');
+
+            return redirect()->route('client.error');
+
+        }
+        
         if ($sub->steps) {
             $steps = collect(explode(',', $sub->steps))
                 ->map(fn ($step) => $classes[$step])
                 ->toArray();
-
             $this->steps = [
                 Setup::class,
                 ...$steps,

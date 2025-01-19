@@ -311,9 +311,25 @@ class Task extends BaseModel
         return round(($this->calcDuration() / 3600), 2);
     }
 
+    public function logDuration(int $start_time, int $end_time)
+    {
+        return max(round(($end_time - $start_time) / 3600, 2), 0);
+    }
+
     public function taskValue(): float
     {
         return round(($this->calcDuration() / 3600) * $this->getRate(), 2);
+    }
+
+    public function isRunning(): bool
+    {
+
+        $log = json_decode($this->time_log, true);
+
+        $last = end($log);
+
+        return  (is_array($last) && $last[1] === 0);
+
     }
 
     public function processLogs()
@@ -354,7 +370,7 @@ class Task extends BaseModel
 
                 $parts = [];
 
-                $parts[] = '<div class="task-time-details">';
+                // $parts[] = '<div class="task-time-details">';
 
                 $date_time = [];
 
@@ -374,7 +390,7 @@ class Task extends BaseModel
                 }
 
                 if ($this->company->invoice_task_hours) {
-                    $date_time[] = "{$this->getQuantity()} {$hours}";
+                    $date_time[] = "{$this->logDuration($log[0], $log[1])} {$hours}";
                 }
 
                 $parts[] = implode(" • ", $date_time);
@@ -383,17 +399,13 @@ class Task extends BaseModel
                     $parts[] = $interval_description;
                 }
 
-                $parts[] = '</div>';
+                // $parts[] = '</div>';
 
                 return implode(PHP_EOL, $parts);
             })
             ->implode(PHP_EOL);
 
         $body = '';
-
-        if ($this->company->invoice_task_project && $this->project) {
-            $body = "## {$this->project->name}  \n";
-        }
 
         if (strlen($this->description) > 1) {
             $body .= $this->description. " ";

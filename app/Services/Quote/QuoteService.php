@@ -86,9 +86,7 @@ class QuoteService
 
     public function sendEmail($contact = null, $email_type = 'quote'): self
     {
-        $send_email = new SendEmail($this->quote, $email_type, $contact);
-
-        $send_email->run();
+        (new SendEmail($this->quote, $email_type, $contact))->run();
 
         return $this;
     }

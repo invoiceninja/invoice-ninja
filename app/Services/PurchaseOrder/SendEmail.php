@@ -11,16 +11,19 @@
 
 namespace App\Services\PurchaseOrder;
 
-use App\Events\PurchaseOrder\PurchaseOrderWasEmailed;
-use App\Jobs\Mail\NinjaMailerJob;
-use App\Jobs\Mail\NinjaMailerObject;
-use App\Mail\Engine\PurchaseOrderEmailEngine;
-use App\Mail\VendorTemplateEmail;
+use App\Utils\Ninja;
 use App\Models\PurchaseOrder;
 use App\Models\VendorContact;
+use App\Services\Email\Email;
+use App\Jobs\Mail\NinjaMailerJob;
+use App\Mail\VendorTemplateEmail;
 use App\Services\AbstractService;
-use App\Utils\Ninja;
+use App\Services\Email\EmailObject;
 use Illuminate\Support\Facades\App;
+use App\Jobs\Mail\NinjaMailerObject;
+use App\Events\General\EntityWasEmailed;
+use App\Mail\Engine\PurchaseOrderEmailEngine;
+use App\Events\PurchaseOrder\PurchaseOrderWasEmailed;
 
 class SendEmail extends AbstractService
 {
@@ -34,7 +37,8 @@ class SendEmail extends AbstractService
     public function run()
     {
         $this->purchase_order->last_sent_date = now();
-
+        $this->purchase_order->save();
+        
         $this->purchase_order->invitations->load('contact.vendor.country', 'purchase_order.vendor.country', 'purchase_order.company')->each(function ($invitation) {
 
             App::forgetInstance('translator');
@@ -47,23 +51,24 @@ class SendEmail extends AbstractService
 
             $template = 'purchase_order';
 
-            $email_builder = (new PurchaseOrderEmailEngine($invitation, $template, null))->build();
+            $mo = new EmailObject();
+            $mo->entity_id = $invitation->purchase_order_id;
+            $mo->template = 'email_template_purchase_order';
+            $mo->email_template_body = 'email_template_purchase_order';
+            $mo->email_template_subject = 'email_subject_purchase_order';
 
-            $nmo = new NinjaMailerObject();
-            $nmo->mailable = new VendorTemplateEmail($email_builder, $invitation->contact, $invitation);
-            $nmo->company = $this->purchase_order->company;
-            $nmo->settings = $this->purchase_order->company->settings;
-            $nmo->to_user = $invitation->contact;
-            $nmo->entity_string = 'purchase_order';
-            $nmo->invitation = $invitation;
-            $nmo->reminder_template = 'email_template_purchase_order';
-            $nmo->entity = $invitation->purchase_order;
+            $mo->entity_class = get_class($invitation->purchase_order);
+            $mo->invitation_id = $invitation->id;
+            $mo->client_id = $invitation->vendor->client_id ?? null;
+            $mo->vendor_id = $invitation->vendor->vendor_id ?? null;
 
-            NinjaMailerJob::dispatch($nmo);
+            Email::dispatch($mo, $invitation->company);
+            $this->purchase_order->entityEmailEvent($invitation, $template, $template);
+
         });
 
         if ($this->purchase_order->invitations->count() >= 1) {
-            event(new PurchaseOrderWasEmailed($this->purchase_order->invitations->first(), $this->purchase_order->invitations->first()->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null)));
+            event(new EntityWasEmailed($this->purchase_order->invitations->first(), $this->purchase_order->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), 'purchase_order'));
         }
 
     }

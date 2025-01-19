@@ -329,7 +329,7 @@ class TaskRepository extends BaseRepository
             $task = $this->stop($task);
         }
 
-        return $task;
+        return $task->fresh();
     }
 
     private function init(Task $task): self

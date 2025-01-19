@@ -124,6 +124,7 @@ class CompanyImport implements ShouldQueue
         'tax_rates',
         'expense_categories',
         'task_statuses',
+        'group_settings',
         'clients',
         'client_contacts',
         'vendors',
@@ -132,7 +133,6 @@ class CompanyImport implements ShouldQueue
         'products',
         'company_gateways',
         'client_gateway_tokens',
-        'group_settings',
         'subscriptions',
         'recurring_invoices',
         'recurring_invoice_invitations',
@@ -781,7 +781,7 @@ class CompanyImport implements ShouldQueue
         $this->genericImport(
             Client::class,
             ['user_id', 'assigned_user_id', 'company_id', 'id', 'hashed_id', 'gateway_tokens', 'contacts', 'documents', 'country', 'sync'],
-            [['users' => 'user_id'], ['users' => 'assigned_user_id']],
+            [['users' => 'user_id'], ['users' => 'assigned_user_id'],['group_settings' => 'group_settings_id']],
             'clients',
             'number'
         );
@@ -1852,7 +1852,7 @@ class CompanyImport implements ShouldQueue
         if (! array_key_exists($resource, $this->ids)) {
 
             $this->sendImportMail("The Import failed due to missing data in the import file. Resource {$resource} not available.");
-
+            // nlog($resource);
             throw new \Exception("Resource {$resource} not available.");
         }
 
@@ -1869,6 +1869,9 @@ class CompanyImport implements ShouldQueue
             throw new \Exception("Missing {$resource} key: {$old}");
         }
 
+        // if($resource == 'vendors'){
+        //     nlog($this->ids[$resource]);
+        // }
         return $this->ids[$resource]["{$old}"];
     }
 

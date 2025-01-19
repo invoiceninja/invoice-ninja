@@ -25,7 +25,7 @@ class StorecoveRouter
         ],
         "CA" => ["B","CA:CBN",false,"CA:CBN"],
         "MX" => ["B","MX:RFC",false,"MX:RFC"],
-        "AU" => ["B+G","AU:ABN",false,"AU:ABN"],
+        "AU" => ["B+G","AU:ABN","AU:ABN","AU:ABN"],
         "NZ" => ["B+G","GLN","NZ:GST","GLN"],
         "CH" => ["B+G","CH:UIDB","CH:VAT","CH:UIDB"],
         "IS" => ["B+G","IS:KTNR","IS:VAT","IS:KTNR"],
@@ -125,6 +125,11 @@ class StorecoveRouter
             default => $code = "B",
         };
 
+        //DE we can route via Steurnummer? double check with storecove @blocked
+        if ($country == "DE" && $classification == 'individual') {
+            return 'DE:STNR';
+        }
+
         //France determine routing scheme
         if ($this->invoice && $country == 'FR') {
 
@@ -136,11 +141,6 @@ class StorecoveRouter
                 return '0009:11000201100044';
             }
 
-        }
-
-        //DE we can route via Steurnummer? double check with storecove @blocked
-        if ($country == "DE" && $classification == 'individual') {
-            return 'DE:STNR';
         }
 
         //Single array
@@ -183,6 +183,16 @@ class StorecoveRouter
             "individual" => $code = "C",
             default => $code = "B",
         };
+
+        //France determine routing scheme
+        if ($this->invoice && $country == 'FR' && $code == 'G') {
+            return '0009:11000201100044';
+        }
+
+        //DE we can route via Steurnummer? double check with storecove @blocked
+        if ($country == "DE" && $classification == 'individual') {
+            return 'DE:STNR';
+        }
 
         //single array
         if (is_array($rules) && !is_array($rules[0])) {

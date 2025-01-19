@@ -507,6 +507,8 @@ class CompanySettings extends BaseSettings
 
     public int $task_round_to_nearest = 1;
 
+    public bool $merge_e_invoice_to_pdf = false;
+
     /** quote reminders */
     public $email_quote_template_reminder1 = '';
     public $email_quote_subject_reminder1 = '';
@@ -522,6 +524,7 @@ class CompanySettings extends BaseSettings
     public string $email_template_payment_failed = '';
 
     public static $casts = [
+        'merge_e_invoice_to_pdf'             => 'bool',
         'payment_flow'                       => 'string',
         'enable_quote_reminder1'             => 'bool',
         'quote_num_days_reminder1'           => 'int',

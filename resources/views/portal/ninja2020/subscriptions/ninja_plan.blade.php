@@ -56,7 +56,7 @@ input:checked ~ .dot {
                 Pro Plan
               </h3>
               <p class="text-5xl font-bold text-center text-white">
-                $10
+                $12
               </p>
               <p class="text-xs text-center uppercase text-white">
                 monthly
@@ -64,7 +64,7 @@ input:checked ~ .dot {
 
               <div class="py-2 text-sm my-3 text-white">Unlimited clients, invoices, quotes, recurring invoices</div>
               <hr>
-              <div class="py-2 text-sm my-3 text-white">10 professional invoice & quote template designs</div>
+              <div class="py-2 text-sm my-3 text-white">11 Professional invoice & quote template designs</div>
               <hr>
               <div class="py-2 text-sm my-3 text-white">Remove "Created by Invoice Ninja" from invoices</div>
               <hr>
@@ -139,7 +139,7 @@ input:checked ~ .dot {
                 Pro Plan
               </h3>
               <p class="text-5xl font-bold text-center text-white">
-                $100
+                $120
               </p>
               <p class="text-xs text-center uppercase text-white">
                 yearly
@@ -147,7 +147,7 @@ input:checked ~ .dot {
 
               <div class="py-2 text-sm my-3 text-white">Unlimited clients, invoices, quotes, recurring invoices</div>
               <hr>
-              <div class="py-2 text-sm my-3 text-white">10 professional invoice & quote template designs</div>
+              <div class="py-2 text-sm my-3 text-white">11 Professional invoice & quote template designs</div>
               <hr>
               <div class="py-2 text-sm my-3 text-white">Remove "Created by Invoice Ninja" from invoices</div>
               <hr>
@@ -191,6 +191,8 @@ input:checked ~ .dot {
               <div class="py-2 text-sm my-3 text-white">Branded client portal: "https://billing.yourcompany.com"</div>
               <hr>
               <div class="py-2 text-sm my-3 text-white">Priority support</div>
+              <hr>
+              <div class="py-2 text-sm my-3 text-white">Integrate Your Frinancial Accounts and Sync Banking Transactions via Yodlee or Nodigen Banking Platforms</div>
               <hr>
               <div class="py-2 text-sm my-3 text-white">+ Much more!</div>
 

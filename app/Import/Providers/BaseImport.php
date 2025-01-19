@@ -501,8 +501,6 @@ class BaseImport
 
         $tasks = $this->groupTasks($tasks, $task_number_key);
 
-        nlog($tasks);
-
         foreach ($tasks as $raw_task) {
             $task_data = [];
 
@@ -964,9 +962,15 @@ class BaseImport
 
             $diff = array_diff($key_keys, $row_keys);
 
-            if (!empty($diff)) {
+            if (count($key_keys) > count($row_keys)) {
+                // Truncate key_keys to match the length of row_keys
+                $key_keys = array_slice($key_keys, 0, count($row_keys));
+                // Rebuild the $keys array with only the kept columns
+                $keys = array_intersect_key($keys, array_flip($key_keys));
+            }else if (!empty($diff)) {
                 return false;
             }
+
             /** 12-04-2024 If we do not have matching keys - then this row import is _not_ valid */
 
             return array_combine($keys, array_intersect_key($row, $keys));

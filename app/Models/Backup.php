@@ -73,7 +73,7 @@ class Backup extends BaseModel
         $filename = now()->format('Y_m_d').'_'.md5(time()).'.html'; //@phpstan-ignore-line
         $file_path = $path.$filename;
 
-        $disk = Ninja::isHosted() ? config('filesystems.backup') : config('filesystems.default');
+        $disk = Ninja::isHosted() ? 'backup' : config('filesystems.default');
 
         Storage::disk($disk)->put($file_path, $html);
 

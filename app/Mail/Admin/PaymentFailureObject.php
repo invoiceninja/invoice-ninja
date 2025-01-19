@@ -54,6 +54,20 @@ class PaymentFailureObject
         $mail_obj->tag = $this->company->company_key;
         $mail_obj->text_view = 'email.template.text';
 
+
+        $bccs = $this->client->getSetting('bcc_email');
+
+        if (strlen($bccs) > 1) {
+            if (\App\Utils\Ninja::isHosted() && $this->company->account->isPaid()) {
+                $mail_obj->bcc = explode(',', str_replace(' ', '', $bccs));
+            } 
+            
+            if(Ninja::isSelfHost()){
+                $mail_obj->bcc = explode(',', str_replace(' ', '', $bccs));
+            }
+        }
+
+
         return $mail_obj;
     }
 

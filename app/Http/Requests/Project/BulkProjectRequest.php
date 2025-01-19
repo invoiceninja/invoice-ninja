@@ -12,9 +12,12 @@
 namespace App\Http\Requests\Project;
 
 use App\Http\Requests\Request;
+use App\Utils\Traits\MakesHash;
 
 class BulkProjectRequest extends Request
 {
+    use MakesHash;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -35,7 +38,21 @@ class BulkProjectRequest extends Request
 
         return [
             'action' => 'required|string',
-            'ids' => 'required|array',
+            // 'ids' => 'required|array',
+            'ids' => ['required', 'array', function($attribute, $value, $fail) {
+                $projects = \App\Models\Project::withTrashed()->whereIn('id', $this->transformKeys($value))->company()->get();
+
+                if($projects->isEmpty()) {
+                    return;
+                }
+
+                $clientId = $projects->first()->client_id;
+                
+                if($this->action == 'invoice' && $projects->contains('client_id', '!=', $clientId)) {
+                    $fail('All selected projects must belong to the same client.');
+                }
+
+        }],
             'template' => 'sometimes|string',
             'template_id' => 'sometimes|string',
             'send_email' => 'sometimes|bool'

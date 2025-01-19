@@ -3065,20 +3065,20 @@ paths:
                   description: "The template required"
                   type: string
                   enum:
-                    - invoice
-                    - quote
-                    - credit
-                    - payment
-                    - payment_partial
-                    - statement
-                    - reminder1
-                    - reminder2
-                    - reminder3
-                    - reminder_endless
-                    - custom1
-                    - custom2
-                    - custom3
-                    - purchase_order
+                    - email_template_invoice
+                    - email_template_quote
+                    - email_template_credit
+                    - email_template_payment
+                    - email_template_payment_partial
+                    - email_template_statement
+                    - email_template_reminder1
+                    - email_template_reminder2
+                    - email_template_reminder3
+                    - email_template_reminder_endless
+                    - email_template_custom1
+                    - email_template_custom2
+                    - email_template_custom3
+                    - email_template_purchase_order
                     - email_quote_template_reminder1
                   example: invoice
               type: object

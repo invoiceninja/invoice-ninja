@@ -62,7 +62,30 @@ trait MakesReminders
                             ->toDateString() === 
                                 ($entity_send_time === 0 ? now()->startOfDay()->toDateString() : now()->setTimezone($this->client->timezone()->name)->startOfDay()->toDateString());
                                 
+            case 'after_quote_date':
+            
+                return Carbon::parse($this->date)
+                            ->addDays((int)$num_days_reminder)
+                            ->startOfDay()
+                            ->toDateString() ===
+                                ($entity_send_time === 0 ? now()->startOfDay()->toDateString() : now()->setTimezone($this->client->timezone()->name)->startOfDay()->toDateString());
 
+            case 'after_valid_until_date':
+
+                return Carbon::parse($this->due_date)
+                            ->addDays((int)$num_days_reminder)
+                            ->startOfDay()
+                            ->toDateString() ===
+                                ($entity_send_time === 0 ? now()->startOfDay()->toDateString() : now()->setTimezone($this->client->timezone()->name)->startOfDay()->toDateString());
+            
+            case 'before_valid_until_date':
+
+                return Carbon::parse($this->due_date)
+                            ->subDays((int)$num_days_reminder)
+                            ->startOfDay()
+                            ->toDateString() ===
+                                ($entity_send_time === 0 ? now()->startOfDay()->toDateString() : now()->setTimezone($this->client->timezone()->name)->startOfDay()->toDateString());
+            
             default:
                 return null;
         }

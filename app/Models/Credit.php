@@ -11,6 +11,7 @@
 
 namespace App\Models;
 
+use App\Utils\Ninja;
 use App\Utils\Number;
 use Laravel\Scout\Searchable;
 use Illuminate\Support\Carbon;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\App;
 use App\Utils\Traits\MakesReminders;
 use App\Services\Credit\CreditService;
 use App\Services\Ledger\LedgerService;
+use App\Events\Credit\CreditWasEmailed;
 use App\Utils\Traits\MakesInvoiceValues;
 use Laracasts\Presenter\PresentableTrait;
 use App\Models\Presenters\CreditPresenter;
@@ -428,6 +430,26 @@ class Credit extends BaseModel
                 return ctrans('texts.applied');
             default:
                 return ctrans('texts.sent');
+        }
+    }
+
+    /**
+     * entityEmailEvent
+     *
+     * Translates the email type into an activity + notification 
+     * that matches.
+     */
+    public function entityEmailEvent($invitation, $reminder_template)
+    {
+        
+        switch ($reminder_template) {
+            case 'credit':
+                event(new CreditWasEmailed($invitation, $invitation->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), $reminder_template));
+                break;
+            
+            default:
+                // code...
+                break;
         }
     }
 }

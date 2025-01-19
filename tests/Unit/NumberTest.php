@@ -72,6 +72,37 @@ class NumberTest extends TestCase
 
     }
 
+    public function testNumberPrecisionFormatting()
+    {
+        $data = [
+            "5.1" => "5.10",
+            "5.12345656" => "5.12345656",
+            "0.13" => "0.13",
+            "0.1" => "0.10",
+            "0.5" => "0.50",
+            "10.5" => "10.50",
+            "10100.00" => "10,100.00",
+            "10100.1" => "10,100.10",
+        ];
+
+        foreach($data as $key => $value)
+        {
+
+            $parts = explode(".", $key);
+
+            $precision_part = $parts[1];
+
+            $precision = 2;
+
+            if(strlen($precision_part) > 2)
+                $precision = strlen($precision_part);
+            
+            $formatted_value = number_format($key, $precision, ".", ",");
+
+            $this->assertEquals($value, $formatted_value);
+        }
+    }
+
     public function testThreeDecimalFloatAsTax()
     {
 

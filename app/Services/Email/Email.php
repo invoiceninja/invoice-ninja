@@ -621,7 +621,7 @@ class Email implements ShouldQueue
         $company = $this->company;
 
         $smtp_host = $company->smtp_host ?? '';
-        $smtp_port = $company->smtp_port ?? 0;
+        $smtp_port = (int)$company->smtp_port ?? 0; //@phpstan-ignore-line
         $smtp_username = $company->smtp_username ?? '';
         $smtp_password = $company->smtp_password ?? '';
         $smtp_encryption = $company->smtp_encryption ?? 'tls';
@@ -691,7 +691,7 @@ class Email implements ShouldQueue
     private function checkValidSendingUser($user)
     {
         /* Always ensure the user is set on the correct account */
-        if ($user->account_id != $this->company->account_id) {
+        if (!$user || ($user->account_id != $this->company->account_id)) {
             $this->email_object->settings->email_sending_method = 'default';
 
             return $this->setMailDriver();

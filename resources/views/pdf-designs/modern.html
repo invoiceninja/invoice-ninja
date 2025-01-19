@@ -144,22 +144,19 @@
         color: white;
       }
 
-      [data-ref="table"] > thead > tr > th:last-child {
-        text-align: right;
+      .right-radius {
+        text-align: right !important;
       }
-
+      
       [data-ref="table"] > tbody > tr > td {
         border-bottom: 1px solid var(--secondary-color);
         padding: 0.8rem;
       }
 
-      [data-ref="table"] > tbody > tr > td:first-child {
+      td.left-radius {
         font-weight: bold;
       }
-
-      [data-ref="table"] > tbody > tr > td:last-child {
-        text-align: right;
-      }
+      
 
       #footer {
           background-color: var(--primary-color);
@@ -176,31 +173,36 @@
           margin-top: 0rem;
       }
 
-      .footer-content {
+     .footer-content {
         display: flex;
-        gap: 10px;
-        width: 100%;
-        /* grid-template-columns: 1fr 1fr 1fr; */
+        width: calc(100% - 2rem);
+        margin: 0 1rem;
         color: #fff4e9;
-        max-height: 140px;
         justify-content: space-between;
-        margin-top: 0.5rem;
-        margin-left: 0.5rem;
-      }
+        align-items: flex-start;
+    }
 
-      .footer-company-details-address-wrapper {
-        display: flex;
-        gap: 0px;
-        margin-right: 60px;
-      }
+    /* Main footer text area */
+    .footer-content > div:first-child {
+        width: 50%;
+        margin-right: 2rem;
+    }
 
-      #company-address,
-      #company-details {
+    /* Company details/address wrapper */
+    .footer-company-details-address-wrapper {
+        width: 50%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    #company-details,
+    #company-address {
         display: flex;
         flex-direction: column;
-        margin-top: 0.5rem;
-        margin-bottom: 0rem;
-      }
+        gap: 0.5rem;
+    }
 
       #company-address > *,
       #company-details > * {
@@ -275,10 +277,6 @@
         margin-bottom: 0;
       }
 
-      [data-ref="product_table-product.description-th"] {
-        width: 23%;
-      }
-
       [data-ref="statement-totals"] {
           margin-top: 1rem;
           margin-bottom: 1rem;
@@ -290,11 +288,61 @@
         white-space: nowrap;
       }
 
-      [data-element='product_table-product.description-td'], td {
-        min-width:100%;
-        max-width: 300px;
-        overflow-wrap: break-word; 
-      }
+
+       [data-ref='product_table-product.description-th'] {
+        min-width: 100px !important;
+        overflow-wrap: break-word;
+    }
+
+    [data-ref='product_table-product.item-td']{
+        font-weight: bold;
+    }
+    
+    [data-ref='product_table-product.item-th']{
+        width: 10%;
+    }
+
+    [data-ref='product_table-product.unit_cost-th'],
+    [data-ref='product_table-product.quantity-th'],
+    [data-ref='product_table-product.product1-th'],
+    [data-ref='product_table-product.product2-th'],
+    [data-ref='product_table-product.product3-th'],
+    [data-ref='product_table-product.product4-th'],
+    [data-ref='task_table-task.hours-th'],
+    [data-ref='task_table-task.discount-th'],
+    [data-ref='task_table-task.cost-th'],
+    [data-ref='task_table-task.quantity-th'],
+    [data-ref='task_table-task.task1-th'],
+    [data-ref='task_table-task.task2-th'],
+    [data-ref='task_table-task.task3-th'],
+    [data-ref='task_table-task.task4-th'] {
+        width: 10%;
+    }
+
+    [data-ref='product_table-product.tax1-th'] {
+        width: 6%;
+    }
+
+    [data-ref='product_table-product.line_total-th'],
+    [data-ref='product_table-product.line_total-td'],
+    [data-ref='task_table-task.line_total-th'],
+    [data-ref='task_table-task.line_total-td'] {
+        width: 12%;
+        text-align: right;
+    }
+
+    [data-ref='task_table-task.description-th'] {
+        overflow-wrap: break-word;
+        min-width: 100px !important;
+    }
+
+    [data-ref='task_table-task.service-th']{
+        width: 10%;
+    }
+    
+    [data-ref='task_table-task.tax1-th'] {
+        width: 6%;
+    }
 
     .stamp {
       transform: rotate(12deg);
@@ -341,6 +389,10 @@
 
     .pqrcode {
         
+    }
+
+    #qr-bill{
+        width:100% !important;
     }
       /** Useful snippets, uncomment to enable. **/
 
@@ -428,29 +480,8 @@ $entity_images
 
 <div id="footer">
     <div class="footer-content">
-        <div style="width: 70%; margin-left: 2rem;">
+        <div class="footer-text">
             <p data-ref="total_table-footer">$entity_footer</p>
-
-        <script>
-            // Clear up space a bit, if [product-table, tasks-table, delivery-note-table] isn't present.
-            document.addEventListener('DOMContentLoaded', () => {
-                let tables = [
-                  'product-table', 'task-table', 'delivery-note-table',
-                  'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-                  'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
-                  'client-details', 'vendor-details', 'swiss-qr', 'shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
-                ];
-
-                tables.forEach((tableIdentifier) => {
-                    console.log(document.getElementById(tableIdentifier));
-
-                    document.getElementById(tableIdentifier)?.childElementCount === 0
-                        ? document.getElementById(tableIdentifier).style.setProperty('display', 'none', 'important')
-                        : '';
-                });
-            });
-        </script>
-            
         </div>
         <div class="footer-company-details-address-wrapper">
             <div id="company-details"></div>

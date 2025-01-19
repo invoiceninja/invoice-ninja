@@ -94,7 +94,6 @@ class PaymentFailureMailer implements ShouldQueue
                     $use_react_link = true;
                 }
 
-
                 $mail_obj = (new PaymentFailureObject($this->client, $this->error, $this->company, $this->amount, null, $use_react_link))->build();
 
                 $nmo = new NinjaMailerObject();

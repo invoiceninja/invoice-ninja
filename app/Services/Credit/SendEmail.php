@@ -16,6 +16,7 @@ use App\Models\Webhook;
 use App\Models\ClientContact;
 use App\Jobs\Entity\EmailEntity;
 use App\Events\Credit\CreditWasEmailed;
+use App\Events\General\EntityWasEmailed;
 
 class SendEmail
 {
@@ -45,11 +46,25 @@ class SendEmail
 
         $this->credit->service()->markSent()->save();
 
-        $this->credit->invitations->each(function ($invitation) {
+        $this->credit->invitations->load('contact.client.country', 'credit.client.country', 'credit.company')->each(function ($invitation)  {
+
+            $mo = new \App\Services\Email\EmailObject();
+            $mo->entity_id = $this->credit->id;
+            $mo->entity_class = \App\Models\Credit::class;
+            $mo->invitation_id = $invitation->id;
+            $mo->client_id = $invitation->contact->client_id ?? null;
+            $mo->vendor_id = $invitation->contact->vendor_id ?? null;
+            $mo->settings = $invitation->contact->client->getMergedSettings();
+            $mo->email_template_body = 'email_template_credit';
+            $mo->email_template_subject = 'email_subject_credit';
+
             if (! $invitation->contact->trashed() && $invitation->contact->email) {
-                EmailEntity::dispatch($invitation->withoutRelations(), $invitation->company->db, $this->reminder_template)->delay(2);
+                \App\Services\Email\Email::dispatch($mo, $invitation->company);
+                $this->credit->entityEmailEvent($invitation, 'credit', 'credit');
             }
         });
+
+        event(new EntityWasEmailed($this->credit->invitations->first(), $this->credit->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), 'credit'));
 
         if ($this->credit->invitations->count() >= 1) {
             event(new CreditWasEmailed($this->credit->invitations->first(), $this->credit->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), 'credit'));

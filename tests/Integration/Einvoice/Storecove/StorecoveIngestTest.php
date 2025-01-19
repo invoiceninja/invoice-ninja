@@ -73,6 +73,13 @@ class StorecoveIngestTest extends TestCase
             $this->markTestSkipped("do not run in CI");
         }
                 
+        
+        try {
+            $processor = new \Saxon\SaxonProcessor();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('saxon not installed');
+        }
+
         $this->withoutMiddleware(
             ThrottleRequests::class
         );

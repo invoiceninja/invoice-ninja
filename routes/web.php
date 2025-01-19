@@ -35,7 +35,7 @@ Route::post('password/reset', [ResetPasswordController::class, 'reset'])->middle
 
 Route::get('auth/{provider}', [LoginController::class, 'redirectToProvider']);
 
-Route::middleware('url_db')->group(function () {
+Route::middleware(['url_db', 'guest'])->group(function () {
     Route::get('/user/confirm/{confirmation_code}', [UserController::class, 'confirm']);
     Route::post('/user/confirm/{confirmation_code}', [UserController::class, 'confirmWithPassword']);
 });

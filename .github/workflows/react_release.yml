@@ -21,24 +21,11 @@ jobs:
           ref: v5-develop
           fetch-depth: 1
 
-      - name: Copy .env file
-        run: |
-          cp .env.example .env
-
       - name: Install composer dependencies
         run: |
           composer config -g github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
           composer install --no-dev
-      
-      - name: Prepare Laravel Application
-        run: |
-          cp .env.example .env
-          php artisan key:generate --force
-          php artisan optimize
-          php artisan storage:link --force
-          sudo php artisan cache:clear
-          sudo find ./vendor/bin/ -type f -exec chmod +x {} \;
-          sudo find ./ -type d -exec chmod 755 {} \;
+
       - name: Set current date to variable
         id: set_date
         run: echo "current_date=$(date '+%Y-%m-%d')" >> $GITHUB_ENV
@@ -49,6 +36,8 @@ jobs:
           cd ui
           git checkout develop
           sed -i 's/VITE_IS_TEST=true/VITE_IS_TEST=false/' .env.example
+          echo VITE_PUSHER_APP_KEY=f0111a02782708da651f >> .env.example
+
           cp .env.example .env
           cp ../vite.config.ts.react ./vite.config.js
           sed -i '/"version"/c\  "version": " Latest Build - ${{ env.current_date }}",' package.json
@@ -56,7 +45,7 @@ jobs:
           npm run build
           cp -r dist/* ../public/
           mv ../public/index.html ../resources/views/react/index.blade.php
-          
+
       - name: Prepare JS/CSS assets
         run: |
           npm i
@@ -64,16 +53,19 @@ jobs:
 
       - name: Cleanup Builds
         run: |
-          sudo rm -rf bootstrap/cache/*
-          sudo rm -rf node_modules
-          sudo rm -rf .git
-          sudo rm .env
-          sudo rm -rf ui
-          
+          rm -rf node_modules
+          rm -rf .git
+          rm .env || true
+          rm -rf ui || true
+          # Set permissions: directories 755, files 644
+          chmod -R a=r,u+w,a+X .
+
       - name: Build project
         run: |
           shopt -s dotglob
-          tar --exclude='public/storage' --exclude='./htaccess' --exclude='invoiceninja.zip' -zcvf /home/runner/work/invoiceninja/invoiceninja.tar *
+          tar --exclude='public/storage' --exclude='invoiceninja.zip' -zcvf /home/runner/work/invoiceninja/invoiceninja.tar *
+          cd ../
+          tar --exclude='public/storage' --exclude='invoiceninja.zip' -zcvf invoiceninja.tar.gz invoiceninja/
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -82,3 +74,4 @@ jobs:
         with:
           files: |
             /home/runner/work/invoiceninja/invoiceninja.tar
+            /home/runner/work/invoiceninja/invoiceninja.tar.gz

@@ -11,12 +11,14 @@
 
 namespace App\Services\Quote;
 
+use App\Utils\Ninja;
+use App\Models\Quote;
 use App\Models\Webhook;
 use App\Models\ClientContact;
 use App\Services\Email\Email;
 use App\Jobs\Entity\EmailEntity;
-use App\Models\Quote;
 use App\Services\Email\EmailObject;
+use App\Events\General\EntityWasEmailed;
 
 class SendEmail
 {
@@ -33,6 +35,8 @@ class SendEmail
 
         if(in_array($this->reminder_template, ["email_quote_template_reminder1","reminder1"]))
             $this->reminder_template = "email_quote_template_reminder1";
+        elseif(in_array($this->reminder_template, ['custom1','custom2','custom3']))
+            $this->reminder_template = "email_template_".$this->reminder_template;
         else    
             $this->reminder_template = "email_template_".$this->quote->calculateTemplate('quote');
 
@@ -55,8 +59,12 @@ class SendEmail
 
                 Email::dispatch($mo, $invitation->company);
 
+                $this->quote->entityEmailEvent($invitation, $this->reminder_template, $this->reminder_template);
+
             }
         });
+
+        event(new EntityWasEmailed($this->quote->invitations->first(), $this->quote->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null), 'quote'));
 
         $this->quote->sendEvent(Webhook::EVENT_SENT_QUOTE, "client");
 

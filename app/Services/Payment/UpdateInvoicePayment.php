@@ -160,6 +160,7 @@ class UpdateInvoicePayment
             $pivot_invoice->pivot->save();
 
             $this->payment->applied += $paid_amount;
+
         });
 
         /* Remove the event updater from within the loop to prevent race conditions */
@@ -167,6 +168,7 @@ class UpdateInvoicePayment
         $this->payment->saveQuietly();
 
         $invoices->each(function ($invoice) {
+            event('eloquent.updated: App\Models\Invoice', $invoice);
             event(new InvoiceWasUpdated($invoice, $invoice->company, Ninja::eventVars(auth()->user() ? auth()->user()->id : null)));
         });
 

@@ -77,8 +77,8 @@ class SearchController extends Controller
         $elastic = ClientBuilder::fromConfig(config('elastic.client.connections.default'));
 
         $params = [
-            'index' => 'clients,invoices,client_contacts',
-            // 'index' => 'clients,invoices,client_contacts,quotes,expenses,credits,recurring_invoices,vendors,vendor_contacts,purchase_orders',
+            // 'index' => 'clients,invoices,client_contacts',
+            'index' => 'clients,invoices,client_contacts,quotes,expenses,credits,recurring_invoices,vendors,vendor_contacts,purchase_orders',
             'body'  => [
                 'query' => [
                     'bool' => [

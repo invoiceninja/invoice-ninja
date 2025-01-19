@@ -28,6 +28,10 @@ class EInvoiceApiTest extends TestCase
     {
         parent::setUp();
 
+        if(!config('ninja.storecove_api_key')) {
+            $this->markTestSkipped('Storecove API key not set');
+        }
+
         $this->makeTestData();
 
         $this->withoutMiddleware(

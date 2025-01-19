@@ -79,6 +79,7 @@
         let restartFlow = false; // return, restart, refresh
         heading.innerHTML = "{{ ctrans('texts.nordigen_handler_error_heading_unknown', [], $lang ?? 'en') }}";
         contents.innerHTML = "{{ ctrans('texts.nordigen_handler_error_contents_unknown', [], $lang ?? 'en') }} " + failedReason;
+
         switch (failedReason) {
             // Connect Screen Errors
             case "token-invalid":

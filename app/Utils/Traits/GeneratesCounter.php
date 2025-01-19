@@ -328,7 +328,13 @@ trait GeneratesCounter
         $counter = $expense->company->settings->expense_number_counter;
         $setting_entity = $expense->company->settings->expense_number_counter;
 
-        $expense_number = $this->checkEntityNumber(Expense::class, $expense, $counter, $expense->company->settings->counter_padding, $expense->company->settings->expense_number_pattern);
+        $pattern = $expense->company->settings->expense_number_pattern;
+        
+        if (strlen($pattern) > 1 && (stripos($pattern, 'counter') === false)) {
+            $pattern = $pattern.'{$counter}';
+        }
+
+        $expense_number = $this->checkEntityNumber(Expense::class, $expense, $counter, $expense->company->settings->counter_padding, $pattern);
 
         $this->incrementCounter($expense->company, 'expense_number_counter');
 

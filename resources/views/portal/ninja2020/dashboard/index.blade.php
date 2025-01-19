@@ -11,7 +11,7 @@
 
     <div class="flex flex-col xl:flex-row gap-4">
         <div class="w-full rounded-md border border-[#E5E7EB] bg-white p-5 text-sm text-[#6C727F]">
-            <h3 class="mb-4 text-xl font-semibold text-[#212529]">{{ $contact->first_name }} {{ $contact->last_name }}</h3>
+            <h3 class="mb-4 text-xl font-semibold text-[#212529]">{{ $contact->client->present()->name() }}</h3>
             <p>{{ $contact->phone }}</p>
             <p>{{ $client->address1 }}</p>
             <p>{{ $client->city }}, {{ $client->state }}</p>
@@ -77,12 +77,14 @@
         </div>
         <div class="flex w-full xl:w-auto mt-2 xl:mt-0 items-center xl:basis-auto xl:justify-center xl:border-r xl:border-[#E5E7EB] xl:px-20">
             <div class="flex items-center">
+                @if($client->company->getLogo())
                 <div class="h-6 w-6 overflow-hidden rounded">
                     <img src="{{ $client->company->getLogo() }}" alt="company-logo" class="h-fit w-full" />
                 </div>
+                @endif
                 <div class="pl-1.5">
                     <p class="text-xs font-semibold leading-normal text-black">
-                        {{ $client->company->settings->name }}
+                        {{ $client->company->present()->name() }}
                     </p>
                 </div>
             </div>
@@ -92,7 +94,7 @@
             <p>{{ $client->company->settings->address1 }}</p>
             <p>{{ $client->company->settings->city }} {{ $client->company->settings->state }}</p>
             <p>{{ $client->company->settings->postal_code }}</p>
-            <p>{{ App\Models\Country::find($client->company->settings->country_id)?->name }}</p>
+            <p>{{ $client->company->country()->name ?? '' }}</p>
         </div>
 
         <div class="text-light-grey-text flex grow basis-full flex-col justify-center text-sm md:basis-1/2 md:pl-4 xl:basis-auto xl:px-5 space-y-2 mt-3 xl:mt-0">

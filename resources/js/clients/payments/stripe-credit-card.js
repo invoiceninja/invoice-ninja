@@ -92,7 +92,7 @@ class StripeCreditCard {
         this.stripe
             .handleCardPayment(this.secret, this.cardElement, {
                 payment_method_data: {
-                    billing_details: { name: cardHolderName.value },
+                    billing_details: { name: cardHolderName.value ?? ''},
                 },
             })
             .then((result) => {

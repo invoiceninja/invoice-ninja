@@ -326,7 +326,7 @@ class EmailDefaults
             }
         }
         /** E-Invoice xml file */
-        if ($this->email->email_object->settings->enable_e_invoice && $this->email->email_object->settings->enable_e_invoice) {
+        if ($this->email->email_object->settings->enable_e_invoice && !($this->email->email_object->settings->merge_e_invoice_to_pdf ?? false)) {
 
             $xml_string = false;
 

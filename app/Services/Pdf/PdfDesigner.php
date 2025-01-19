@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -43,6 +44,12 @@ class PdfDesigner
         } else {
             $this->template = file_get_contents(config('ninja.designs.base_path') . strtolower($this->service->config->design->name) . '.html');
         }
+
+        // Remove NULL bytes
+        $this->template = str_replace("\0", '', $this->template);
+
+        // Remove UTF-7 BOM
+        $this->template = preg_replace('/^\\+ADw-/', '', $this->template);
 
         return $this;
     }

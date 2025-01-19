@@ -8,8 +8,7 @@
     }
 
     html {
-        width: 210mm;
-        height: 200mm;     
+        
     }
 
     body {
@@ -38,21 +37,11 @@
         padding: 0;
     }
     
-    #qr-bill {
-        width:100% !important;
-        box-sizing: border-box;
-        border-collapse: collapse;
-        color: #000;
-    }
-
-    #qr-bill td {
-        max-width: none;
-    }
-
     .header-container {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 20px;
+        grid-template-columns: repeat(3, 1fr);
+        justify-content: space-between;
+        width:100%;
     }
 
     .company-logo-container {
@@ -85,16 +74,17 @@
         padding-left: 1rem;
         margin-bottom: 1rem;
         font-weight: bold;
+        font-size:120%;
         color: var(--primary-color);
     }
 
     .client-and-entity-wrapper {
-/*        display: flex;*/
         padding: 1rem;
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: repeat(3, 1fr);
         border-top: 1px solid #d8d8d8;
         border-bottom: 1px solid #d8d8d8;
+        width:100%;
     }
 
     #entity-details {
@@ -115,7 +105,6 @@
         display: flex;
         flex-direction: column;
         line-height: var(--line-height);
-        padding-right:30px;
     }
 
     #client-details > :first-child {
@@ -127,11 +116,11 @@
         flex-direction: column;
         line-height: var(--line-height);
     }
-
+    
     [data-ref="table"] {
         margin-top: 1rem;
         margin-bottom: 5px;
-        min-width: 100%;
+        width: 100%;
         table-layout: fixed;
         overflow-wrap: break-word;
     }
@@ -148,7 +137,7 @@
 
     [data-ref="table"] > thead > tr > th {
         font-size: 1.1rem;
-        padding-bottom: 1.5rem;
+        padding-bottom: 1rem;
         padding-left: 1rem;
     }
 
@@ -158,17 +147,13 @@
         padding: 1rem 1rem;
     }
 
-    [data-ref="table"] > tbody > tr > td:first-child {
-        color: var(--primary-color);
-    }
-
-    [data-ref="table"] > thead > tr > th:last-child,
-    [data-ref="table"] > tbody > tr > td:last-child {
+    th.right-radius {
+        padding-right: 1rem;
         text-align: right;
     }
 
-    [data-ref="table"] > thead > tr > th:last-child {
-        padding-right: 1rem;
+    td.right-radius {
+        text-align: right;
     }
 
     [data-ref="table"] > tbody > tr:nth-child(odd) {
@@ -269,12 +254,52 @@
         bottom: 0;
     }
 
-    [data-element='product_table-product.description-td'], td {
-        min-width:100%;
-        max-width: 300px;
-        overflow-wrap: break-word; 
+    [data-ref='product_table-product.description-th'],
+    [data-ref='product_table-product.description-td'] {
+        min-width: 150px !important;
+        overflow-wrap: break-word;
+    }
+
+    [data-ref='product_table-product.item-td']{
+        color: var(--primary-color);
     }
     
+    [data-ref='product_table-product.item-th'],
+    [data-ref='product_table-product.unit_cost-th'],
+    [data-ref='product_table-product.quantity-th'] {
+        width: 12%;
+    }
+
+    [data-ref='product_table-product.tax1-th'] {
+        width: 6%;
+    }
+
+    [data-ref='product_table-product.line_total-th'] {
+        width: 10%;
+    }
+
+    [data-ref='task_table-task.description-th'],
+    [data-ref='task_table-task.description-td'] {
+        min-width: 100px !important;
+        overflow-wrap: break-word;
+    }
+
+    [data-ref='task_table-task.hours-th'],
+    [data-ref='task_table-task.service-th'],
+    [data-ref='task_table-task.discount-th'],
+    [data-ref='task_table-task.cost-th'],
+    [data-ref='task_table-task.quantity-th'] {
+        width: 12%;
+    }
+
+    [data-ref='task_table-task.tax1-th'] {
+        width: 6%;
+    }
+
+    [data-ref='task_table-task.line_total-th'] {
+        width: 10%;
+    }
+
     .stamp {
       transform: rotate(12deg);
         color: #555;
@@ -322,7 +347,11 @@
     .pqrcode {
         
     }
-        
+    
+    #qr-bill{
+        width:100% !important;
+    }
+
     /** Useful snippets, uncomment to enable. **/
 
     /** Hide company logo **/
@@ -412,26 +441,5 @@ $entity_images
 
 <div class="repeating-footerx" id="footer">
    <p data-ref="total_table-footer">$entity_footer</p>
-
-
-        <script>
-            // Clear up space a bit, if [product-table, tasks-table, delivery-note-table] isn't present.
-            document.addEventListener('DOMContentLoaded', () => {
-                let tables = [
-                    'product-table', 'task-table', 'delivery-note-table',
-                    'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-                    'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
-                    'client-details','vendor-details', 'swiss-qr','shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
-                ];
-
-                tables.forEach((tableIdentifier) => {
-                    console.log(document.getElementById(tableIdentifier));
-
-                    document.getElementById(tableIdentifier)?.childElementCount === 0
-                        ? document.getElementById(tableIdentifier).style.setProperty('display', 'none', 'important')
-                        : '';
-                });
-            });
-        </script>
 
 </div>

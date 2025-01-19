@@ -237,9 +237,9 @@ class ExpenseExport extends BaseExport
             $entity['expense.vendor'] = $expense->vendor ? $expense->vendor->name : '';
         }
 
-        // if (in_array('expense.payment_type_id', $this->input['report_keys'])) {
-        //     $entity['expense.payment_type_id'] = $expense->payment_type ? $expense->payment_type->name : '';
-        // }
+        if (in_array('expense.payment_type_id', $this->input['report_keys'])) {
+            $entity['expense.payment_type_id'] = $expense->payment_type ? $expense->payment_type->name : '';
+        }
 
         if (in_array('expense.project_id', $this->input['report_keys'])) {
             $entity['expense.project_id'] = $expense->project ? $expense->project->name : '';

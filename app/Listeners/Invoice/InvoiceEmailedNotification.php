@@ -37,7 +37,7 @@ class InvoiceEmailedNotification implements ShouldQueue
      */
     public function handle($event)
     {
-        nlog($event->template);
+        // nlog($event->template);
 
         MultiDB::setDb($event->company->db);
 

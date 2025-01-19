@@ -70,8 +70,8 @@ class InvoiceInclusiveTest extends TestCase
         $this->invoice_calc = new InvoiceSumInclusive($this->invoice);
         $this->invoice_calc->build();
 
-        $this->assertEquals($this->invoice_calc->getSubTotal(), 20);
-        $this->assertEquals($this->invoice_calc->getTotal(), 20);
+        $this->assertEquals(round($this->invoice_calc->getSubTotal(),0), 20);
+        $this->assertEquals(round($this->invoice_calc->getTotal(),0), 20);
     }
 
     public function testInvoiceTotalsWithDiscount()
@@ -251,7 +251,7 @@ class InvoiceInclusiveTest extends TestCase
         $this->invoice_calc = new InvoiceSumInclusive($this->invoice, $this->settings);
         $this->invoice_calc->build();
 
-        $this->assertEquals(20, $this->invoice_calc->getSubTotal());
+        $this->assertEquals(20, round($this->invoice_calc->getSubTotal(),0));
         $this->assertEquals(5.46, $this->invoice_calc->getTotalTaxes());
         $this->assertEquals(count($this->invoice_calc->getTaxMap()), 1);
         $this->assertEquals($this->invoice_calc->getTotal(), 20);

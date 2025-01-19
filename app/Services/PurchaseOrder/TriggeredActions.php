@@ -11,7 +11,6 @@
 
 namespace App\Services\PurchaseOrder;
 
-use App\Jobs\PurchaseOrder\PurchaseOrderEmail;
 use App\Models\PurchaseOrder;
 use App\Services\AbstractService;
 use App\Utils\Traits\GeneratesCounter;
@@ -71,6 +70,6 @@ class TriggeredActions extends AbstractService
 
     private function sendEmail()
     {
-        PurchaseOrderEmail::dispatch($this->purchase_order, $this->purchase_order->company);
+        $this->purchase_order->service()->sendEmail();
     }
 }

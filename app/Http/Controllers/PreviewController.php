@@ -66,7 +66,7 @@ class PreviewController extends BaseController
         $entity_obj = $invitation->{$request->entity};
         $entity_obj->fill($request->all());
 
-        if (!$entity_obj->id) {
+        if (!$entity_obj->id || $request->entity == 'recurring_invoice') {
             $entity_obj->design_id = intval($this->decodePrimaryKey($settings->{$entity_prop."_design_id"}));
             $entity_obj->footer = empty($entity_obj->footer) ? $settings->{$entity_prop."_footer"} : $entity_obj->footer;
             $entity_obj->terms = empty($entity_obj->terms) ? $settings->{$entity_prop."_terms"} : $entity_obj->terms;
@@ -212,6 +212,7 @@ class PreviewController extends BaseController
                 ->build();
 
             if (request()->query('html') == 'true') {
+                
                 return $maker->getCompiledHTML();
             }
 

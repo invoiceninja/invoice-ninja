@@ -1583,13 +1583,13 @@ Ensure the default browser behavior of the `hidden` attribute.
                     <li class="mb-[5px]">Unlimited Clients & Invoices & Quotes</li>
                     <li class="mb-[5px]">Remove "Created by Invoice Ninja"</li>
                     <li class="mb-[5px]">Send Invoice Emails via Gmail or MSN Accounts</li>
-                    <li class="mb-[5px]">10 Professional Invoice & Quote Template Designs</li>
+                    <li class="mb-[5px]">11 Professional Invoice & Quote Template Designs</li>
                     <li class="mb-[5px]">Branded URL Option: "YourBrand".Invoicing.co"</li>
                     <li class="mb-[5px]">Customize Invoice Designs & Email Templates</li>
                     <li class="mb-[5px]">Create Client Subscriptions: Recurring & Auto-billing</li>
                     <li class="mb-[5px]">API Integration with 3rd Party Apps & Platforms</li>
                     <li class="mb-[5px]">Display Clients E-Signature on Invoices & Quotes</li>
-                    <li>Setup Custom Payment Auto-Reminder Emails</li>
+                    <li class="mb-[5px]">Setup Custom Payment Auto-Reminder Emails</li>
                 </ul>
                 <p class="text-primary-blue mt-[30px] font-bold text-[16px] italic relative z-10">
                     &amp; Much More!
@@ -1643,7 +1643,7 @@ Ensure the default browser behavior of the `hidden` attribute.
                               <li class="mb-[5px]">Remove "Created by Invoice Ninja"</li>
                               <li class="mb-[5px]">Email Invoices via Gmail & MSN</li>
                               <li class="mb-[5px]">Branded URL: 'YourSite".Invoicing.co'</li>
-                              <li class="mb-[5px]">10 Professional Invoice Templates</li>
+                              <li class="mb-[5px]">11 Professional Invoice Templates</li>
                               <li class="mb-[5px]">Customize Invoice Designs</li>
                               <li class="mb-[5px]">Recurring & Auto-Billing Invoices</li>
                               <li class="mb-[5px]">API Integration with 3rd Party Apps</li>
@@ -1655,7 +1655,8 @@ Ensure the default browser behavior of the `hidden` attribute.
                               <li class="mb-[5px]">Reports: Invoices, Expenses, P&L, more</li>
                               <li class="mb-[5px]">Bulk Email Invoices, Quotes, Credits</li>
                               <li class="mb-[5px]">Interlink 10 Companies with 1 Login</li>
-                              <li>Create Unique "Client Group" Settings</li>
+                              <li class="mb-[5px]">Setup Custom Payment Auto-Reminder Emails</li>
+                    
                           </ul>
                         </div>
                     </div>
@@ -1704,7 +1705,8 @@ Ensure the default browser behavior of the `hidden` attribute.
                             <ul class="list-checkmark relative z-10">
                               <li class="mb-[20px]">Create Additional Account Users (up to 30!) & Set Access Permissions per User</li>
                               <li class="mb-[20px]">Attach Files to Emails & Client-Portal (pdf, jpg, ppt, xls, doc & more)</li>
-                              <li>Fully Branded Client Portal: "Billing.YourCompany.com"</li>
+                              <li class="mb-[20px]">Fully Branded Client Portal: "Billing.YourCompany.com"</li>
+                              <li class="mb-[20px]">Integrate Your Frinancial Accounts and Sync Banking Transactions via Yodlee or Nodigen Banking Platforms</li>
                           </ul>
                         </div>
                     </div>
@@ -1737,7 +1739,7 @@ Ensure the default browser behavior of the `hidden` attribute.
                               <li class="mb-[5px]">Remove "Created by Invoice Ninja"</li>
                               <li class="mb-[5px]">Email Invoices via Gmail & MSN</li>
                               <li class="mb-[5px]">Branded URL: 'YourSite".Invoicing.co'</li>
-                              <li class="mb-[5px]">10 Professional Invoice Templates</li>
+                              <li class="mb-[5px]">11 Professional Invoice Templates</li>
                               <li class="mb-[5px]">Customize Invoice Designs</li>
                               <li class="mb-[5px]">Recurring & Auto-Billing Invoices</li>
                               <li class="mb-[5px]">API Integration with 3rd Party Apps</li>
@@ -1796,7 +1798,8 @@ Ensure the default browser behavior of the `hidden` attribute.
                             <ul class="list-checkmark relative z-10">
                               <li class="mb-[20px]">Create Additional Account Users (up to 20!) & Set Access Permissions per User</li>
                               <li class="mb-[20px]">Attach Files to Emails & Client-Portal (pdf, jpg, ppt, xls, doc & more)</li>
-                              <li>Fully Branded Client Portal: "Billing.YourCompany.com"</li>
+                              <li class="mb-[20px]">Fully Branded Client Portal: "Billing.YourCompany.com"</li>
+                              <li class="mb-[20px]">Integrate Your Frinancial Accounts and Sync Banking Transactions via Yodlee or Nodigen Banking Platforms</li>
                           </ul>
                         </div>
                     </div>
@@ -1824,8 +1827,8 @@ var elements = stripe.elements({
 
 var cardElement = elements.create('card', {
     value: {
-        postalCode: document.querySelector('input[name=postal_code]').content,
-        name: document.querySelector('input[name=first_name]').content + ' ' + document.querySelector('input[name=last_name]').content,
+        postalCode: document.querySelector('input[name=postal_code]').value,
+        name: document.querySelector('input[name=first_name]').value + ' ' + document.querySelector('input[name=last_name]').value,
     }
 });
 
@@ -1879,14 +1882,14 @@ var country_value = e.options[e.selectedIndex].value;
         stripe.handleCardSetup(this.client_secret, cardElement, {
                 payment_method_data: {
                       billing_details: {
-                        name: document.querySelector('input[name=first_name]').content + ' ' + document.querySelector('input[name=first_name]').content,
+                        name: document.querySelector('input[name=first_name]').value + ' ' + document.querySelector('input[name=last_name]').value,
                         email: '{{ $client->present()->email() }}',
                         address: {
-                          line1: document.querySelector('input[name=address1]').content,
-                          line2: document.querySelector('input[name=address2]').content,
-                          city: document.querySelector('input[name=city]').content,
-                          postal_code: document.querySelector('input[name=postal_code]').content,
-                          state: document.querySelector('input[name=state]').content,
+                          line1: document.querySelector('input[name=address1]').value,
+                          line2: document.querySelector('input[name=address2]').value,
+                          city: document.querySelector('input[name=city]').value,
+                          postal_code: document.querySelector('input[name=postal_code]').value,
+                          state: document.querySelector('input[name=state]').value,
                         }        
                 },
               }

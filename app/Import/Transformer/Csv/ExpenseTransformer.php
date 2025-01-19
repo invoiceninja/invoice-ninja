@@ -25,6 +25,7 @@ class ExpenseTransformer extends BaseTransformer
      */
     public function transform($data)
     {
+
         $clientId = isset($data['expense.client'])
             ? $this->getClientId($data['expense.client'])
             : null;

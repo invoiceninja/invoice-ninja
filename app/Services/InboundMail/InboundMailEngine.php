@@ -39,31 +39,10 @@ class InboundMailEngine
 
     private array $globalWhitelist;
 
-    public function __construct(private Company $company)
+    public function __construct(private ?Company $company = null)
     {
         $this->globalBlacklist = Ninja::isSelfHost() ? explode(",", config('ninja.inbound_mailbox.global_inbound_blocklist')) : [];
         $this->globalWhitelist = Ninja::isSelfHost() ? explode(",", config('ninja.inbound_mailbox.global_inbound_whitelist')) : [];
-    }
-
-    /**
-     * if there is not a company with an matching mailbox, we only do monitoring
-     * reuse this method to add more mail-parsing behaviors
-     */
-    public function handleExpenseMailbox(InboundMail $email)
-    {
-        if ($this->isInvalidOrBlocked($email->from, $email->to)) {
-            return;
-        }
-
-
-        // check if company plan matches requirements
-        if (Ninja::isHosted() && !($this->company->account->isPaid() && $this->company->account->plan == 'enterprise')) {
-            return;
-        }
-
-        $this->createExpenses($email);
-
-        $this->saveMeta($email->from, $email->to);
     }
 
     // SPAM Protection
@@ -163,9 +142,41 @@ class InboundMailEngine
         }
     }
 
+    // COMPANY HANDLING SECTION => these methods require a set company for the engine
+    public function setCompany(Company $company)
+    {
+        $this->company = $company;
+    }
+    /**
+     * if there is not a company with an matching mailbox, we only do monitoring
+     * reuse this method to add more mail-parsing behaviors
+     */
+    public function handleExpenseMailbox(InboundMail $email)
+    {
+        if (empty($this->company))
+            throw new \Exception('invalid use of inbound mail engine: no company selected');
+
+        if ($this->isInvalidOrBlocked($email->from, $email->to)) {
+            return;
+        }
+
+
+        // check if company plan matches requirements
+        if (Ninja::isHosted() && !($this->company->account->isPaid() && $this->company->account->plan == 'enterprise')) {
+            return;
+        }
+
+        $this->createExpenses($email);
+
+        $this->saveMeta($email->from, $email->to);
+    }
+
     // MAIN-PROCESSORS
     protected function createExpenses(InboundMail $email)
     {
+        if (empty($this->company))
+            throw new \Exception('invalid use of inbound mail engine: no company selected');
+
         // Skipping executions: will not result in not saving Metadata to prevent usage of these conditions, to spam
         if (!$this->company->expense_mailbox_active) {
             $this->logBlocked('mailbox not active for this company. from: ' . $email->from);

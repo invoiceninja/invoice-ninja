@@ -145,6 +145,53 @@
         color: grey;
     }
 
+
+ [data-ref='product_table-product.description-th'],
+    [data-ref='product_table-product.description-td'] {
+        min-width: 150px !important;
+        overflow-wrap: break-word;
+    }
+
+    [data-ref='product_table-product.item-td']{
+        color: var(--primary-color);
+    }
+    
+    [data-ref='product_table-product.item-th'],
+    [data-ref='product_table-product.unit_cost-th'],
+    [data-ref='product_table-product.quantity-th'] {
+        width: 12%;
+    }
+
+    [data-ref='product_table-product.tax1-th'] {
+        width: 6%;
+    }
+
+    [data-ref='product_table-product.line_total-th'] {
+        width: 10%;
+    }
+
+    [data-ref='task_table-task.description-th'],
+    [data-ref='task_table-task.description-td'] {
+        min-width: 100px !important;
+        overflow-wrap: break-word;
+    }
+
+    [data-ref='task_table-task.hours-th'],
+    [data-ref='task_table-task.service-th'],
+    [data-ref='task_table-task.discount-th'],
+    [data-ref='task_table-task.cost-th'],
+    [data-ref='task_table-task.quantity-th'] {
+        width: 12%;
+    }
+
+    [data-ref='task_table-task.tax1-th'] {
+        width: 6%;
+    }
+
+    [data-ref='task_table-task.line_total-th'] {
+        width: 10%;
+    }
+
     [data-ref="table"] > thead {
         text-align: left;
     }
@@ -310,6 +357,10 @@
         
     }
     
+    #qr-bill{
+        width:100% !important;
+    }
+
     /** Useful snippets, uncomment to enable. **/
 
     /** Hide company logo **/
@@ -411,24 +462,4 @@ $entity_images
 <div class="repeating-footerx" id="footer">
    <p data-ref="total_table-footer">$entity_footer</p>
 
-
-        <script>
-            // Clear up space a bit, if [product-table, tasks-table, delivery-note-table] isn't present.
-            document.addEventListener('DOMContentLoaded', () => {
-                let tables = [
-                    'product-table', 'task-table', 'delivery-note-table',
-                    'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-                    'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
-                    'client-details', 'vendor-details', 'swiss-qr', 'shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
-                ];
-
-                tables.forEach((tableIdentifier) => {
-                    console.log(document.getElementById(tableIdentifier));
-
-                    document.getElementById(tableIdentifier)?.childElementCount === 0
-                        ? document.getElementById(tableIdentifier).style.setProperty('display', 'none', 'important')
-                        : '';
-                });
-            });
-        </script>
 </div>

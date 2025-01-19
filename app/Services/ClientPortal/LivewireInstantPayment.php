@@ -13,7 +13,6 @@
 namespace App\Services\ClientPortal;
 
 use App\Exceptions\PaymentFailed;
-use App\Jobs\Invoice\CheckGatewayFee;
 use App\Jobs\Invoice\InjectSignature;
 use App\Jobs\Util\SystemLogger;
 use App\Models\CompanyGateway;
@@ -154,8 +153,10 @@ class LivewireInstantPayment
         $credit_totals = in_array($first_invoice->client->getSetting('use_credits_payment'), ['always', 'option']) ? $first_invoice->client->service()->getCreditBalance() : 0;
         $starting_invoice_amount = $first_invoice->balance;
 
+        $payment_hash_string = Str::random(32);
+
         if ($company_gateway) {
-            $first_invoice->service()->addGatewayFee($company_gateway, $payment_method_id, $invoice_totals)->save();
+            $first_invoice->service()->addGatewayFee($company_gateway, $payment_method_id, $invoice_totals, $payment_hash_string)->save();
         }
 
         /**
@@ -196,7 +197,7 @@ class LivewireInstantPayment
         }
 
         $payment_hash = new PaymentHash();
-        $payment_hash->hash = Str::random(32);
+        $payment_hash->hash = $payment_hash_string;
         $payment_hash->data = $hash_data;
         $payment_hash->fee_total = $fee_totals;
         $payment_hash->fee_invoice_id = $first_invoice->id;

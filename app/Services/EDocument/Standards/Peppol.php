@@ -345,6 +345,7 @@ class Peppol extends AbstractService
 
         $xml .= $suffix;
 
+        // nlog($xml);
         return $xml;
 
     }
@@ -473,12 +474,13 @@ class Peppol extends AbstractService
 
             // Add Allowance Charge to Price
             $allowanceCharge = new \InvoiceNinja\EInvoice\Models\Peppol\AllowanceChargeType\AllowanceCharge();
+            $allowanceCharge->ChargeIndicator = 'true';
             $allowanceCharge->Amount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\Amount();
             $allowanceCharge->Amount->currencyID = $this->invoice->client->currency()->code;
             $allowanceCharge->Amount->amount = number_format($this->invoice->custom_surcharge1, 2, '.', '');
-            $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
-            $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
-            $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
+            // $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
+            // $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
+            // $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
 
             $this->calculateTaxMap($this->invoice->custom_surcharge1);
 
@@ -492,12 +494,13 @@ class Peppol extends AbstractService
 
             // Add Allowance Charge to Price
             $allowanceCharge = new \InvoiceNinja\EInvoice\Models\Peppol\AllowanceChargeType\AllowanceCharge();
+            $allowanceCharge->ChargeIndicator = 'true';
             $allowanceCharge->Amount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\Amount();
             $allowanceCharge->Amount->currencyID = $this->invoice->client->currency()->code;
             $allowanceCharge->Amount->amount = number_format($this->invoice->custom_surcharge2, 2, '.', '');
-            $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
-            $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
-            $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
+            // $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
+            // $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
+            // $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
 
 
             $this->calculateTaxMap($this->invoice->custom_surcharge2);
@@ -512,12 +515,13 @@ class Peppol extends AbstractService
 
             // Add Allowance Charge to Price
             $allowanceCharge = new \InvoiceNinja\EInvoice\Models\Peppol\AllowanceChargeType\AllowanceCharge();
+            $allowanceCharge->ChargeIndicator = 'true';
             $allowanceCharge->Amount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\Amount();
             $allowanceCharge->Amount->currencyID = $this->invoice->client->currency()->code;
             $allowanceCharge->Amount->amount = number_format($this->invoice->custom_surcharge3, 2, '.', '');
-            $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
-            $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
-            $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
+            // $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
+            // $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
+            // $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
 
             $this->calculateTaxMap($this->invoice->custom_surcharge3);
 
@@ -531,12 +535,13 @@ class Peppol extends AbstractService
 
             // Add Allowance Charge to Price
             $allowanceCharge = new \InvoiceNinja\EInvoice\Models\Peppol\AllowanceChargeType\AllowanceCharge();
+            $allowanceCharge->ChargeIndicator = 'true';
             $allowanceCharge->Amount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\Amount();
             $allowanceCharge->Amount->currencyID = $this->invoice->client->currency()->code;
             $allowanceCharge->Amount->amount = number_format($this->invoice->custom_surcharge4, 2, '.', '');
-            $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
-            $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
-            $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
+            // $allowanceCharge->BaseAmount = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\BaseAmount();
+            // $allowanceCharge->BaseAmount->currencyID = $this->invoice->client->currency()->code;
+            // $allowanceCharge->BaseAmount->amount = (string) $this->calc->getSubtotalWithSurcharges();
 
             $this->calculateTaxMap($this->invoice->custom_surcharge4);
 
@@ -563,7 +568,7 @@ class Peppol extends AbstractService
 
         $lea = new LineExtensionAmount();
         $lea->currencyID = $this->invoice->client->currency()->code;
-        $lea->amount = $this->invoice->uses_inclusive_taxes ? round($this->invoice->amount - $this->invoice->total_taxes, 2) : $this->calc->getSubTotal();
+        $lea->amount = $this->invoice->uses_inclusive_taxes ? round($this->invoice->amount - $this->invoice->total_taxes, 2) : $this->calc->getSubtotal();
         $lmt->LineExtensionAmount = $lea;
 
         $tea = new TaxExclusiveAmount();
@@ -587,6 +592,11 @@ class Peppol extends AbstractService
         $am->amount = number_format($this->calc->getTotalDiscount(), 2, '.', '');
         $lmt->AllowanceTotalAmount = $am;
 
+        $cta = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\ChargeTotalAmount();        
+        $cta->currencyID = $this->invoice->client->currency()->code;
+        $cta->amount = number_format($this->calc->getTotalSurcharges(), 2, '.', '');
+        $lmt->ChargeTotalAmount = $cta;
+        
         return $lmt;
     }
 
@@ -977,14 +987,14 @@ class Peppol extends AbstractService
             $pi = new PartyIdentification();
             $vatID = new ID();
             $vatID->schemeID = $this->resolveScheme();
-            $vatID->value = $this->override_vat_number ?? $this->company->settings->vat_number; //todo if we are cross border - switch to the supplier local vat number
+            $vatID->value = $this->override_vat_number ?? preg_replace("/[^a-zA-Z0-9]/", "", $this->company->settings->vat_number); //todo if we are cross border - switch to the supplier local vat number
 
             $pi->ID = $vatID;
             $party->PartyIdentification[] = $pi;
             $pts = new \InvoiceNinja\EInvoice\Models\Peppol\PartyTaxSchemeType\PartyTaxScheme();
 
             $companyID = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\CompanyID();
-            $companyID->value = $this->override_vat_number ?? $this->company->settings->vat_number;
+            $companyID->value = $this->override_vat_number ?? preg_replace("/[^a-zA-Z0-9]/", "", $this->company->settings->vat_number);
             $pts->CompanyID = $companyID;
 
             $ts = new TaxScheme();
@@ -995,7 +1005,7 @@ class Peppol extends AbstractService
 
             //@todo if we have an exact GLN/routing number we should update this, otherwise Storecove will proxy and update on transit
             $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\EndpointID();
-            $id->value = $this->company->settings->vat_number;
+            $id->value = preg_replace("/[^a-zA-Z0-9]/", "", $this->company->settings->vat_number);
             $id->schemeID = $this->resolveScheme();
 
             $party->EndpointID = $id;
@@ -1057,7 +1067,7 @@ class Peppol extends AbstractService
 
             $vatID = new ID();
             $vatID->schemeID = $this->resolveScheme(true);
-            $vatID->value = $this->invoice->client->vat_number;
+            $vatID->value = preg_replace("/[^a-zA-Z0-9]/", "", $this->invoice->client->vat_number);
             $pi->ID = $vatID;
 
             $party->PartyIdentification[] = $pi;
@@ -1065,7 +1075,7 @@ class Peppol extends AbstractService
             $pts = new \InvoiceNinja\EInvoice\Models\Peppol\PartyTaxSchemeType\PartyTaxScheme();
 
             $companyID = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\CompanyID();
-            $companyID->value = $this->invoice->client->vat_number;
+            $companyID->value = preg_replace("/[^a-zA-Z0-9]/", "", $this->invoice->client->vat_number);
             $pts->CompanyID = $companyID;
 
             $ts = new TaxScheme();
@@ -1085,8 +1095,8 @@ class Peppol extends AbstractService
 
         $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\EndpointID();
         $id->value = $this->invoice->client->routing_id 
-        ?? $this->invoice->client->vat_number 
-        ?? $this->invoice->client->id_number
+        ?? preg_replace("/[^a-zA-Z0-9]/", "", $this->invoice->client->vat_number) 
+        ?? preg_replace("/[^a-zA-Z0-9]/", "", $this->invoice->client->id_number)
         ?? 'fallback1234';
         
         $id->schemeID = $this->resolveScheme(true);
@@ -1200,19 +1210,20 @@ class Peppol extends AbstractService
             }
         }
 
-        if ($this->invoice->custom_surcharge1 && $this->invoice->custom_surcharge_tax1) {
+        //** Surcharges are taxable regardless, if control is needed over taxable components, add it as a line item! */
+        if ($this->invoice->custom_surcharge1 > 0) {
             $total += $this->invoice->custom_surcharge1;
         }
 
-        if ($this->invoice->custom_surcharge2 && $this->invoice->custom_surcharge_tax2) {
+        if ($this->invoice->custom_surcharge2 > 0) {
             $total += $this->invoice->custom_surcharge2;
         }
 
-        if ($this->invoice->custom_surcharge3 && $this->invoice->custom_surcharge_tax3) {
+        if ($this->invoice->custom_surcharge3 > 0) {
             $total += $this->invoice->custom_surcharge3;
         }
 
-        if ($this->invoice->custom_surcharge4 && $this->invoice->custom_surcharge_tax4) {
+        if ($this->invoice->custom_surcharge4 > 0) {
             $total += $this->invoice->custom_surcharge4;
         }
 
@@ -1502,8 +1513,8 @@ class Peppol extends AbstractService
     private function resolveScheme(bool $is_client = false): string
     {
 
-        $vat_number = $is_client ? $this->invoice->client->vat_number : $this->company->settings->vat_number;
-        $tax_number = $is_client ? $this->invoice->client->id_number : $this->company->settings->id_number;
+        $vat_number = $is_client ? preg_replace("/[^a-zA-Z0-9]/", "", $this->invoice->client->vat_number) : preg_replace("/[^a-zA-Z0-9]/", "", $this->company->settings->vat_number);
+        $tax_number = $is_client ? preg_replace("/[^a-zA-Z0-9]/", "", $this->invoice->client->id_number) : preg_replace("/[^a-zA-Z0-9]/", "", $this->company->settings->id_number);
         $country_code = $is_client ? $this->invoice->client->country->iso_3166_2 : $this->company->country()->iso_3166_2;
 
         return '0037';

@@ -78,10 +78,10 @@
                                 {{ $purchase_order->translateDate($purchase_order->date, $purchase_order->company->date_format(), $purchase_order->company->locale()) }}
                             </td>
                             <td class="px-6 py-4 text-sm leading-5 text-gray-500 whitespace-nowrap">
-                                {{ App\Utils\Number::formatMoney($purchase_order->amount, $purchase_order->company) }}
+                                {{ App\Utils\Number::formatMoney($purchase_order->amount, $purchase_order->vendor) }}
                             </td>
                             <td class="px-6 py-4 text-sm leading-5 text-gray-500 whitespace-nowrap">
-                            {{ App\Utils\Number::formatMoney($purchase_order->balance, $purchase_order->company) }}
+                            {{ App\Utils\Number::formatMoney($purchase_order->balance, $purchase_order->vendor) }}
                             </td>
                             <td class="px-6 py-4 text-sm leading-5 text-gray-500 whitespace-nowrap">
                                 {{ $purchase_order->translateDate($purchase_order->due_date, $purchase_order->company->date_format(), $purchase_order->company->locale()) }}

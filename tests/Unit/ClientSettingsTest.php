@@ -11,6 +11,7 @@
 
 namespace Tests\Unit;
 
+use App\DataMapper\ClientSettings;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Validation\ValidationException;
 use Tests\MockAccountData;
@@ -35,6 +36,32 @@ class ClientSettingsTest extends TestCase
         $this->faker = \Faker\Factory::create();
     }
 
+
+    public function testBadProps()
+    {
+        $client = \App\Models\Client::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'settings' => ClientSettings::defaults(),
+        ]);
+
+        $this->assertNotNull($client);
+
+        $settings = $client->settings;
+
+        $settings->timezone_id = '15';
+
+        $client->saveSettings($settings, $client);
+
+        $this->assertNotNull($client);
+
+        $settings->something_crazy_here = '5424234234';
+
+        $client->saveSettings($settings, $client);
+
+        $this->assertFalse(property_exists($client->settings, 'something_crazy_here'));
+
+    }
 
     public function testClientValidSettingsWithBadProps()
     {

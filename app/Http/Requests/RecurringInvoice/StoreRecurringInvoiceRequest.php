@@ -13,7 +13,6 @@ namespace App\Http\Requests\RecurringInvoice;
 
 use App\Http\Requests\Request;
 use App\Http\ValidationRules\Project\ValidProjectForClient;
-use App\Http\ValidationRules\Recurring\UniqueRecurringInvoiceNumberRule;
 use App\Models\Client;
 use App\Models\RecurringInvoice;
 use App\Utils\Traits\CleanLineItems;
@@ -68,7 +67,7 @@ class StoreRecurringInvoiceRequest extends Request
 
         $rules['project_id'] = ['bail', 'sometimes', new ValidProjectForClient($this->all())];
 
-        $rules['number'] = new UniqueRecurringInvoiceNumberRule($this->all());
+        $rules['number'] = ['bail', 'nullable', \Illuminate\Validation\Rule::unique('recurring_invoices')->where('company_id', $user->company()->id)];
 
         $rules['tax_rate1'] = 'bail|sometimes|numeric';
         $rules['tax_rate2'] = 'bail|sometimes|numeric';

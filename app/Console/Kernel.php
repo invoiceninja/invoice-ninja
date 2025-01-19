@@ -70,7 +70,7 @@ class Kernel extends ConsoleKernel
         $schedule->job(new TransactionReport())->dailyAt('01:48')->withoutOverlapping()->name('rotessa-transaction-report')->onOneServer();
 
         /* Stale Invoice Cleanup*/
-        $schedule->job(new CleanStaleInvoiceOrder())->hourlyAt(30)->withoutOverlapping()->name('stale-invoice-job')->onOneServer();
+        $schedule->job(new CleanStaleInvoiceOrder())->hourlyAt('30')->withoutOverlapping()->name('stale-invoice-job')->onOneServer();
 
         /* Checks for large companies and marked them as is_large */
         $schedule->job(new CompanySizeCheck())->dailyAt('23:20')->withoutOverlapping()->name('company-size-job')->onOneServer();

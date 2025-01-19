@@ -326,7 +326,7 @@ class ZugferdEDokument extends AbstractService
                 $tax_type = ZugferdDutyTaxFeeCategories::STANDARD_RATE;
                 break;
             case Product::PRODUCT_TYPE_EXEMPT:
-                $tax_type =  ZugferdDutyTaxFeeCategories::EXEMPT_FROM_TAX;
+                $tax_type = ZugferdDutyTaxFeeCategories::EXEMPT_FROM_TAX;
                 break;
             case Product::PRODUCT_TYPE_ZERO_RATED:
                 $tax_type = ZugferdDutyTaxFeeCategories::ZERO_RATED_GOODS;

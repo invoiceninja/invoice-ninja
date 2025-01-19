@@ -15,6 +15,8 @@ class InvoiceItem
 {
     public $quantity = 0;
 
+    public $net_cost = 0;
+
     public $cost = 0;
 
     public $product_key = '';
@@ -68,6 +70,7 @@ class InvoiceItem
     public $unit_code = 'C62';
 
     public static $casts = [
+        'net_cost' => 'float',
         'task_id' => 'string',
         'expense_id' => 'string',
         'tax_id' => 'string',

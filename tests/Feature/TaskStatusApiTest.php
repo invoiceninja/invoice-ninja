@@ -11,13 +11,14 @@
 
 namespace Tests\Feature;
 
+use Tests\TestCase;
+use App\Models\Task;
 use App\Models\TaskStatus;
+use Tests\MockAccountData;
 use App\Utils\Traits\MakesHash;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Session;
-use Tests\MockAccountData;
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
  * 
@@ -42,6 +43,28 @@ class TaskStatusApiTest extends TestCase
         $this->faker = \Faker\Factory::create();
 
         Model::reguard();
+    }
+
+    public function testTaskStatusProperty()
+    {
+        $t = Task::factory()->create([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        $this->assertNull($t->status_order);
+
+        $update = [
+            'description' => 'newdescription'
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->put('/api/v1/tasks/'.$t->hashed_id, $update);
+
+        $response->assertStatus(200);
+        
     }
 
     public function testSorting()

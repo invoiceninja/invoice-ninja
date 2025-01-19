@@ -121,13 +121,14 @@ class BaseRule implements RuleInterface
         'FI',
         'DE',
         'IS',
-        'IT',
+        // 'IT',
         'LT',
         'LU',
         'NL',
         'NO',
-        'PL',
+        // 'PL',
         'SE',
+        'IE',
     ];
 
     public array $peppol_government_countries = [

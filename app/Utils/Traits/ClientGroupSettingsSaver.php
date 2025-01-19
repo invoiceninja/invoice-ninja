@@ -46,12 +46,14 @@ trait ClientGroupSettingsSaver
             unset($settings[$field]);
         }
 
+        $company_settings_stub = new CompanySettings();
+
         /*
          * for clients and group settings, if a field is not set or is set to a blank value,
          * we unset it from the settings object
          */
         foreach ($settings as $key => $value) {
-            if (! isset($settings->{$key}) || empty($settings->{$key}) || (! is_object($settings->{$key}) && strlen($settings->{$key}) == 0)) {
+            if (! isset($settings->{$key}) || empty($settings->{$key})  || !property_exists($company_settings_stub, $key) || (! is_object($settings->{$key}) && strlen($settings->{$key}) == 0)) {
                 unset($settings->{$key});
             }
         }

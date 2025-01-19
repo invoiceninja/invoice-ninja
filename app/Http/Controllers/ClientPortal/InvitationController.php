@@ -262,6 +262,7 @@ class InvitationController extends Controller
             abort(403, 'You are not authorized to view this resource');
         }
 
+        request()->session()->invalidate();
         auth()->guard('contact')->loginUsingId($contact->id, true);
 
         return redirect()->route('client.payments.show', $payment->hashed_id);
@@ -279,6 +280,7 @@ class InvitationController extends Controller
             $invitation->contact->restore();
         }
 
+        request()->session()->invalidate();
         auth()->guard('contact')->loginUsingId($invitation->contact->id, true);
 
         $invoice = $invitation->invoice->service()->removeUnpaidGatewayFees()->save();

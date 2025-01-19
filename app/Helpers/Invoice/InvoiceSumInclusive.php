@@ -322,12 +322,12 @@ class InvoiceSumInclusive
 
     public function getSubTotal()
     {
-        return $this->sub_total;
+        return round($this->sub_total,2);
     }
 
     public function getGrossSubTotal()
     {
-        return $this->sub_total;
+        return round($this->sub_total,2);
     }
 
     public function setSubTotal($value)
@@ -339,7 +339,7 @@ class InvoiceSumInclusive
 
     public function getTotalDiscount()
     {
-        return $this->total_discount;
+        return round($this->total_discount,2);
     }
 
     public function getTotalTaxes()
@@ -354,7 +354,7 @@ class InvoiceSumInclusive
 
     public function getTotal()
     {
-        return $this->total;
+        return round($this->total,2);
     }
 
     public function setTaxMap()

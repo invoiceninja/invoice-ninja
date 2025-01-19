@@ -278,10 +278,8 @@ trait MakesInvoiceValues
                 }
             }
 
-            if ($table_type == '$task' && $item->type_id != 2) {
-                // if ($item->type_id != 4 && $item->type_id != 5) {
+            if (($table_type == '$task' && $item->type_id != 2)) {
                 continue;
-                // }
             }
 
             $helpers = new Helpers();

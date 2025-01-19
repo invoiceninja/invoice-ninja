@@ -115,6 +115,7 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
      */
     public function __construct(private array $input)
     {
+        $this->engine = new InboundMailEngine();
     }
 
     /**
@@ -143,7 +144,7 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
                 continue;
             }
 
-            $this->engine = new InboundMailEngine($company);
+            $this->engine->setCompany($company);
 
             $foundOneRecipient = true;
 
@@ -240,7 +241,7 @@ class ProcessBrevoInboundWebhook implements ShouldQueue
 
     public function failed($exception)
     {
-        nlog("BREVO:: Ingest Exception:: => ".$exception->getMessage());
+        nlog("BREVO:: Ingest Exception:: => " . $exception->getMessage());
         config(['queue.failed.driver' => null]);
     }
 

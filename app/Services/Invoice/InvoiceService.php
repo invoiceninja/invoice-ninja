@@ -124,9 +124,11 @@ class InvoiceService
         return $this;
     }
 
-    public function addGatewayFee(CompanyGateway $company_gateway, $gateway_type_id, float $amount)
+    public function addGatewayFee(CompanyGateway $company_gateway, $gateway_type_id, float $amount, string $payment_hash_string)
     {
-        $this->invoice = (new AddGatewayFee($company_gateway, $gateway_type_id, $this->invoice, $amount))->run();
+        $this->removeUnpaidGatewayFees();
+
+        $this->invoice = (new AddGatewayFee($company_gateway, $gateway_type_id, $this->invoice, $amount, $payment_hash_string))->run();
 
         return $this;
     }
@@ -216,9 +218,9 @@ class InvoiceService
         return $this->getEInvoice($contact);
     }
 
-    public function sendEmail($contact = null)
+    public function sendEmail($contact = null, $email_type = 'invoice')
     {
-        $send_email = new SendEmail($this->invoice, null, $contact);
+        $send_email = new SendEmail($this->invoice, $email_type, $contact);
 
         return $send_email->run();
     }
@@ -374,8 +376,25 @@ class InvoiceService
         return $this;
     }
 
-    public function toggleFeesPaid()
+    public function toggleFeesPaid(?string $payment_hash_string = null)
     {
+        if ($payment_hash_string) {
+        
+            $this->invoice->line_items = collect($this->invoice->line_items)
+                                                ->map(function ($item) use ($payment_hash_string) {
+                                                    if ($item->type_id == '3' && (($item->unit_code ?? '') == $payment_hash_string)) {
+                                                        $item->type_id = '4';
+                                                    }
+
+                                                    return $item;
+                                                })->toArray();
+                                                
+                $this->deleteEInvoice();
+
+                return $this;
+
+        }
+
         $this->invoice->line_items = collect($this->invoice->line_items)
                                      ->map(function ($item) {
                                          if ($item->type_id == '3') {
@@ -419,11 +438,8 @@ class InvoiceService
 
         $this->invoice->invitations->each(function ($invitation) {
             try {
-                // if (Storage::disk(config('filesystems.default'))->exists($this->invoice->client->e_invoice_filepath($invitation).$this->invoice->getFileName("xml"))) {
                 Storage::disk(config('filesystems.default'))->delete($this->invoice->client->e_document_filepath($invitation).$this->invoice->getFileName("xml"));
-                // }
-
-                // if (Ninja::isHosted() && Storage::disk('public')->exists($this->invoice->client->e_invoice_filepath($invitation).$this->invoice->getFileName("xml"))) {
+                
                 if (Ninja::isHosted()) {
                     Storage::disk('public')->delete($this->invoice->client->e_document_filepath($invitation).$this->invoice->getFileName("xml"));
                 }

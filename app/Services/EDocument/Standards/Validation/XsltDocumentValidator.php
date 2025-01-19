@@ -59,7 +59,7 @@ class XsltDocumentValidator
 
                 /** @var \Saxon\XsltExecutable $xsltExecutable */
                 $xsltExecutable = $xslt->compileFromFile(app_path($stylesheet)); //@phpstan-ignore-line
-                $result = $xsltExecutable->transformToValue($xdmNode);
+                $result = $xsltExecutable->transformToValue($xdmNode); //@phpstan-ignore-line
 
                 if ($result->size() == 0) {
                     continue;

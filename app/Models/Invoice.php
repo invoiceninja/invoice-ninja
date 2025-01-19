@@ -470,13 +470,9 @@ class Invoice extends BaseModel
             return false;
         } elseif ($this->status_id == self::STATUS_DRAFT && $this->is_deleted == false) {
             return true;
-        } elseif ($this->status_id == self::STATUS_SENT && $this->is_deleted == false) {
+        } elseif ($this->status_id == self::STATUS_SENT && !$this->is_deleted && $this->balance > 0) {
             return true;
-        } elseif ($this->status_id == self::STATUS_PARTIAL && $this->is_deleted == false) {
-            return true;
-        } elseif ($this->status_id == self::STATUS_SENT && $this->is_deleted == false) {
-            return true;
-        } elseif ($this->status_id == self::STATUS_DRAFT && $this->is_deleted == false) {
+        } elseif ($this->status_id == self::STATUS_PARTIAL && !$this->is_deleted && $this->balance > 0) {
             return true;
         } else {
             return false;

@@ -43,20 +43,35 @@
     }
 
     .company-logo-wrapper {
-        padding-bottom: 60px;
+        padding-bottom: 10px;
         border-bottom: 4px solid;
     }
 
     .company-logo-wrapper {
-        height: 5rem;
+
     }
 
+    .right-radius {
+        padding-right: 1rem;
+        text-align:right;
+    }
+        
     .client-entity-wrapper {
-        display: flex;
+        width: 100%;
         margin-top: 1rem;
-        gap: 20px;
-        margin-left: 0px;
         line-height: var(--line-height) !important;
+    }
+
+    .wrapper-left-side {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr)); /* Force equal columns */
+        gap: 20px;
+        width: 100%;
+    }
+
+    #entity-details {
+        width: 100%;
+        table-layout: fixed;
     }
 
     #entity-details p { 
@@ -79,13 +94,7 @@
         display: $show_shipping_address;
     }
 
-    .client-entity-wrapper .wrapper-left-side {
-        display: grid;
-        grid-template-columns: auto auto ;
-        grid-template-areas: "a b c d";
-        grid-auto-columns: minmax(0, 1fr);
-        grid-auto-flow: column;
-        justify-content:left;
+    .wrapper-right-side {
     }
 
      .text-with-client  { margin-right: 1px; }
@@ -264,12 +273,16 @@
         bottom: 0;
     }
 
-    [data-element='product_table-product.description-td'], td {
+    [data-ref='product_table-product.description-td'], td {
         min-width:100%;
         max-width: 300px;
         overflow-wrap: break-word; 
     }
 
+    [data-ref='task_table-task.description-th'] {
+        overflow-wrap: break-word;
+        min-width: 100px !important;
+    }
     .stamp {
       transform: rotate(12deg);
         color: #555;
@@ -316,6 +329,11 @@
     .pqrcode {
         
     }
+
+    #qr-bill{
+        width:100% !important;
+    }
+
     /** Useful snippets, uncomment to enable. **/
 
     /** Hide company logo **/
@@ -417,25 +435,6 @@ $entity_images
 <div class="repeating-footerx" id="footer">
    <p data-ref="total_table-footer">$entity_footer</p>
 
-        <script>
-            // Clear up space a bit, if [product-table, tasks-table, delivery-note-table] isn't present.
-            document.addEventListener('DOMContentLoaded', () => {
-                let tables = [
-                    'product-table', 'task-table', 'delivery-note-table',
-                    'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-                    'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
-                    'client-details', 'vendor-details', 'swiss-qr', 'shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
-                ];
-
-                tables.forEach((tableIdentifier) => {
-                    console.log(document.getElementById(tableIdentifier));
-
-                    document.getElementById(tableIdentifier)?.childElementCount === 0
-                        ? document.getElementById(tableIdentifier).style.setProperty('display', 'none', 'important')
-                        : '';
-                });
-            });
-        </script>
 </div>
 
 

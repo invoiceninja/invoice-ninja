@@ -325,8 +325,8 @@ class LoginController extends BaseController
             return $this->timeConstrainedResponse($cu);
         }
 
-        nlog("socialite");
-        nlog($user);
+        // nlog("socialite");
+        // nlog($user);
 
         $name = OAuth::splitName($user->name);
 
@@ -429,8 +429,6 @@ class LoginController extends BaseController
         $user = $graph->createRequest('GET', '/me')
             ->setReturnType(Model\User::class)
             ->execute();
-
-        nlog($user);
 
         if ($user) {
             $account = request()->input('account');

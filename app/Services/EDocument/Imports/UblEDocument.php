@@ -63,7 +63,7 @@ class UblEDocument extends AbstractService
     {
 
         $xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml);
-        nlog($xml);
+        // nlog($xml);
 
         $dom = new \DOMDocument();
         $dom->loadXML($xml);

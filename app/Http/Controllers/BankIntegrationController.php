@@ -278,7 +278,7 @@ class BankIntegrationController extends BaseController
             $is_account_active = $nordigen->isAccountActive($bank_integration->nordigen_account_id);
             $account = $nordigen->getAccount($bank_integration->nordigen_account_id);
 
-            if (!$is_account_active || !$account) {
+            if (!$is_account_active || !$account || isset($account['requisition'])) {
                 $bank_integration->disabled_upstream = true;
                 $bank_integration->save();
 

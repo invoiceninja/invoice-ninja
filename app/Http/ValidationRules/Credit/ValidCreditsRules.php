@@ -51,7 +51,8 @@ class ValidCreditsRules implements Rule
 
         $unique_array = [];
 
-        $total_credit_amount = array_sum(array_column($this->input['credits'], 'amount'));
+        // $total_credit_amount = array_sum(array_column($this->input['credits'], 'amount'));
+        $total_credit_amount = array_sum(array_map('floatval', array_column($this->input['credits'], 'amount')));
 
         if ($total_credit_amount <= 0) {
             $this->error_msg = "Total of credits must be more than zero.";

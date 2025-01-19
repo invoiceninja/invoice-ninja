@@ -61,6 +61,36 @@ class RecurringInvoiceTest extends TestCase
         $this->makeTestData();
     }
 
+    public function testUniqueNumber()
+    {
+       
+        $data = [
+            'client_id' => $this->client->hashed_id,
+            'frequency_id' => 5,
+            'next_send_date' => now()->addMonth()->format('Y-m-d'),
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/recurring_invoices', $data);
+
+        $response->assertStatus(200);
+
+        $arr = $response->json();
+
+        $this->assertNotNull($arr['data']['number']);
+
+        $data['number'] = $arr['data']['number'];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/recurring_invoices', $data)
+        ->assertStatus(422);
+        
+    }
+
     public function testBulkUpdatesTaxes()
     {
         RecurringInvoice::factory(5)->create([

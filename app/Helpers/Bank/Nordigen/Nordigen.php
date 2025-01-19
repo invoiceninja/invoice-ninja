@@ -61,13 +61,69 @@ class Nordigen
     }
 
     // requisition-section
-    public function createRequisition(string $redirect, string $initutionId, string $reference, string $userLanguage)
+    public function createRequisition(string $redirect, string $institutionId, string $reference, string $userLanguage)
     {
-        if ($this->test_mode && $initutionId != $this->sandbox_institutionId) {
+        if ($this->test_mode && $institutionId != $this->sandbox_institutionId) {
             throw new \Exception('invalid institutionId while in test-mode');
         }
 
-        return $this->client->requisition->createRequisition($redirect, $initutionId, null, $reference, $userLanguage);
+        return $this->client->requisition->createRequisition($redirect, $institutionId, $this->getExtendedEndUserAggreementId($institutionId), $reference, $userLanguage);
+    }
+
+    private function getExtendedEndUserAggreementId(string $institutionId): string|null
+    {
+
+        $endUserAggreements = null;
+        $endUserAgreement = null;
+
+        // try to fetch endUserAgreements
+        try {
+            $endUserAggreements = $this->client->endUserAgreement->getEndUserAgreements();
+        } catch (\Exception $e) { // not able to accept it
+            nlog("Nordigen: Was not able to fetch endUserAgreements. We continue with defaults to setup bank_integration. {$institutionId} {$e->getMessage()} {$e->getCode()}");
+
+            return null;
+        }
+
+        // try to find an existing valid endUserAgreement
+        foreach ($endUserAggreements["results"] as $row) {
+            $endUserAgreement = $row;
+
+            // Validate Institution
+            if ($endUserAgreement["institution_id"] != $institutionId)
+                continue;
+
+            // Validate Access Scopes
+            $requiredScopes = ["balances", "details", "transactions"];
+            if (isset($endUserAgreement['access_scope']) && array_diff($requiredScopes, $endUserAgreement['access_scope']))
+                continue;
+
+            // try to accept the endUserAgreement when not already accepted
+            if (empty($endUserAgreement["accepted"]))
+                try {
+                    $this->client->endUserAgreement->acceptEndUserAgreement($endUserAgreement["id"], request()->userAgent(), request()->ip());
+                } catch (\Exception $e) { // not able to accept it
+                    nlog("Nordigen: Was not able to confirm an existing outstanding endUserAgreement for this institution. We now try to find another or will create and confirm a new one. {$institutionId} {$endUserAgreement["id"]} {$e->getMessage()} {$e->getCode()}");
+                    $endUserAgreement = null;
+
+                    continue;
+                }
+
+            break;
+        }
+
+        // try to create and accept an endUserAgreement
+        if (!$endUserAgreement)
+            try {
+                $endUserAgreement = $this->client->endUserAgreement->createEndUserAgreement($institutionId, ['details', 'balances', 'transactions'], 90, 180);
+                $this->client->endUserAgreement->acceptEndUserAgreement($endUserAgreement["id"], request()->userAgent(), request()->ip());
+            } catch (\Exception $e) { // not able to create this for this institution
+                nlog("Nordigen: Was not able to create and confirm a new endUserAgreement for this institution. We continue with defaults to setup bank_integration. {$institutionId} {$e->getMessage()} {$e->getCode()}");
+
+                return null;
+            }
+
+        return $endUserAgreement["id"];
     }
 
     public function getRequisition(string $requisitionId)
@@ -108,7 +164,7 @@ class Nordigen
         } catch (\Exception $e) {
 
             nlog("Nordigen getAccount() failed => {$account_id} => " . $e->getMessage());
-            return ['error' => $e->getMessage()];
+            return ['error' => $e->getMessage(), 'requisition' => true];
 
         }
     }

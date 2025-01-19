@@ -29,7 +29,7 @@ class InboundMail
 
     public ?UploadedFile $body_document = null;
 
-    public string $text_body;
+    public ?string $text_body = null;
 
     /** @var array $documents */
     public array $documents = [];

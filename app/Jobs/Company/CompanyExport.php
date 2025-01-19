@@ -488,8 +488,6 @@ class CompanyExport implements ShouldQueue
             return $task->makeHidden(['hash','meta'])->makeVisible(['id']);
         })->all();
 
-
-
         $x = $this->writer->collection('tasks');
         $x->addItems($this->export_data['tasks']);
         $this->export_data = null;

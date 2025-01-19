@@ -1675,7 +1675,14 @@ class BaseExport
         $currency = $this->company->currency();
 
         foreach ($entity as $key => $value) {
+
             if (is_float($value)) {
+
+                //Careful not to convert discount % to currency
+                if($key == 'discount' && isset($entity->is_amount_discount) && !$entity->is_amount_discount) {
+                    continue;
+                }
+
                 $entity[$key] = \App\Utils\Number::formatValue($value, $currency);
             }
         }

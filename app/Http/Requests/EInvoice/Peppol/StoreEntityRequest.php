@@ -76,7 +76,7 @@ class StoreEntityRequest extends FormRequest
 
         $input['acts_as_receiver'] = $input['acts_as_receiver'] ?? true;
         $input['acts_as_sender'] = $input['acts_as_sender'] ?? true;
-
+        
         $this->replace($input);
     }
 

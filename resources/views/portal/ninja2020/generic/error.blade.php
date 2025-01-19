@@ -4,7 +4,7 @@
 @section('body')
 
     <div class="flex h-screen">
-        <div class="m-auto md:w-1/3 lg:w-1/5">
+        <div class="m-auto md:w-1/3 lg:w-1/2">
             <div class="flex flex-col items-center">
 
                 @if($account && !$account->isPaid())

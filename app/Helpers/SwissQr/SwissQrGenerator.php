@@ -172,17 +172,18 @@ class SwissQrGenerator
                 ->setPrintable(false)
                 ->getPaymentPart();
 
-            return $html;
+                // return $html;
+            return htmlspecialchars($html);
         } catch (\Exception $e) {
 
-            if (is_iterable($qrBill->getViolations())) {
+            // if (is_iterable($qrBill->getViolations())) {
 
-                foreach ($qrBill->getViolations() as $key => $violation) {
-                    // nlog("qr");
-                    // nlog($violation);
-                }
+            //     foreach ($qrBill->getViolations() as $key => $violation) {
+            //         nlog("qr");
+            //         nlog($violation);
+            //     }
 
-            }
+            // }
 
             // nlog($e->getMessage());
 

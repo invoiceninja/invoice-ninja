@@ -165,6 +165,16 @@ class BillingPortalPurchasev2 extends Component
         /** @var \App\Models\Subscription $subscription */
         $subscription = $this->subscription();
 
+        if (!$subscription) {
+
+            session()->flash('title', __('texts.subscription_unavailable'));
+            session()->flash('notification', '');
+
+            return redirect()->route('client.error');
+
+        }
+
+
         if (auth()->guard('contact')->check()) {
             $this->email = auth()->guard('contact')->user()->email;
             $this->authenticated = true;

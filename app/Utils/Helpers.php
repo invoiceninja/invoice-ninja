@@ -157,9 +157,10 @@ class Helpers
         // 04-10-2022 Return Early if no reserved keywords are present, this is a very expensive process
         $string_hit = false;
 
-        foreach ([':MONTH',':YEAR',':QUARTER',':WEEK'] as $string) {
+        foreach ([':MONTH',':YEAR',':QUARTER',':WEEK', 'MONTHYEAR' ] as $string) {
             if (stripos($value, $string) !== false) {
                 $string_hit = true;
+                break;
             }
         }
 
@@ -202,7 +203,7 @@ class Helpers
                 ),
                 ':MONTHYEAR' => \sprintf(
                     '%s %s',
-                    Carbon::createFromDate($currentDateTime->month)->translatedFormat('F'),
+                    Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->translatedFormat('F'),
                     $currentDateTime->year,
                 ),
                 ':MONTH' => Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->translatedFormat('F'),
@@ -279,7 +280,7 @@ class Helpers
 
                 $_value = explode($_operation, $right); // [MONTHYEAR, 4]
 
-                $_right = Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->addMonths($_value[1])->translatedFormat('F Y'); //@phpstan-ignore-line
+                $_right = Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->addMonths((int)$_value[1])->translatedFormat('F Y'); //@phpstan-ignore-line
             }
 
             $replacement = sprintf('%s to %s', $_left, $_right);

@@ -11,11 +11,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EInvoice\HealthcheckRequest;
 use App\Http\Requests\EInvoice\ShowQuotaRequest;
 use App\Http\Requests\EInvoice\ValidateEInvoiceRequest;
 use App\Http\Requests\EInvoice\UpdateEInvoiceConfiguration;
 use App\Services\EDocument\Standards\Validation\Peppol\EntityLevel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Http;
 use InvoiceNinja\EInvoice\Models\Peppol\BranchType\FinancialInstitutionBranch;
 use InvoiceNinja\EInvoice\Models\Peppol\FinancialInstitutionType\FinancialInstitution;
 use InvoiceNinja\EInvoice\Models\Peppol\FinancialAccountType\PayeeFinancialAccount;
@@ -43,7 +45,7 @@ class EInvoiceController extends BaseController
 
         $data = [];
 
-        match($request->entity) {
+        match ($request->entity) {
             'invoices' => $data = $el->checkInvoice($request->getEntity()),
             'clients' => $data = $el->checkClient($request->getEntity()),
             'companies' => $data = $el->checkCompany($request->getEntity()),
@@ -128,9 +130,10 @@ class EInvoiceController extends BaseController
      */
     public function quota(ShowQuotaRequest $request): JsonResponse
     {
+        nlog(["quota" => $request->all()]);
         /**
-        * @var \App\Models\Company
-        */
+         * @var \App\Models\Company
+         */
         $company = auth()->user()->company();
 
         $response = \Illuminate\Support\Facades\Http::baseUrl(config('ninja.hosted_ninja_url'))
@@ -160,5 +163,36 @@ class EInvoiceController extends BaseController
         return response()->json([
             'quota' => $account->e_invoice_quota,
         ]);
+    }
+
+    public function healthcheck(HealthcheckRequest $request): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        $response = Http::baseUrl(config('ninja.hosted_ninja_url'))
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'X-EInvoice-Token' => $user->account->e_invoicing_token
+            ])
+            ->post('/api/einvoice/health_check', data: [
+                'license' => config('ninja.license_key'),
+                'account_key' => $user->account->key,
+            ]);
+
+        if ($response->status() === 403) {
+            return response()->json(['message' => ctrans('texts.einvoice_token_not_found')], status: 422);
+        }
+
+        if ($response->status() == 422) {
+            return response()->json(['message' => $response->json('message')], 422);
+        }
+
+        if ($response->getStatusCode() === 400) {
+            return response()->json(['message' => $response->json('message')], 400);
+        }
+
+        return response()->json([]);
     }
 }

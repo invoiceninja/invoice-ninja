@@ -251,11 +251,11 @@
                             font-family: Verdana, Geneva, Tahoma, sans-serif;">© {{ date('Y') }} Invoice Ninja, All Rights Reserved
                             </p>
 
-                            <a href="{{ $email_preferences }}">
+                            <!-- <a href="{{ $email_preferences }}">
                                 <p style="text-align: center; color: #ffffff; font-size: 10px; font-family: Verdana, Geneva, Tahoma, sans-serif;">
                                     {{ ctrans('texts.email_preferences') }}
                                 </p>
-                            </a>
+                            </a> -->
                             
                         </div>
                     </td>

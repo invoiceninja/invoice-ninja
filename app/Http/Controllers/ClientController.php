@@ -417,6 +417,18 @@ class ClientController extends BaseController
 
             $record = $log->log;
             $record['ID'] = '';
+
+            //2025-01-15 15:00:00 - unset the bounce ID here.
+            $events = $record['history']['events'];
+
+            foreach($events as &$event)
+            {
+                $event['bounce_id'] = "";
+            }
+            unset($event);
+
+            $record['history']['events'] = $events;
+
             $log->log = $record;
             $log->save();
 

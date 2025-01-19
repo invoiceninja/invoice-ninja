@@ -436,6 +436,25 @@
             schema:
               type: object
               properties:
+                email_type:
+                  type: enum
+                  description: "The email type to be sent, when bulk emailing invoices"
+                  enum:
+                    - invoice
+                    - quote
+                    - credit
+                    - payment
+                    - payment_partial
+                    - statement
+                    - reminder1
+                    - reminder2
+                    - reminder3
+                    - reminder_endless
+                    - custom1
+                    - custom2
+                    - custom3
+                    - purchase_order
+                    - email_quote_template_reminder1
                 action:
                   type: string
                   description: |

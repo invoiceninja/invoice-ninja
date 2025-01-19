@@ -18,6 +18,7 @@
         font-family: $font_name, Helvetica, sans-serif;
         font-size: $font_size !important;
         zoom: 80%;
+
     }
 
 
@@ -45,8 +46,7 @@
         margin-bottom: 2rem;
     }
 
-    .company-logo {
-/*        max-width: 65%;*/        
+    .company-logo {  
         max-width: $company_logo_size;
     }
 
@@ -76,7 +76,6 @@
     .client-and-entity-wrapper {
         display: flex;
         justify-content: space-between;
-        gap: 20px;
         margin-bottom: 2rem;
     }
 
@@ -117,6 +116,7 @@
 
     #entity-details > tbody > tr > th:nth-child(2) {
         text-align: right;
+        padding-left: 10px;
     }
 
     [data-ref="table"] {
@@ -144,21 +144,21 @@
         font-weight: semibold;
     }
 
-    [data-ref="table"] > thead > tr > th:first-child {
-        border-top-left-radius: 1rem;
+    th.left-radius {
+        border-top-left-radius: 10px;
     }
 
-    [data-ref="table"] > thead > tr > th:last-child {
-        border-top-right-radius: 1rem;
+    th.right-radius {
+        border-top-right-radius: 10px;
+        text-align: right;
+    }
+
+    td.right-radius {
         text-align: right;
     }
 
     [data-ref="table"] > tbody > tr > td {
         padding: 1rem;
-    }
-
-    [data-ref="table"] > tbody > tr > td:last-child {
-        text-align: right;
     }
 
     [data-ref="table"] > tbody > tr:nth-child(odd) > td {
@@ -251,13 +251,23 @@
         margin-bottom: 0;
     }
 
-    [data-ref="totals_table-outstanding-label"],
+    [data-ref="totals_table-outstanding-label"]{
+        background-color: var(--secondary-color);
+        color: white;
+        font-size:120%;
+        font-weight:bold;
+        padding: 1rem;
+        border-top-left-radius: 7px;
+        border-bottom-left-radius: 7px;
+    }
     [data-ref="totals_table-outstanding"] {
         background-color: var(--secondary-color);
         color: white;
-        padding-top: 7px;
-        padding-bottom: 7px;
-        padding-right: 7px;
+        font-size:120%;
+        font-weight:bold;
+        padding: 1rem;
+        border-top-right-radius: 7px;
+        border-bottom-right-radius: 7px;
     }
 
     [data-ref="statement-totals"] {
@@ -336,6 +346,12 @@
     .pqrcode {
         
     }
+
+    #qr-bill{
+        width:100% !important;
+    }
+
+
     /** Useful snippets, uncomment to enable. **/
 
     /** Hide company logo **/
@@ -389,7 +405,7 @@
                </div>
                <div class="client-and-entity-wrapper">
                 <div id="client-details"><p class="entity-issued-to">$entity_issued_to_label:</p></div>
-                  <div id="vendor-details"></div>
+                <div id="vendor-details"></div>
                 <div id="shipping-details"></div>
                   <div class="entity-details-wrapper">
                      <table id="entity-details" cellspacing="0" dir="$dir"></table>
@@ -402,8 +418,8 @@
                <div id="statement-invoice-table-totals" data-ref="statement-totals"></div>
                <table id="statement-payment-table" cellspacing="0" data-ref="table"></table>
                <div id="statement-payment-table-totals" data-ref="statement-totals"></div>
-                            <table id="statement-credit-table" cellspacing="0" data-ref="table"></table>
-                            <div id="statement-credit-table-totals" data-ref="statement-totals"></div>
+                <table id="statement-credit-table" cellspacing="0" data-ref="table"></table>
+                <div id="statement-credit-table-totals" data-ref="statement-totals"></div>
                <table id="statement-aging-table" cellspacing="0" data-ref="table"></table>
                <div id="statement-aging-table-totals" data-ref="statement-totals"></div>
                <div id="table-totals" cellspacing="0">$status_logo</div>
@@ -426,24 +442,5 @@ $entity_images
 
 <div class="repeating-footerx" id="footer">
     <p data-ref="total_table-footer">$entity_footer</p>
-
-
-<script>
-    // Clear up space a bit, if [product-table, tasks-table, delivery-note-table] isn't present.
-    document.addEventListener('DOMContentLoaded', () => {
-        let tables = [
-            'product-table', 'task-table', 'delivery-note-table',
-            'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-            'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
-            'client-details', 'vendor-details', 'swiss-qr', 'shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
-        ];
-
-        tables.forEach((tableIdentifier) => {
-            document.getElementById(tableIdentifier).childElementCount === 0
-                ? document.getElementById(tableIdentifier).style.display = 'none'
-                : '';
-        });
-    });
-</script>
 
 </div>

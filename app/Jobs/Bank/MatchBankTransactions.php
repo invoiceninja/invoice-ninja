@@ -323,6 +323,9 @@ class MatchBankTransactions implements ShouldQueue
                         ->updatePaidToDate($_amount)
                         ->setCalculatedStatus()
                         ->save();
+
+                        
+                    event('eloquent.updated: App\Models\Invoice', $this->invoice);
                 }
             });
         }, 2);

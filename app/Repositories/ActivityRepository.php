@@ -66,7 +66,9 @@ class ActivityRepository extends BaseRepository
         $activity->save();
 
         //rate limiter
-        $this->createBackup($entity, $activity);
+        if(!in_array($fields->activity_type_id, [Activity::EMAIL_INVOICE, Activity::EMAIL_CREDIT, Activity::EMAIL_QUOTE, Activity::EMAIL_PURCHASE_ORDER])){
+            $this->createBackup($entity, $activity);
+        }
     }
 
     /**

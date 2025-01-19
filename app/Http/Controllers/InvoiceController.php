@@ -586,13 +586,18 @@ class InvoiceController extends BaseController
 
             $invoice = $invoices->first();
 
-            if ($user->can('edit', $invoice)) {
+            $invoices->filter(function ($invoice) use ($user) {
+                return $user->can('edit', $invoice);
+            })->each(function ($invoice) use ($user, $request) {
+                $invoice->service()->sendEmail(email_type: $request->input('email_type', $invoice->calculateTemplate('invoice')));
+            });
 
-                $template = $request->input('email_type', $invoice->calculateTemplate('invoice'));
+            // if ($user->can('edit', $invoice)) {
 
-                BulkInvoiceJob::dispatch($invoices->pluck('id')->toArray(), $user->company()->db, $template);
+                // $template = $request->input('email_type', $invoice->calculateTemplate('invoice'));
 
-            }
+                // BulkInvoiceJob::dispatch($invoices->pluck('id')->toArray(), $user->company()->db, $template);
+        //   }
 
             return $this->listResponse(Invoice::withTrashed()->whereIn('id', $this->transformKeys($ids))->company());
 

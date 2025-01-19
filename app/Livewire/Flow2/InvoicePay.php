@@ -141,6 +141,9 @@ class InvoicePay extends Component
 
         $company_gateway = CompanyGateway::query()->find($company_gateway_id);
 
+        if(!$company_gateway)
+            return $this->required_fields = false;
+
         $this->checkRequiredFields($company_gateway);
     }
 

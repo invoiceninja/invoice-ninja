@@ -132,6 +132,8 @@ class ActivityController extends BaseController
 
         $file = $backup->getFile();
 
+        $html_backup = $file;
+        
         if(!$file)
             return response()->json(['message' => ctrans('texts.no_backup_exists'), 'errors' => new stdClass()], 404);
 

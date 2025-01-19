@@ -46,7 +46,13 @@ class TaxModel
             $this->acts_as_receiver = $model->acts_as_receiver ?? false;
 
             $modelArray = get_object_vars($model);
+
             foreach ($modelArray as $key => $value) {
+
+                if($key == 'seller_subregion' && $value == null) {
+                    $value = '';
+                }
+
                 $this->{$key} = $value;
             }
 

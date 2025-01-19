@@ -99,7 +99,6 @@ trait CompanySettingsSaver
             CompanyTaxRate::dispatch($entity);
         }
 
-
         $entity->save();
     }
 
@@ -208,14 +207,6 @@ trait CompanySettingsSaver
                     $value = 'string';
                 }
 
-                // if ($key == 'gmail_sending_user_id') {
-                //     $value = 'string';
-                // }
-
-                // if ($key == 'besr_id') {
-                //     $value = 'string';
-                // }
-
                 if (! property_exists($settings, $key)) {
                     continue;
                 } elseif ($this->checkAttribute($value, $settings->{$key})) {
@@ -270,12 +261,10 @@ trait CompanySettingsSaver
             case 'int':
             case 'integer':
                 return ctype_digit(strval(abs((int) $value)));
-                // return is_int($value) || ctype_digit(strval(abs($value)));
             case 'real':
             case 'float':
             case 'double':
                 return ! is_string($value) && (is_float($value) || is_numeric(strval($value)));
-                //                return is_float($value) || is_numeric(strval($value));
             case 'string':
                 return (is_string($value) && method_exists($value, '__toString')) || is_null($value) || is_string($value);
             case 'bool':

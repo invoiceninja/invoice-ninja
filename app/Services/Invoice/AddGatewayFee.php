@@ -21,7 +21,7 @@ use App\Models\Product;
 
 class AddGatewayFee extends AbstractService
 {
-    public function __construct(private CompanyGateway $company_gateway, private int $gateway_type_id, public Invoice $invoice, private float $amount)
+    public function __construct(private CompanyGateway $company_gateway, private int $gateway_type_id, public Invoice $invoice, private float $amount, private string $payment_hash_string)
     {
     }
 
@@ -33,29 +33,8 @@ class AddGatewayFee extends AbstractService
             return $this->invoice;
         }
 
-        // Removes existing stale gateway fees
-        $this->cleanPendingGatewayFees();
+        return $gateway_fee > 0 ? $this->processGatewayFee($gateway_fee) : $this->processGatewayDiscount($gateway_fee);
 
-        // If a gateway fee is > 0 insert the line item
-        if ($gateway_fee > 0) {
-            return $this->processGatewayFee($gateway_fee);
-        }
-
-        // If we have reached this far, then we are apply a gateway discount
-        return $this->processGatewayDiscount($gateway_fee);
-    }
-
-    private function cleanPendingGatewayFees()
-    {
-        $invoice_items = (array) $this->invoice->line_items;
-
-        $invoice_items = collect($invoice_items)->filter(function ($item) {
-            return $item->type_id != '3';
-        })->toArray();
-
-        $this->invoice->line_items = $invoice_items;
-
-        return $this;
     }
 
     private function processGatewayFee($gateway_fee)
@@ -73,6 +52,7 @@ class AddGatewayFee extends AbstractService
         $invoice_item->notes = ctrans('texts.online_payment_surcharge');
         $invoice_item->quantity = 1;
         $invoice_item->cost = $gateway_fee;
+        $invoice_item->unit_code = $this->payment_hash_string;
 
         if ($fees_and_limits = $this->company_gateway->getFeesAndLimits($this->gateway_type_id)) {
             $invoice_item->tax_rate1 = $fees_and_limits->fee_tax_rate1;

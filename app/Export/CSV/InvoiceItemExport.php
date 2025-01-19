@@ -68,8 +68,6 @@ class InvoiceItemExport extends BaseExport
 
         $this->input['report_keys'] = array_merge($this->input['report_keys'], array_diff($this->forced_client_fields, $this->input['report_keys']));
 
-        nlog("xx");
-        nlog($this->input['report_keys']);
         $query = Invoice::query()
                         ->withTrashed()
                         ->with('client')

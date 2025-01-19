@@ -119,6 +119,10 @@ class AuthorizeTransaction
         $transactionRequestType->setOrder($order);
         $transactionRequestType->addToTransactionSettings($duplicateWindowSetting);
 
+        $solution = new \net\authorize\api\contract\v1\SolutionType();
+        $solution->setId($this->authorize->company_gateway->getConfigField('testMode') ? 'AAA100303' : 'AAA172036');
+        $transactionRequestType->setSolution($solution);
+
         $transactionRequestType->setPayment($paymentOne);
         $transactionRequestType->setCurrencyCode($this->authorize->client->currency()->code);
 

@@ -103,7 +103,6 @@ class GenerateDeliveryNote
         ];
 
         $maker = new PdfMakerService($state);
-
         $maker
             ->design($template)
             ->build();

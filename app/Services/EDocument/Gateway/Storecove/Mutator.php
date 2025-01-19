@@ -612,6 +612,7 @@ class Mutator implements MutatorInterface
             $identifier = $this->getClientPublicIdentifier($code);
         }
 
+        $identifier = str_ireplace(["FR","BE"],"", $identifier);
 
         $this->setStorecoveMeta($this->buildRouting([
                 ["scheme" => $code, "id" => $identifier]

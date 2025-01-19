@@ -116,8 +116,10 @@ class AutoBillInvoice extends AbstractService
 
         nlog("Gateway present - adding gateway fee on {$amount}");
 
+        $payment_hash_string = Str::random(32);
+
         /* $gateway fee */
-        $this->invoice = $this->invoice->service()->addGatewayFee($gateway_token->gateway, $gateway_token->gateway_type_id, $amount)->save();
+        $this->invoice = $this->invoice->service()->addGatewayFee($gateway_token->gateway, $gateway_token->gateway_type_id, $amount, $payment_hash_string)->save();
 
         //change from $this->invoice->amount to $this->invoice->balance
         if ($is_partial) {
@@ -135,7 +137,7 @@ class AutoBillInvoice extends AbstractService
         /* Build payment hash */
 
         $payment_hash = PaymentHash::create([
-            'hash' => Str::random(32),
+            'hash' => $payment_hash_string,
             'data' => [
                 'amount_with_fee' => $amount + $fee,
                 'invoices' => [

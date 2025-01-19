@@ -62,7 +62,11 @@ class DesignRepository extends BaseRepository
     public function restore($design)
     {
 
-        $design->name = str_ireplace("_deleted_", "_restored_", $design->name);
+        // $design->name = str_ireplace("_deleted_", "_restored_", $design->name);
+
+        $clean_name = preg_replace('/_deleted_[a-zA-Z0-9]+$/', '', $design->name);
+
+        $design->name = $clean_name;
 
         parent::restore($design);
 

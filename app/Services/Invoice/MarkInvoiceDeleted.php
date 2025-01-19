@@ -11,6 +11,7 @@
 
 namespace App\Services\Invoice;
 
+use App\Events\Invoice\InvoiceWasDeleted;
 use App\Jobs\Inventory\AdjustProductInventory;
 use App\Models\Invoice;
 use App\Models\Quote;
@@ -33,10 +34,7 @@ class MarkInvoiceDeleted extends AbstractService
 
     public function run()
     {
-        if ($this->invoice->is_deleted) {
-            return $this->invoice;
-        }
-
+        
         if ($this->invoice->company->track_inventory) {
             (new AdjustProductInventory($this->invoice->company, $this->invoice, []))->handleDeletedInvoice();
         }
@@ -48,6 +46,10 @@ class MarkInvoiceDeleted extends AbstractService
              ->adjustPaidToDateAndBalance()
              ->adjustLedger()
              ->triggeredActions();
+
+        $this->invoice->delete();
+
+        event(new \App\Events\Invoice\InvoiceWasDeleted($this->invoice, $this->invoice->company, \App\Utils\Ninja::eventVars(auth()->guard('api')->user() ? auth()->guard('api')->user()->id : null)));
 
         return $this->invoice;
     }

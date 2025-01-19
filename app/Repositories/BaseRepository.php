@@ -183,10 +183,10 @@ class BaseRepository
 
         $model->fill($tmp_data);
 
-        $model->custom_surcharge_tax1 = $client->company->custom_surcharge_taxes1;
-        $model->custom_surcharge_tax2 = $client->company->custom_surcharge_taxes2;
-        $model->custom_surcharge_tax3 = $client->company->custom_surcharge_taxes3;
-        $model->custom_surcharge_tax4 = $client->company->custom_surcharge_taxes4;
+        $model->custom_surcharge_tax1 = $client->getSetting('e_invoice_type') == 'PEPPOL' ? true : $client->company->custom_surcharge_taxes1;
+        $model->custom_surcharge_tax2 = $client->getSetting('e_invoice_type') == 'PEPPOL' ? true : $client->company->custom_surcharge_taxes2;
+        $model->custom_surcharge_tax3 = $client->getSetting('e_invoice_type') == 'PEPPOL' ? true : $client->company->custom_surcharge_taxes3;
+        $model->custom_surcharge_tax4 = $client->getSetting('e_invoice_type') == 'PEPPOL' ? true : $client->company->custom_surcharge_taxes4;
 
         if (!$model->id) {
             $this->new_model = true;

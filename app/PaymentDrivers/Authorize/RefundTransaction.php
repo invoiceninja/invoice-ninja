@@ -83,6 +83,10 @@ class RefundTransaction
         $transactionRequest->setPayment($paymentOne);
         $transactionRequest->setRefTransId($payment->transaction_reference);
 
+        $solution = new \net\authorize\api\contract\v1\SolutionType();
+        $solution->setId($this->authorize->company_gateway->getConfigField('testMode') ? 'AAA100303' : 'AAA172036');
+        $transactionRequest->setSolution($solution);
+
         $request = new CreateTransactionRequest();
         $request->setMerchantAuthentication($this->authorize->merchant_authentication);
         $request->setRefId($refId);

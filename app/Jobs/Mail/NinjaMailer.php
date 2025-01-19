@@ -49,6 +49,10 @@ class NinjaMailer extends Mailable
             $ninja_mailable->text($this->mail_obj->text_view, $this->mail_obj->data);
         }
 
+        if (property_exists($this->mail_obj, 'bcc')) {
+            $ninja_mailable->bcc($this->mail_obj->bcc);
+        }
+
         return $ninja_mailable;
     }
 }

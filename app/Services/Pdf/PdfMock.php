@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -673,9 +674,9 @@ class PdfMock
             '$company.website_label' => ctrans('texts.website'),
             '$invoice.balance_label' => ctrans('texts.balance'),
             '$client.country_label' => ctrans('texts.country'),
-            '$task.tax_name1_label' => ctrans('texts.tax_name1'),
-            '$task.tax_name2_label' => ctrans('texts.tax_name2'),
-            '$task.tax_name3_label' => ctrans('texts.tax_name3'),
+            '$task.tax_name1_label' => ctrans('texts.tax'),
+            '$task.tax_name2_label' => ctrans('texts.tax'),
+            '$task.tax_name3_label' => ctrans('texts.tax'),
             '$payment_button_label' => '',
             '$credit.custom1_label' => ctrans('texts.custom1'),
             '$credit.custom2_label' => ctrans('texts.custom2'),

@@ -257,6 +257,7 @@ class StorecoveAdapter
             // $id = str_ireplace("fr","", $this->ninja_invoice->client->vat_number);
             $id = $this->ninja_invoice->client->vat_number;
             $scheme = $this->storecove->router->setInvoice($this->ninja_invoice)->resolveTaxScheme($this->ninja_invoice->client->country->iso_3166_2, $this->ninja_invoice->client->classification ?? 'individual');
+            // $id = str_ireplace(["FR","BE"],"", $id);
             $pi = new \App\Services\EDocument\Gateway\Storecove\Models\PublicIdentifiers($scheme, $id);
             $accounting_customer_party->addPublicIdentifiers($pi);
             $this->storecove_invoice->setAccountingCustomerParty($accounting_customer_party);

@@ -11,6 +11,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\InboundMail\InboundMailEngine;
 use App\Utils\Ninja;
 use App\Models\Company;
 use App\Libraries\MultiDB;
@@ -137,14 +138,15 @@ class MailgunController extends BaseController
             return response()->json(['message' => 'Failed. Missing Parameters. Use store and notify!'], 400);
         }
 
-        /** @var \App\Models\Company $company */
-        $company = MultiDB::findAndSetDbByExpenseMailbox($input["recipient"]);
+        $inboundEngine = new InboundMailEngine();
 
-        if (!$company) {
-            return response()->json(['message' => 'Ok'], 200);
-        }  // Fail gracefully
+        // Spam protection
+        if ($inboundEngine->isInvalidOrBlocked($input["sender"], $input["recipient"])) {
+            return;
+        }
 
-        ProcessMailgunInboundWebhook::dispatch($input["sender"], $input["recipient"], $input["message-url"], $company)->delay(rand(2, 10));
+        // Dispatch Job for processing
+        ProcessMailgunInboundWebhook::dispatch($input["sender"], $input["recipient"], $input["message-url"])->delay(rand(2, 10));
 
         return response()->json(['message' => 'Success.'], 200);
     }

@@ -56,7 +56,7 @@ class Preloader
 
         $count = self::$count;
 
-        echo "[Preloader] Preloaded {$count} classes" . PHP_EOL;
+        // echo "[Preloader] Preloaded {$count} classes" . PHP_EOL;
     }
 
     private function loadPath(string $path): void
@@ -144,12 +144,16 @@ class Preloader
         __DIR__ . '/vendor/laravel/framework/src/Illuminate/Http/Testing',
         __DIR__ . '/vendor/laravel/framework/src/Illuminate/Testing',
         __DIR__ . '/vendor/laravel/framework/src/Illuminate/Foundation/Testing',
+        __DIR__ . '/vendor/laravel/octane/src/Testing',
     ])
     ->ignore(
         \Illuminate\Filesystem\Cache::class,
-        \Illuminate\Log\LogManager::class,
-        \Illuminate\Http\Testing\File::class,
         \Illuminate\Http\UploadedFile::class,
+        \Illuminate\Log\LogManager::class,
         \Illuminate\Support\Carbon::class,
+        \Illuminate\Console\View\Components\Choice::class,
+        \Laravel\Octane\Tables\OpenSwooleTable::class,
+        \Laravel\Octane\Tables\SwooleTable::class,
+        \Laravel\Octane\WorkerExceptionInspector::class,
     )
     ->load();

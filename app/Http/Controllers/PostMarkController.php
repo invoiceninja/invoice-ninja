@@ -282,6 +282,14 @@ class PostMarkController extends BaseController
             return response()->json(['message' => 'Failed. Missing/Invalid Parameters.'], 400);
         }
 
+        $inboundEngine = new InboundMailEngine();
+
+        // Spam protection
+        if ($inboundEngine->isInvalidOrBlocked($input["From"], $input["ToFull"][0]["Email"])) {
+            return;
+        }
+
+        // match company
         $company = MultiDB::findAndSetDbByExpenseMailbox($input["ToFull"][0]["Email"]);
 
         if (!$company) {
@@ -289,11 +297,7 @@ class PostMarkController extends BaseController
             return response()->json(['message' => 'Ok'], 200);
         }
 
-        $inboundEngine = new InboundMailEngine($company);
-
-        if ($inboundEngine->isInvalidOrBlocked($input["From"], $input["ToFull"][0]["Email"])) {
-            return response()->json(['message' => 'Blocked.'], 403);
-        }
+        $inboundEngine->setCompany($company);
 
         try { // important to save meta if something fails here to prevent spam
 

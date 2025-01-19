@@ -64,15 +64,19 @@ class InvoiceRepository extends BaseRepository
      */
     public function delete($invoice): Invoice
     {
-        $invoice = $invoice->fresh();
+        
+        $invoice = \DB::transaction(function () use ($invoice) {
+           return \App\Models\Invoice::withTrashed()->lockForUpdate()->find($invoice->id);
+        });
 
-        if ($invoice->is_deleted) {
+        if (!$invoice || $invoice->is_deleted) {
             return $invoice;
         }
 
+        $invoice->is_deleted = true;
+        $invoice->saveQuietly();
+        
         $invoice = $invoice->service()->markDeleted()->save();
-
-        parent::delete($invoice);
 
         return $invoice;
     }

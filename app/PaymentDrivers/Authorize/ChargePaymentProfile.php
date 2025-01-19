@@ -92,6 +92,10 @@ class ChargePaymentProfile
         $transactionRequestType->setProfile($profileToCharge);
         $transactionRequestType->setCurrencyCode($this->authorize->client->currency()->code);
 
+        $solution = new \net\authorize\api\contract\v1\SolutionType();
+        $solution->setId($this->authorize->company_gateway->getConfigField('testMode') ? 'AAA100303' : 'AAA172036');
+        $transactionRequestType->setSolution($solution);
+
         $request = new CreateTransactionRequest();
         $request->setMerchantAuthentication($this->authorize->merchant_authentication);
         $request->setRefId($refId);

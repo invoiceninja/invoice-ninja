@@ -276,11 +276,62 @@
         bottom: 0;
     }
 
-    [data-element='product_table-product.description-td'], td {
-        min-width:100%;
-        max-width: 300px;
-        overflow-wrap: break-word; 
+
+    [data-ref='product_table-product.description-td'],
+    [data-ref='task_table-task.description-td']{
+        min-width: 100px !important;
+        overflow-wrap: break-word;
     }
+
+    [data-ref='product_table-product.item-th'],
+    [data-ref='task_table-task.service-th']{
+        width: 10%;
+    }
+
+    [data-ref='product_table-product.unit_cost-th'],
+    [data-ref='task_table-task.cost-th'] {
+        width: 13%;
+    }
+
+    [data-ref='product_table-product.quantity-th'],
+    [data-ref='task_table-task.hours-th'],
+    [data-ref='product_table-product.product1-th'],
+    [data-ref='product_table-product.product2-th'],
+    [data-ref='product_table-product.product3-th'],
+    [data-ref='product_table-product.product4-th'] {
+        width: 8%;
+    }
+
+    [data-ref='product_table-product.tax1-th'] {
+        width: 6%;
+    }
+
+    [data-ref='product_table-product.line_total-th'],
+    [data-ref='product_table-product.line_total-td'] {
+        width: 13%;
+        text-align: right;
+    }
+
+    [data-ref='task_table-task.discount-th'],
+    [data-ref='task_table-task.quantity-th'],
+    [data-ref='task_table-task.task1-th'],
+    [data-ref='task_table-task.task2-th'],
+    [data-ref='task_table-task.task3-th'],
+    [data-ref='task_table-task.task4-th'] {
+        width: 10%;
+    }
+
+    
+    [data-ref='task_table-task.tax1-th'] {
+        width: 10%;
+    }
+
+    [data-ref='task_table-task.line_total-th'],
+    [data-ref='task_table-task.line_total-td'] {
+        width: 13%;
+        text-align: right !important;
+    }
+
 
     .stamp {
       transform: rotate(12deg);
@@ -328,6 +379,11 @@
     .pqrcode {
         
     }
+
+    #qr-bill{
+        width:100% !important;
+    }
+    
     /** Useful snippets, uncomment to enable. **/
 
     /** Hide company logo **/
@@ -450,25 +506,6 @@ $entity_images
 <div class="repeating-footerx" id="footer">
    <p data-ref="total_table-footer">$entity_footer</p>
 
-        <script>
-            // Clear up space a bit, if [product-table, tasks-table, delivery-note-table] isn't present.
-            document.addEventListener('DOMContentLoaded', () => {
-                let tables = [
-                    'product-table', 'task-table', 'delivery-note-table',
-                    'statement-invoice-table', 'statement-payment-table', 'statement-aging-table-totals',
-                    'statement-invoice-table-totals', 'statement-payment-table-totals', 'statement-aging-table',
-                    'client-details', 'vendor-details', 'swiss-qr', 'shipping-details', 'statement-credit-table', 'statement-credit-table-totals',
-                ];
-
-                tables.forEach((tableIdentifier) => {
-                    console.log(document.getElementById(tableIdentifier));
-
-                    document.getElementById(tableIdentifier)?.childElementCount === 0
-                        ? document.getElementById(tableIdentifier).style.setProperty('display', 'none', 'important')
-                        : '';
-                });
-            });
-        </script>
 </div>
 
 

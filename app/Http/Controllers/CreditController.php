@@ -32,6 +32,7 @@ use App\Events\Credit\CreditWasCreated;
 use App\Events\Credit\CreditWasUpdated;
 use App\Transformers\CreditTransformer;
 use Illuminate\Support\Facades\Storage;
+use App\Events\General\EntityWasEmailed;
 use App\Services\Template\TemplateAction;
 use App\Http\Requests\Credit\BulkCreditRequest;
 use App\Http\Requests\Credit\EditCreditRequest;
@@ -640,9 +641,7 @@ class CreditController extends BaseController
             case 'email':
             case 'send_email':
 
-                $credit->invitations->load('contact.client.country', 'credit.client.country', 'credit.company')->each(function ($invitation) use ($credit) {
-                    EmailEntity::dispatch($invitation->withoutRelations(), $credit->company->db, 'credit');
-                });
+                $credit->service()->sendEmail();
 
                 if (! $bulk) {
                     return response()->json(['message' => 'email sent'], 200);
