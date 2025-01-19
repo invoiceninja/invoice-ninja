@@ -52,6 +52,9 @@ trait VerifiesUserEmail
                 'message' => ctrans('texts.wrong_confirmation'),
                 'redirect_url' => $react ? config('ninja.react_url')."/#/" : url('/')]);
         }
+        
+        $user->email_verified_at = now();
+        $user->save();
 
         if (isset($user->oauth_user_id)) {
             return $this->render('auth.confirmed', [

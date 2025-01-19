@@ -165,6 +165,23 @@ class NinjaMailerJob implements ShouldQueue
                 $this->company->save();
             }
 
+            if (stripos($e->getMessage(), 'code 406') !== false) {
+
+                $email = $this->nmo->to_user->email ?? '';
+
+                $message = "Recipient {$email} has been suppressed and cannot receive emails from you.";
+
+                $this->fail();
+                $this->cleanUpMailers();
+                $this->logMailError($message, $this->company->clients()->first());
+
+                if ($this->nmo->entity) {
+                    $this->entityEmailFailed($message);
+                }
+
+                return;
+            }
+
             $this->fail();
             $this->cleanUpMailers();
             $this->logMailError($e->getMessage(), $this->company->clients()->first());
@@ -223,25 +240,6 @@ class NinjaMailerJob implements ShouldQueue
                 return $this->setMailDriver();
 
             }
-
-            if (stripos($e->getMessage(), 'code 406') !== false) {
-
-                $email = $this->nmo->to_user->email ?? '';
-
-                $message = "Recipient {$email} has been suppressed and cannot receive emails from you.";
-
-                $this->fail();
-                $this->logMailError($message, $this->company->clients()->first());
-
-                if ($this->nmo->entity) {
-                    $this->entityEmailFailed($message);
-                }
-
-                $this->cleanUpMailers();
-
-                return;
-            }
-
 
             /**
              * Post mark buries the proper message in a guzzle response

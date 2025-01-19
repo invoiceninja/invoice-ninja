@@ -78,7 +78,7 @@ class DemoMode extends Command
     {
         set_time_limit(0);
 
-        if (config('ninja.is_docker')) {
+        if (config('ninja.is_docker') || Ninja::isHosted()) {
             return;
         }
 

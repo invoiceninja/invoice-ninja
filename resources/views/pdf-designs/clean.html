@@ -8,7 +8,8 @@
     }
 
     html {
-        
+        width: 210mm;
+        height: 200mm;
     }
 
     body {
@@ -19,7 +20,9 @@
         zoom: 80%;
     }
 
-    table tr td, table tr, th {
+    table tr td,
+    table tr,
+    th {
         font-size: $font_size !important;
     }
 
@@ -36,7 +39,11 @@
         margin: 0;
         padding: 0;
     }
-    
+
+   #qr-bill{
+        width:100% !important;
+    }
+
     .header-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -58,7 +65,7 @@
         line-height: var(--line-height);
     }
 
-    #company-details > p:first-child {
+    #company-details>p:first-child {
         color: var(--primary-color);
     }
 
@@ -74,27 +81,25 @@
         padding-left: 1rem;
         margin-bottom: 1rem;
         font-weight: bold;
-        font-size:120%;
         color: var(--primary-color);
     }
 
     .client-and-entity-wrapper {
         padding: 1rem;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1fr 1fr 1fr;
         border-top: 1px solid #d8d8d8;
         border-bottom: 1px solid #d8d8d8;
-        width:100%;
     }
 
     #entity-details {
-        display:flex;
+        display: flex;
         text-align: left;
         margin-right: 20px;
         line-height: var(--line-height) !important;
     }
 
-    #entity-details > tr,
+    #entity-details>tr,
     #entity-details th {
         font-weight: normal;
         padding-right: 15px;
@@ -105,9 +110,10 @@
         display: flex;
         flex-direction: column;
         line-height: var(--line-height);
+        padding-right: 30px;
     }
 
-    #client-details > :first-child {
+    #client-details> :first-child {
         font-weight: bold;
     }
 
@@ -116,11 +122,11 @@
         flex-direction: column;
         line-height: var(--line-height);
     }
-    
+
     [data-ref="table"] {
         margin-top: 1rem;
         margin-bottom: 5px;
-        width: 100%;
+        min-width: 100%;
         table-layout: fixed;
         overflow-wrap: break-word;
     }
@@ -131,23 +137,23 @@
         color: grey;
     }
 
-    [data-ref="table"] > thead {
+    [data-ref="table"]>thead {
         text-align: left;
     }
 
-    [data-ref="table"] > thead > tr > th {
+    [data-ref="table"]>thead>tr>th {
         font-size: 1.1rem;
-        padding-bottom: 1rem;
+        padding-bottom: 1.5rem;
         padding-left: 1rem;
     }
 
-    [data-ref="table"] > tbody > tr > td {
+    [data-ref="table"]>tbody>tr>td {
         border-top: 1px solid #d8d8d8;
         border-bottom: 1px solid #d8d8d8;
         padding: 1rem 1rem;
     }
 
-    th.right-radius {
+     th.right-radius {
         padding-right: 1rem;
         text-align: right;
     }
@@ -156,7 +162,11 @@
         text-align: right;
     }
 
-    [data-ref="table"] > tbody > tr:nth-child(odd) {
+    [data-ref='product_table-product.item-td']{
+        color: var(--primary-color);
+    }
+    
+    [data-ref="table"]>tbody>tr:nth-child(odd) {
         background-color: #f5f5f5;
     }
 
@@ -168,11 +178,11 @@
         padding-right: 1rem;
         padding-left: 1rem;
         gap: 80px;
-        page-break-inside:avoid;
+        page-break-inside: avoid;
         overflow: visible !important;
     }
 
-    #table-totals .totals-table-right-side > * {
+    #table-totals .totals-table-right-side>* {
         display: grid;
         grid-template-columns: 1fr 1fr;
     }
@@ -186,28 +196,22 @@
         text-align: right;
     }
 
-    #table-totals>.totals-table-right-side> * > :not([hidden]) ~ :not([hidden]) {
+    #table-totals>.totals-table-right-side>*> :not([hidden])~ :not([hidden]) {
         --tw-space-y-reverse: 0;
         margin-top: calc(.75rem * calc(1 - var(--tw-space-y-reverse)));
         margin-bottom: calc(.75rem * var(--tw-space-y-reverse));
     }
 
-    #table-totals
-    > *
-    [data-element='product-table-balance-due-label'],
-    #table-totals
-    > *
-    [data-element='product-table-balance-due'] {
+    #table-totals>* [data-element='product-table-balance-due-label'],
+    #table-totals>* [data-element='product-table-balance-due'] {
         font-weight: bold;
     }
 
-    #table-totals
-    > *
-    [data-element='product-table-balance-due'] {
+    #table-totals>* [data-element='product-table-balance-due'] {
         color: var(--primary-color);
     }
 
-    #table-totals > * > :last-child {
+    #table-totals>*> :last-child {
         text-align: right;
         padding-right: 0.5rem;
     }
@@ -234,7 +238,7 @@
         text-align: right;
         margin-right: .75rem;
     }
-    
+
     [data-ref*=".line_total-td"] {
         white-space: nowrap;
     }
@@ -245,63 +249,25 @@
     .repeating-footer-space {
         height: 10px;
     }
+
     .repeating-header {
         position: fixed;
         top: 0;
     }
+
     .repeating-footer {
         position: fixed;
         bottom: 0;
     }
 
-    [data-ref='product_table-product.description-th'],
-    [data-ref='product_table-product.description-td'] {
-        min-width: 150px !important;
+    [data-ref='product_table-product.description-td'], td {
+        min-width: 100%;
+        max-width: 300px;
         overflow-wrap: break-word;
-    }
-
-    [data-ref='product_table-product.item-td']{
-        color: var(--primary-color);
-    }
-    
-    [data-ref='product_table-product.item-th'],
-    [data-ref='product_table-product.unit_cost-th'],
-    [data-ref='product_table-product.quantity-th'] {
-        width: 12%;
-    }
-
-    [data-ref='product_table-product.tax1-th'] {
-        width: 6%;
-    }
-
-    [data-ref='product_table-product.line_total-th'] {
-        width: 10%;
-    }
-
-    [data-ref='task_table-task.description-th'],
-    [data-ref='task_table-task.description-td'] {
-        min-width: 100px !important;
-        overflow-wrap: break-word;
-    }
-
-    [data-ref='task_table-task.hours-th'],
-    [data-ref='task_table-task.service-th'],
-    [data-ref='task_table-task.discount-th'],
-    [data-ref='task_table-task.cost-th'],
-    [data-ref='task_table-task.quantity-th'] {
-        width: 12%;
-    }
-
-    [data-ref='task_table-task.tax1-th'] {
-        width: 6%;
-    }
-
-    [data-ref='task_table-task.line_total-th'] {
-        width: 10%;
     }
 
     .stamp {
-      transform: rotate(12deg);
+        transform: rotate(12deg);
         color: #555;
         font-size: 3rem;
         font-weight: 700;
@@ -312,26 +278,26 @@
         border-radius: 1rem;
         font-family: 'Courier';
         mix-blend-mode: multiply;
-        z-index:200 !important;
-        position:  fixed;
+        z-index: 200 !important;
+        position: fixed;
         text-align: center;
-        float:right;
+        float: right;
 
     }
 
     .is-paid {
-        color:  #D23;
-        border: 1rem double  #D23;
+        color: #D23;
+        border: 1rem double #D23;
         transform: rotate(-5deg);
         font-size: 6rem;
         font-family: "Open sans", Helvetica, Arial, sans-serif;
         border-radius: 0;
         padding: 0.5rem;
         opacity: 0.2;
-        z-index:200 !important;
-        position:  fixed;
+        z-index: 200 !important;
+        position: fixed;
         display: $show_paid_stamp;
-    } 
+    }
 
     .project-header {
         font-size: 1.2em;
@@ -342,15 +308,9 @@
         margin-right: 0;
         font-weight: bold;
         color: #505050;
-    } 
+    }
 
-    .pqrcode {
-        
-    }
-    
-    #qr-bill{
-        width:100% !important;
-    }
+    .pqrcode {}
 
     /** Useful snippets, uncomment to enable. **/
 
@@ -383,56 +343,56 @@
 </style>
 
 <table style="min-width: 100%">
-   <thead>
-      <tr>
-         <td>
-            <div class="repeating-header-space">&nbsp;</div>
-         </td>
-      </tr>
-   </thead>
-   <tbody>
-      <tr>
-         <td>
-            <div id="body">
-               <div class="header-container">
-                  <div class="company-logo-container">
-                     <img class="company-logo" src="$company.logo" alt="$company.name logo">
-                  </div>
-                  <div id="company-details"></div>
-                  <div id="company-address"></div>
-               </div>
-               <p class="entity-label">$entity_label</p>
-               <div class="client-and-entity-wrapper">
-                  <div>
-                     <table id="entity-details" cellspacing="0" cellpadding="0" dir="$dir"></table>
-                  </div>
-                  <div id="client-details"></div>
-                  <div id="vendor-details"></div>
-                  <div id="shipping-details"></div>
-               </div>
-               <table id="product-table" cellspacing="0" data-ref="table"></table>
-               <table id="task-table" cellspacing="0" data-ref="table"></table>
-               <table id="delivery-note-table" cellspacing="0" data-ref="table"></table>
-               <table id="statement-invoice-table" cellspacing="0" data-ref="table"></table>
-               <div id="statement-invoice-table-totals" data-ref="statement-totals"></div>
-               <table id="statement-payment-table" cellspacing="0" data-ref="table"></table>
-               <div id="statement-payment-table-totals" data-ref="statement-totals"></div>
-                <table id="statement-credit-table" cellspacing="0" data-ref="table"></table>
-                <div id="statement-credit-table-totals" data-ref="statement-totals"></div>
-               <table id="statement-aging-table" cellspacing="0" data-ref="table"></table>
-               <div id="statement-aging-table-totals" data-ref="statement-totals"></div>
-               <div id="table-totals" cellspacing="0">$status_logo</div>
-            </div>
-         </td>
-      </tr>
-   </tbody>
-   <tfoot>
-      <tr>
-         <td>
-            <div class="repeating-footer-space">&nbsp;</div>
-         </td>
-      </tr>
-   </tfoot>
+    <thead>
+        <tr>
+            <td>
+                <div class="repeating-header-space">&nbsp;</div>
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <div id="body">
+                    <div class="header-container">
+                        <div class="company-logo-container">
+                            <img class="company-logo" src="$company.logo" alt="$company.name logo">
+                        </div>
+                        <div id="company-details"></div>
+                        <div id="company-address"></div>
+                    </div>
+                    <p class="entity-label">$entity_label</p>
+                    <div class="client-and-entity-wrapper">
+                        <div>
+                            <table id="entity-details" cellspacing="0" cellpadding="0" dir="$dir"></table>
+                        </div>
+                        <div id="client-details"></div>
+                        <div id="vendor-details"></div>
+                        <div id="shipping-details"></div>
+                    </div>
+                    <table id="product-table" cellspacing="0" data-ref="table"></table>
+                    <table id="task-table" cellspacing="0" data-ref="table"></table>
+                    <table id="delivery-note-table" cellspacing="0" data-ref="table"></table>
+                    <table id="statement-invoice-table" cellspacing="0" data-ref="table"></table>
+                    <div id="statement-invoice-table-totals" data-ref="statement-totals"></div>
+                    <table id="statement-payment-table" cellspacing="0" data-ref="table"></table>
+                    <div id="statement-payment-table-totals" data-ref="statement-totals"></div>
+                    <table id="statement-credit-table" cellspacing="0" data-ref="table"></table>
+                    <div id="statement-credit-table-totals" data-ref="statement-totals"></div>
+                    <table id="statement-aging-table" cellspacing="0" data-ref="table"></table>
+                    <div id="statement-aging-table-totals" data-ref="statement-totals"></div>
+                    <div id="table-totals" cellspacing="0">$status_logo</div>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td>
+                <div class="repeating-footer-space">&nbsp;</div>
+            </td>
+        </tr>
+    </tfoot>
 </table>
 
 <div class="repeating-header" id="header"></div>
@@ -440,6 +400,5 @@
 $entity_images
 
 <div class="repeating-footerx" id="footer">
-   <p data-ref="total_table-footer">$entity_footer</p>
-
+    <p data-ref="total_table-footer">$entity_footer</p>
 </div>

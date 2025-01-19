@@ -118,12 +118,14 @@ class DocumentsTable extends Component
 
     protected function documents()
     {
-        return $this->client()->documents()
+        $client = $this->client();
+
+        return $client->documents()
             ->where('is_public', true)
-            ->orWhere(function ($query){
+            ->orWhere(function ($query) use ($client) {
                                 
-                $query->whereHasMorph('documentable', [Company::class], function ($q) {
-                    $q->where('is_public', true);
+                $query->whereHasMorph('documentable', [Company::class], function ($q) use ($client) {
+                    $q->where('is_public', true)->where('company_id', $client->company_id);
                 });
 
             });

@@ -301,10 +301,25 @@ class Purify
 
                 } else {
                 // First, remove ALL attributes from the node
-                    while ($node->attributes->length > 0) {
-                        $attr = $node->attributes->item(0);
-                        $node->removeAttribute($attr->nodeName);
-                    }
+                    // while ($node->attributes->length > 0) {
+                    //     $attr = $node->attributes->item(0);
+                    //     $node->removeAttribute($attr->nodeName);
+                    // }
+
+                    
+if ($node instanceof \DOMElement) {
+    // Create a list of attributes to remove
+    $attributes_to_remove = [];
+    foreach ($node->attributes as $attr) {
+        $attributes_to_remove[] = $attr->nodeName;
+    }
+
+    // Remove the attributes
+    foreach ($attributes_to_remove as $attr_name) {
+        $node->removeAttribute($attr_name);
+    }
+}
+
                 }
 
                 // Then add back only the allowed attributes

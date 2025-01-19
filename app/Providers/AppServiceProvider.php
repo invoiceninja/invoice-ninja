@@ -145,6 +145,11 @@ class AppServiceProvider extends ServiceProvider
             return $this;
         });
 
+
+        //Prevents destructive commands from being run in hosted environments
+        \DB::prohibitDestructiveCommands(Ninja::isHosted());
+
+
     }
 
     public function register(): void

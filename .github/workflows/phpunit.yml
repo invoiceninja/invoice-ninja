@@ -120,7 +120,7 @@ jobs:
         
     - name: Migrate Database
       run: |
-        php artisan migrate:fresh --seed --force && php artisan db:seed --force
+        php artisan migrate && php artisan db:seed
   
     - name: Run Testsuite
       run: |

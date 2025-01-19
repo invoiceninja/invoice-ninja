@@ -139,6 +139,41 @@ class ClientTest extends TestCase
 
     }
 
+    public function testClientIsPrimaryScalarTransform()
+    {
+        $data = [
+            
+                'address1' => '105 Drive',
+                'address2' => '122',
+                'city' => 'NoRoses',
+                'contacts' => [
+                    '0' => [
+                        'email' => 'craig@gmail.za',
+                        'first_name' => 'Leon',
+                        'last_name' => 'Labagne'
+                    ],
+                    'is_primary' => true,
+                    'send_email' => false
+                ],
+                'country_id' => 710,
+                'id_number' => '2003/028851/06',
+                'name' => 'Targas Ltd',
+                'postal_code' => '2196',
+                'private_notes' => 'DMARC Client | Tenant ID: 45 | Team Name: Targas',
+                'state' => 'Gauteng',
+                'vat_number' => 'VAT: 33'
+            
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients', $data);
+
+        $response->assertStatus(200);
+
+    }
+
     public function testStoreClientFixes2()
     {
         $data = [

@@ -1114,14 +1114,14 @@ class PdfBuilder
             if (!isset($elements[$first_visible]['properties']['class'])) {//@phpstan-ignore-line
                 $elements[$first_visible]['properties']['class'] = 'left-radius';
             } else {
-                $elements[$first_visible]['properties']['class'] .= 'left-radius';
+                $elements[$first_visible]['properties']['class'] .= ' left-radius';
             }
 
             // Add class to last visible element
             if (!isset($elements[$last_visible]['properties']['class'])) {
                 $elements[$last_visible]['properties']['class'] = 'right-radius';
             } else {
-                $elements[$last_visible]['properties']['class'] .= 'right-radius';
+                $elements[$last_visible]['properties']['class'] .= ' right-radius';
             }
         }
                 

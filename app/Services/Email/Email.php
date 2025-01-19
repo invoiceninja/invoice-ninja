@@ -301,6 +301,23 @@ class Email implements ShouldQueue
                 $this->company->save();
             }
 
+            if (stripos($e->getMessage(), 'code 406') !== false) {
+
+                $address_object = reset($this->email_object->to);
+
+                $email = $address_object->address ?? '';
+
+                $message = "Recipient {$email} has been suppressed and cannot receive emails from you.";
+
+                $this->fail();
+                $this->logMailError($message, $this->company->clients()->first());
+                $this->cleanUpMailers();
+
+                $this->entityEmailFailed($message);
+
+                return;
+            }
+
             $this->fail();
             $this->cleanUpMailers();
             $this->logMailError($e->getMessage(), $this->company->clients()->first());
@@ -353,22 +370,7 @@ class Email implements ShouldQueue
 
             }
 
-            if (stripos($e->getMessage(), 'code 406') !== false) {
-
-                $address_object = reset($this->email_object->to);
-
-                $email = $address_object->address ?? '';
-
-                $message = "Recipient {$email} has been suppressed and cannot receive emails from you.";
-
-                $this->fail();
-                $this->logMailError($message, $this->company->clients()->first());
-                $this->cleanUpMailers();
-
-                $this->entityEmailFailed($message);
-
-                return;
-            }
+           
 
             /**
              * Post mark buries the proper message in a guzzle response

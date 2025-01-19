@@ -146,9 +146,9 @@
     }
 
 
- [data-ref='product_table-product.description-th'],
-    [data-ref='product_table-product.description-td'] {
-        min-width: 150px !important;
+    [data-ref='product_table-product.description-th'],
+    [data-ref='task_table-task.description-th'] {
+        width: 35% !important;
         overflow-wrap: break-word;
     }
 
@@ -156,42 +156,6 @@
         color: var(--primary-color);
     }
     
-    [data-ref='product_table-product.item-th'],
-    [data-ref='product_table-product.unit_cost-th'],
-    [data-ref='product_table-product.quantity-th'] {
-        width: 12%;
-    }
-
-    [data-ref='product_table-product.tax1-th'] {
-        width: 6%;
-    }
-
-    [data-ref='product_table-product.line_total-th'] {
-        width: 10%;
-    }
-
-    [data-ref='task_table-task.description-th'],
-    [data-ref='task_table-task.description-td'] {
-        min-width: 100px !important;
-        overflow-wrap: break-word;
-    }
-
-    [data-ref='task_table-task.hours-th'],
-    [data-ref='task_table-task.service-th'],
-    [data-ref='task_table-task.discount-th'],
-    [data-ref='task_table-task.cost-th'],
-    [data-ref='task_table-task.quantity-th'] {
-        width: 12%;
-    }
-
-    [data-ref='task_table-task.tax1-th'] {
-        width: 6%;
-    }
-
-    [data-ref='task_table-task.line_total-th'] {
-        width: 10%;
-    }
-
     [data-ref="table"] > thead {
         text-align: left;
     }
@@ -201,12 +165,12 @@
         padding: 1rem;
     }
 
-    [data-ref="table"] > thead > tr > th:last-child {
-        text-align: right;
+    th.right-radius {
+        text-align: right !important;
     }
 
-    [data-ref="table"] > tbody > tr > td:last-child {
-        text-align: right;
+    td.right-radius {
+        text-align: right !important;
     }
 
     [data-ref="table"] > tbody > tr > td {

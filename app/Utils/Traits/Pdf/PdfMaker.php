@@ -84,16 +84,16 @@ trait PdfMaker
         ];
 
         // if (config('ninja.snappdf_chromium_arguments')) {
-            $pdf->clearChromiumArguments();
+            // $pdf->clearChromiumArguments();
             // $pdf->addChromiumArguments(config('ninja.snappdf_chromium_arguments'));
-            $pdf->addChromiumArguments(implode(' ', $chrome_flags));
+            // $pdf->addChromiumArguments(implode(' ', $chrome_flags));
         // }
 
         if (config('ninja.snappdf_chromium_path')) {
             $pdf->setChromiumPath(config('ninja.snappdf_chromium_path'));
         }
 
-        $html = str_ireplace(['file:/', 'iframe', '<embed', '&lt;embed', '&lt;object', '<object', '127.0.0.1', 'localhost', '<?xml encoding="UTF-8">'], '', $html);
+        $html = str_ireplace(['file:/', 'iframe', '<embed', '&lt;embed', '&lt;object', '<object', '127.0.0.1', 'localhost', '<?xml encoding="UTF-8">', '/etc/'], '', $html);
 
         // nlog($html);
         $generated = $pdf
