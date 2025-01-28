@@ -59,6 +59,7 @@ jobs:
           rm -rf ui || true
           # Set permissions: directories 755, files 644
           chmod -R a=r,u+w,a+X .
+          chmod +x ./vendor/bin/*
 
       - name: Build project
         run: |
